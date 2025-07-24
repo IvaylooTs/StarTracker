@@ -2,9 +2,12 @@ import cv2
 import numpy as np
 import math
 
-CENTER_X = 2028
-CENTER_Y = 1520
-FOCAL_LENGTH = 3051.6
+FOV = 66
+IMAGE_WIDTH = 1964
+IMAGE_HEIGHT = 3024
+CENTER_X = IMAGE_WIDTH/2
+CENTER_Y = IMAGE_HEIGHT/2
+FOCAL_LENGTH = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV / 2))
 
 def star_coords_to_unit_vector(arg_star_coords, arg_center_coords, arg_focal_length):
     cx, cy = arg_center_coords
@@ -19,18 +22,78 @@ def star_coords_to_unit_vector(arg_star_coords, arg_center_coords, arg_focal_len
 
 def angular_distances(unit_vectors):
     num_of_vectors = len(unit_vectors)
-    angular_distances = []
+    angular_distances = {}
     for i in range(0, num_of_vectors):
         for j in range(i + 1, num_of_vectors):
             vector1 = unit_vectors[i]
             vector2 = unit_vectors[j]
+            
             dot_product = np.dot(vector1, vector2)
             dot__product_clamped = np.clip(dot_product, -1.0, 1.0)
+            
             angular_distance = np.arccos(dot__product_clamped)
-            angular_distance = np.degrees(angular_distance)
-            angular_distances.append(angular_distance)
+            angular_deg = np.degrees(angular_distance)
+            angular_distances[(i, j)] = angular_deg
     return angular_distances
+
+def distance1(x1, y1, x2, y2):
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+def angular_distances2(arg_star_coords):
+    angular_distances = {}
+    for i in range(len(arg_star_coords)):
+        x1, y1 = arg_star_coords[i]
+        for j in range(i + 1, len(arg_star_coords)):
+            x2, y2 = arg_star_coords[j]
+            distance = distance1(x1, y1, x2, y2)
+            ang_dist = distance / IMAGE_WIDTH * FOV
+            angular_distances[(i, j)] = ang_dist
+    return angular_distances
+        
+        
+def geometrically_consistent(image_to_catalog_assignment, image_pairs_to_ang_dist, catalog_ang_dist, tolerance):
+    for (star1, star2), ang_dist in image_pairs_to_ang_dist:
+        if star1 in image_to_catalog_assignment and star2 in image_to_catalog_assignment:
+            cat_star1 = image_to_catalog_assignment[star1]
+            cat_star2 = image_to_catalog_assignment[star2]
+            cat_ang_dist = catalog_ang_dist.get((cat_star1, cat_star2)) or catalog_ang_dist.get((cat_star2, cat_star1))
+            if cat_ang_dist is None or abs(cat_ang_dist - ang_dist) > tolerance:
+                return False
+    return True
+
+
+
+def get_possible_catalogs(current, graph_hypotheses):
+    possible_catalogs = set()
+    for (i1, i2), cat_pairs in graph_hypotheses.items():
+        if current == i1:
+            possible_catalogs.update(c[0] for c in cat_pairs)
+        elif current == i2:
+            possible_catalogs.update(c[1] for c in cat_pairs)
+    return possible_catalogs
+
+def DFS(image_to_catalog_assignment, image_pairs_to_ang_dist, catalog_ang_dist, tolerance, graph_hypotheses, image_stars):
+    if len(image_to_catalog_assignment) == len(image_stars):
+        return image_pairs_to_ang_dist
     
+    current = next(s for s in image_stars if s not in image_to_catalog_assignment)
+    possible_catalogs = get_possible_catalogs(current, graph_hypotheses)
+    for catalog_candidate in possible_catalogs:
+        for catalog_candidate in possible_catalogs:
+            if catalog_candidate in image_to_catalog_assignment.values():
+                continue 
+
+        image_to_catalog_assignment[current] = catalog_candidate
+
+        if geometrically_consistent(image_to_catalog_assignment, image_pairs_to_ang_dist, catalog_ang_dist, tolerance):
+            result = DFS(image_to_catalog_assignment, image_stars, image_pairs_to_ang_dist, graph_hypotheses, catalog_ang_dist, tolerance)
+            if result:
+                return result
+
+        del image_to_catalog_assignment[current]
+
+    return None
+        
     
 #tape fix
 def find_brightest_stars(image_path: str, num_stars_to_find: int):
@@ -102,7 +165,7 @@ def find_brightest_stars(image_path: str, num_stars_to_find: int):
 # --- Example Usage ---
 # (The visualization part remains the same)
 if __name__ == "__main__":
-    IMAGE_FILE = 'polaris_view_5_FOV.jpeg'
+    IMAGE_FILE = "testing3.png"
     NUM_STARS = 10
     
     star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
@@ -129,9 +192,15 @@ if __name__ == "__main__":
         for (x, y, z) in unit_vectors:
             print(f"x = {x}, y = {y}, z = {z}")
         
-        angular_distances = angular_distances(unit_vectors)
-        for angular_distance in angular_distances:
-            print(f"{angular_distance}")
+        ang_dist = angular_distances2(star_coords)
+        for (s1, s2), ang in ang_dist.items():
+            print(f"Star pair: ({s1}, {s2}) -> Angle: {ang}")
+
+        print("\n")
+        # From unit vectors
+        ang_dist = angular_distances(unit_vectors)
+        for (s1, s2), ang in ang_dist.items():
+            print(f"Star pair: ({s1}, {s2}) -> Angle: {ang}")
 
         output_filename = 'stars_identified.png'
         cv2.imwrite(output_filename, img_color)
