@@ -2,9 +2,37 @@ import cv2
 import numpy as np
 import math
 
-# The refine_centroid function is no longer needed, as the blob detector is more robust.
-# We are replacing the entire logic.
+CENTER_X = 2028
+CENTER_Y = 1520
+FOCAL_LENGTH = 3051.6
 
+def star_coords_to_unit_vector(arg_star_coords, arg_center_coords, arg_focal_length):
+    cx, cy = arg_center_coords
+    unit_vectors = []
+    for (x, y) in arg_star_coords:
+        centered_x = (x - cx) / arg_focal_length
+        centered_y = (y - cy) / arg_focal_length
+        direction_vector = np.array([centered_x, centered_y, 1])
+        normalized_vector = direction_vector / np.linalg.norm(direction_vector)
+        unit_vectors.append(normalized_vector)
+    return unit_vectors
+
+def angular_distances(unit_vectors):
+    num_of_vectors = len(unit_vectors)
+    angular_distances = []
+    for i in range(0, num_of_vectors):
+        for j in range(i + 1, num_of_vectors):
+            vector1 = unit_vectors[i]
+            vector2 = unit_vectors[j]
+            dot_product = np.dot(vector1, vector2)
+            dot__product_clamped = np.clip(dot_product, -1.0, 1.0)
+            angular_distance = np.arccos(dot__product_clamped)
+            angular_distance = np.degrees(angular_distance)
+            angular_distances.append(angular_distance)
+    return angular_distances
+    
+    
+#tape fix
 def find_brightest_stars(image_path: str, num_stars_to_find: int):
     """
     Identifies the N brightest star-like objects using a robust, professional blob detection pipeline.
@@ -27,7 +55,7 @@ def find_brightest_stars(image_path: str, num_stars_to_find: int):
     # Filter out things that are too small (noise) or too big (text, galaxies)
     params.filterByArea = True
     params.minArea = 4       # Minimum area in pixels. Tune this.
-    params.maxArea = 300     # Maximum area in pixels. Tune this.
+    params.maxArea = 500     # Maximum area in pixels. Tune this.
 
     # --- FILTER BY CIRCULARITY ---
     # Filter out things that are not round (streaks, merged stars)
@@ -74,8 +102,8 @@ def find_brightest_stars(image_path: str, num_stars_to_find: int):
 # --- Example Usage ---
 # (The visualization part remains the same)
 if __name__ == "__main__":
-    IMAGE_FILE = 'Ivostuff/polaris_fov.png'
-    NUM_STARS = 3
+    IMAGE_FILE = 'polaris_view_5_FOV.jpeg'
+    NUM_STARS = 10
     
     star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
     
@@ -96,6 +124,14 @@ if __name__ == "__main__":
             cv2.line(img_color, (0, iy), (width, iy), cross_color, cross_thickness)
             cv2.circle(img_color, (ix, iy), 15, (0, 255, 0), 2)
             cv2.putText(img_color, str(i + 1), (ix + 18, iy + 8), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+            
+        unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH)
+        for (x, y, z) in unit_vectors:
+            print(f"x = {x}, y = {y}, z = {z}")
+        
+        angular_distances = angular_distances(unit_vectors)
+        for angular_distance in angular_distances:
+            print(f"{angular_distance}")
 
         output_filename = 'stars_identified.png'
         cv2.imwrite(output_filename, img_color)
@@ -104,3 +140,5 @@ if __name__ == "__main__":
         cv2.imshow('Identified Stars', img_color)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+        #End of tape fix
+        # Focal length 4.74 mm
