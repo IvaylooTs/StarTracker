@@ -5,11 +5,13 @@ import time
 # --- USER CONFIGURATION ---
 # ==============================================================================
 
+# --- MODIFIED: Pointing to the new, sorted database file ---
 # The name of the database file you want to modify.
-DATABASE_FILENAME = 'star_distances.db'
+DATABASE_FILENAME = 'star_distances_sorted.db'
 
 # The threshold for deletion.
 # Any row where 'angular_distance' is GREATER THAN this value will be deleted.
+# Setting this to a value slightly larger than your max FOV is a good optimization.
 DISTANCE_THRESHOLD = 77
 
 # ==============================================================================
@@ -65,6 +67,12 @@ if __name__ == '__main__':
         cursor.execute("SELECT COUNT(*) FROM AngularDistances;")
         final_row_count = cursor.fetchone()[0]
         print(f"Total rows in 'AngularDistances' after deletion: {final_row_count:,}")
+
+        # SQLite can benefit from a VACUUM command after large deletions
+        # to reclaim disk space, but this can be slow. It's an optional step.
+        print("\nOptimizing database file to reclaim disk space (VACUUM)... This may take a moment.")
+        connection.execute("VACUUM;")
+        print("Optimization complete.")
 
     except sqlite3.Error as e:
         print(f"\n!!! DATABASE ERROR: {e}")
