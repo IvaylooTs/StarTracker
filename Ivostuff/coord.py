@@ -75,7 +75,7 @@ def find_brightest_stars(image_path: str, num_stars_to_find: int):
 # (The visualization part remains the same)
 if __name__ == "__main__":
     IMAGE_FILE = 'Ivostuff/polaris_fov.png'
-    NUM_STARS = 3
+    NUM_STARS = 30
     
     star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
     
