@@ -101,6 +101,8 @@ The results should be:
 
 ## System Architecture
 
+![Cool Diagram here](https://github.com/IvaylooTs/StarTracker/tree/main/Docs/Diagrams/AlgorithmDiagram.png "cool diagram")
+
 ### Catalogue Processing
 
 - Filter stars based on:
