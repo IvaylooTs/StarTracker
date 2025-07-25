@@ -1,6 +1,7 @@
 # Repo: Star Tracker
 
 **Unofficial Team Name:** 404: Star Not Found
+
 **Unofficial Project Name:** CASSI (Celestial Alignment System for Satellite Inertial-control)
 
 **Official category:** Star tracker 1
@@ -15,8 +16,8 @@ This document is subject to change. It is suppost to show the general idea of th
 
 **Current status:** 
 - check for errors in writing
-- validate
-- check for missing subjects
+- need validate
+- may be missing subjects
 ---
 
 ## Problem
