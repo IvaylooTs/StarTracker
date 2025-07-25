@@ -36,64 +36,19 @@ def angular_distances(unit_vectors):
             angular_distances[(i, j)] = angular_deg
     return angular_distances
 
-def distance1(x1, y1, x2, y2):
-    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+# def distance1(x1, y1, x2, y2):
+#     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-def angular_distances2(arg_star_coords):
-    angular_distances = {}
-    for i in range(len(arg_star_coords)):
-        x1, y1 = arg_star_coords[i]
-        for j in range(i + 1, len(arg_star_coords)):
-            x2, y2 = arg_star_coords[j]
-            distance = distance1(x1, y1, x2, y2)
-            ang_dist = distance / IMAGE_WIDTH * FOV
-            angular_distances[(i, j)] = ang_dist
-    return angular_distances
-        
-        
-def geometrically_consistent(image_to_catalog_assignment, image_pairs_to_ang_dist, catalog_ang_dist, tolerance):
-    for (star1, star2), ang_dist in image_pairs_to_ang_dist:
-        if star1 in image_to_catalog_assignment and star2 in image_to_catalog_assignment:
-            cat_star1 = image_to_catalog_assignment[star1]
-            cat_star2 = image_to_catalog_assignment[star2]
-            cat_ang_dist = catalog_ang_dist.get((cat_star1, cat_star2)) or catalog_ang_dist.get((cat_star2, cat_star1))
-            if cat_ang_dist is None or abs(cat_ang_dist - ang_dist) > tolerance:
-                return False
-    return True
-
-
-
-def get_possible_catalogs(current, graph_hypotheses):
-    possible_catalogs = set()
-    for (i1, i2), cat_pairs in graph_hypotheses.items():
-        if current == i1:
-            possible_catalogs.update(c[0] for c in cat_pairs)
-        elif current == i2:
-            possible_catalogs.update(c[1] for c in cat_pairs)
-    return possible_catalogs
-
-def DFS(image_to_catalog_assignment, image_pairs_to_ang_dist, catalog_ang_dist, tolerance, graph_hypotheses, image_stars):
-    if len(image_to_catalog_assignment) == len(image_stars):
-        return image_pairs_to_ang_dist
-    
-    current = next(s for s in image_stars if s not in image_to_catalog_assignment)
-    possible_catalogs = get_possible_catalogs(current, graph_hypotheses)
-    for catalog_candidate in possible_catalogs:
-        for catalog_candidate in possible_catalogs:
-            if catalog_candidate in image_to_catalog_assignment.values():
-                continue 
-
-        image_to_catalog_assignment[current] = catalog_candidate
-
-        if geometrically_consistent(image_to_catalog_assignment, image_pairs_to_ang_dist, catalog_ang_dist, tolerance):
-            result = DFS(image_to_catalog_assignment, image_stars, image_pairs_to_ang_dist, graph_hypotheses, catalog_ang_dist, tolerance)
-            if result:
-                return result
-
-        del image_to_catalog_assignment[current]
-
-    return None
-        
+# def angular_distances2(arg_star_coords):
+#     angular_distances = {}
+#     for i in range(len(arg_star_coords)):
+#         x1, y1 = arg_star_coords[i]
+#         for j in range(i + 1, len(arg_star_coords)):
+#             x2, y2 = arg_star_coords[j]
+#             distance = distance1(x1, y1, x2, y2)
+#             ang_dist = distance / IMAGE_WIDTH * FOV
+#             angular_distances[(i, j)] = ang_dist
+#     return angular_distances
     
 #tape fix
 def find_brightest_stars(image_path: str, num_stars_to_find: int):
@@ -192,9 +147,9 @@ if __name__ == "__main__":
         for (x, y, z) in unit_vectors:
             print(f"x = {x}, y = {y}, z = {z}")
         
-        ang_dist = angular_distances2(star_coords)
-        for (s1, s2), ang in ang_dist.items():
-            print(f"Star pair: ({s1}, {s2}) -> Angle: {ang}")
+        # ang_dist = angular_distances2(star_coords)
+        # for (s1, s2), ang in ang_dist.items():
+        #     print(f"Star pair: ({s1}, {s2}) -> Angle: {ang}")
 
         print("\n")
         # From unit vectors
