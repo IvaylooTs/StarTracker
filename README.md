@@ -1,37 +1,75 @@
 # StarTracker
-Team Members:Michael Yan, Ivaylo Tsekov, Alexandra Nedela, Dilyana Vasileva, Tsvetomir Staykov
-Goal: Create a star tracking system which uses a Raspberry AI camera to determine the orientation of the system based on the star image it receives which works in tandem with an IMU post calibration to keep track of the orientation without live imaging.
 
-Current Design Decisions:
-Catalogue processing:
-Filter (brightness, size, eccentricity, etc) data to obtain optimal amount of stars for pattern recognition and their cartesian coordinates(database table 1)
-create database table of all combination of two stars and the angle between them (database table 2)
+**Team Members:**  
+Michael Yan, Ivaylo Tsekov, Alexandra Nedela, Dilyana Vasileva, Tsvetomir Staykov
 
-Image processing:
-filter (brightness, size, eccentricity, etc) image to find 3-20 stars 
-Convert pixel coordinates -> camera coordinates -> cartesian space unit vectors of each star
-create table of all angles of pairs of found stars. (table 3)
+---
 
-Attitude determination:
-search ID of pairs of stars in table 2 with known angles of table 3
-find pitch and yaw of camera by matching catalogue orientation (always horizontal along equator)
-create two matrices of cartesian positions of image stars and database stars
-find rotational transformation matrix between two sets of matrices to find roll of camera.
-convert to quaterions.
+## Project Overview
 
-Hardware:
-get orientation of device from camera and program and use it as 'offset'
-zero IMU at this point
-sum IMU orientation with offset for further movement without camera.
+This project implements a star tracking system using a Raspberry Pi AI camera to determine the orientation of the system based on captured star images. Once calibrated, the system works in tandem with an IMU (Inertial Measurement Unit) to track orientation without continuous visual input.
 
-CAD design:
-layered design of raspberry Pi and IMU
-perpendicular attachement of camera.
-image can be seen in DOCS
+---
 
-How to run demo:
-create a dark space using planes available.
-point device at an image on a screen with known orientation
-compare with computed orientation
-move device to keep track of orientation without camera
+## System Architecture
 
+### Catalogue Processing
+
+- Filter stars based on:
+  - Brightness
+  - Size
+  - Eccentricity
+- Select the optimal set of stars for pattern recognition
+- Convert selected stars to Cartesian coordinates (stored in **Database Table 1**)
+- Generate all possible star pairs and compute angles between them (stored in **Database Table 2**)
+
+### Image Processing
+
+- Filter stars in the image based on:
+  - Brightness
+  - Size
+  - Eccentricity
+- Detect approximately 3–20 stars from the image
+- Convert pixel coordinates to camera coordinates, then to Cartesian unit vectors
+- Calculate angles between all star pairs (stored in **Table 3**)
+
+### Attitude Determination
+
+- Match angles from **Table 3** with catalogue data in **Table 2** to identify observed stars
+- Determine pitch and yaw based on the known catalogue orientation (aligned with the celestial equator)
+- Build transformation matrices from:
+  - Image star vectors (camera frame)
+  - Catalogue star vectors (inertial frame)
+- Compute the rotational transformation matrix to determine roll
+- Convert the final orientation to **quaternions**
+
+---
+
+## Hardware Integration
+
+- The initial orientation determined via camera is stored as a reference
+- The IMU is zeroed at this orientation
+- Subsequent orientation tracking is performed using only the IMU
+
+**Final Orientation = IMU Output + Initial Camera-Based Offset**
+
+---
+
+## Mechanical Design
+
+- Modular, layered physical design:
+  - Raspberry Pi
+  - IMU module
+  - Camera mounted perpendicular to the Raspberry Pi board
+- 3D CAD models and assembly diagrams are available in the `DOCS/` directory
+
+---
+
+## Demonstration Instructions
+
+1. Set up a dark environment using panels or an enclosure.
+2. Point the device at a star image displayed on a screen with a known orientation.
+3. Verify that the computed orientation matches the actual orientation.
+4. Move the device and observe that orientation tracking continues using the IMU, even without camera input.
+
+---
