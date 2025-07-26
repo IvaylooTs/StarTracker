@@ -4,12 +4,13 @@ import sqlite3
 import math
 
 FOV = 66
-IMAGE_WIDTH = 1964
-IMAGE_HEIGHT = 3024
+IMAGE_HEIGHT = 1964
+IMAGE_WIDTH = 3024
 CENTER_X = IMAGE_WIDTH/2
 CENTER_Y = IMAGE_HEIGHT/2
 FOCAL_LENGTH = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV / 2))
-TOLERANCE = 0.1
+TOLERANCE = 2
+
 
 def star_coords_to_unit_vector(star_coords, center_coords, focal_length):
     cx, cy = center_coords
@@ -42,20 +43,6 @@ def get_angular_distances(star_coords, center_coords, focal_length):
     unit_vectors = star_coords_to_unit_vector(star_coords, center_coords, focal_length)
     return angular_dist_helper(unit_vectors)
 
-# def distance1(x1, y1, x2, y2):
-#     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-
-# def angular_distances2(arg_star_coords):
-#     angular_distances = {}
-#     for i in range(len(arg_star_coords)):
-#         x1, y1 = arg_star_coords[i]
-#         for j in range(i + 1, len(arg_star_coords)):
-#             x2, y2 = arg_star_coords[j]
-#             distance = distance1(x1, y1, x2, y2)
-#             ang_dist = distance / IMAGE_WIDTH * FOV
-#             angular_distances[(i, j)] = ang_dist
-#     return angular_distances
-
 def load_catalog_angular_distances(min_distance=0.1, max_distance=0.5, db_path='star_distances_sorted.db', table_name='AngularDistances'):
     try:
         conn = sqlite3.connect(db_path)
@@ -78,6 +65,15 @@ def load_catalog_angular_distances(min_distance=0.1, max_distance=0.5, db_path='
     finally:
         if conn:
             conn.close()
+
+def catalog_angular_distances(angular_distances):
+    catalog_ang_dists = {}
+    for (s1, s2), ang_dist in angular_distances.items():
+        min_ang_dist = ang_dist - TOLERANCE
+        max_ang_dist = ang_dist + TOLERANCE
+        cur_cat_ang_dist = load_catalog_angular_distances(min_ang_dist, max_ang_dist)
+        catalog_ang_dists[(s1,s2)] = cur_cat_ang_dist
+    return catalog_ang_dists
 
 def within_bounds(ang_dist, tolerance):
     min_max = []
@@ -104,6 +100,7 @@ def load_hypothesies(num_stars, angular_distances, tolerance):
     return hypothesises_dict
 
 #tape fix
+
 def find_brightest_stars(image_path: str, num_stars_to_find: int):
     img = cv2.imread(image_path)
     if img is None:
@@ -147,15 +144,22 @@ def display_star_detections(image_path: str, star_coords: list, output_filename:
 
     cross_color = (0, 0, 255)
     circle_color = (255, 204, 229)
+    text_color = (255, 204, 229)
     cross_thickness = 1
     circle_radius = 30
     circle_thickness = 2
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 1
+    font_thickness = 2
 
-    for (x, y) in star_coords:
+    for idx, (x, y) in enumerate(star_coords):
         x_int, y_int = int(round(x)), int(round(y))
 
         cv2.circle(img_color, (x_int, y_int), circle_radius, circle_color, circle_thickness)
         cv2.drawMarker(img_color, (x_int, y_int), cross_color, markerType=cv2.MARKER_CROSS, thickness=cross_thickness)
+
+        text_position = (x_int + 10, y_int - 10)
+        cv2.putText(img_color, str(idx), text_position, font, font_scale, text_color, font_thickness, cv2.LINE_AA)
 
     cv2.imwrite(output_filename, img_color)
     print(f"\nVisual result saved to '{output_filename}'.")
@@ -167,31 +171,27 @@ def display_star_detections(image_path: str, star_coords: list, output_filename:
 #End of tape fix
 
 if __name__ == "__main__":
-    IMAGE_FILE = "./test_images/testing3.png"
-    NUM_STARS = 10
+    IMAGE_FILE = "./test_images/testing_4.png"
+    NUM_STARS = 4
 
     star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
 
+    print(f"☆ Star pixel coordinates:\n")
     if star_coords:
         print(f"\nCoordinates of the {len(star_coords)} brightest stars:")
         for i, (x, y) in enumerate(star_coords):
             print(f"  Star {i+1}: (x={x:.4f}, y={y:.4f})")
-        
-    angular_distances = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH)
-    catalog_ang_dists = []
-    for (s1, s2), ang_dist in angular_distances.items():
-        min_ang_dist = ang_dist - TOLERANCE
-        max_ang_dist = ang_dist + TOLERANCE
-        cur_cat_ang_dist = load_catalog_angular_distances(min_ang_dist, max_ang_dist)
-        catalog_ang_dists.append(cur_cat_ang_dist)
     
-    for element in catalog_ang_dists:
-        for (hip1, hip2), ang_dist in element.items():
-            print(f"{hip1}->{hip2}: {ang_dist}")
-        print("\n")
+    print(f"\n☆ Image pair angular distance:\n")
+    angular_distances = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH)
+    for (s1,s2), ang_dist in angular_distances.items():
+        print(f"{s1}->{s2}: {ang_dist}")
     
     hypothesises = load_hypothesies(NUM_STARS, angular_distances, TOLERANCE)
     
+    print(f"☆ Candidates for each star:\n")
     for star, elements in hypothesises.items():
-        print(f"{star} -> {elements}")
+        print(f"image star: {star} -> hips: {elements}")
         print("\n")
+    
+    display_star_detections(IMAGE_FILE, star_coords)

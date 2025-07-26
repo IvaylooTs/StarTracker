@@ -106,7 +106,7 @@ Notes and Ideas:
 
 ---
 
-### 4. Attitude Determination (To-do)
+#### 4. Attitude Determination (To-do)
 
 - From the final mapping of each star to a certain HIP in our database (from step above), we can now retrieve unit vectors from **Table 1**  
 - Determine pitch and yaw based on the known catalog orientation (aligned with the celestial equator)  
