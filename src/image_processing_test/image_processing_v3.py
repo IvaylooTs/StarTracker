@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # =============================================================================
 
 # --- Input ---
-IMAGE_PATH = 'newFinal/clean.jpg' # The image with drawings
+IMAGE_PATH = 'src/image_processing_test/test_images/clean.jpg' # The image with drawings
 
 # --- Initial Detection Parameters ---
 N_STARS_TO_DETECT = 20
