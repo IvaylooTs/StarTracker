@@ -1,154 +1,143 @@
 import cv2
 import numpy as np
+# We are no longer using blob_log, so we can remove it.
+# from skimage.feature import blob_log
 import matplotlib.pyplot as plt
-# We are no longer using the complex Gaussian fit, so we can remove scipy
-# from scipy.optimize import curve_fit
 
 # =============================================================================
 # --- CONFIGURABLE PARAMETERS ---
 # =============================================================================
 
 # --- Input ---
-IMAGE_PATH = 'newFinal/clean.jpg' # The image with drawings
+IMAGE_PATH = 'newFinal/clean1.jpg'
 
-# --- Initial Detection Parameters ---
+# --- Image Processing Parameters ---
 N_STARS_TO_DETECT = 20
-BINARY_THRESHOLD = 87      # Keep this high to isolate bright objects
+
+# --- NEW PARAMETERS FOR SHAPE FILTERING ---
+
+# 1. Threshold for creating the binary image.
+#    Any pixel brighter than this value (0-255) becomes a white pixel.
+#    This is a critical parameter to tune. Start around 50-70 for this image.
+BINARY_THRESHOLD = 60
+
+# 2. Minimum area (in pixels) for an object to be considered a star.
+#    This helps filter out single-pixel noise.
 MIN_STAR_AREA = 2
-MAX_STAR_AREA = 150        # Filter out very large objects
 
-# --- Shape Filter ---
-MIN_CIRCULARITY = 0.85      # Keep this high to ensure roundness
+# 3. Minimum circularity. 1.0 is a perfect circle.
+#    This is our shape filter! It will reject elongated shapes like streaks and drawings.
+#    A value of 0.7 is a good starting point to reject non-circular blobs.
+MIN_CIRCULARITY = 0.8
 
-# --- NEW: PEAK BRIGHTNESS FILTER ---
-# This is the ratio of brightness between the core and the surrounding area.
-# A value of 1.2 means the center must be at least 20% brighter than its surroundings.
-# This will reject plateaus and objects with holes.
-MIN_PEAK_RATIO = 0.9
 
 # =============================================================================
-# --- CORE DETECTION FUNCTION (REVISED WITH NEW FILTER) ---
+# --- NEW CORE FUNCTION WITH SHAPE FILTER ---
 # =============================================================================
 
-def find_stars_with_peak_filter(image_path, n_stars, binary_threshold, min_area, max_area, min_circularity, min_peak_ratio):
-    
+def find_stars_with_shape_filter(image_path, n_stars, binary_threshold, min_area, min_circularity):
+    """
+    Finds stars by thresholding, finding contours, and filtering by shape (circularity)
+    and size. This is much more robust against non-star objects.
+    """
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if image is None:
         raise FileNotFoundError(f"Image not found at path: {image_path}")
 
-    # --- Step 1: Find Candidates with Contour Analysis ---
+    # --- Step 1: Create a Binary Image ---
+    # We apply a slight blur to reduce noise before thresholding. This makes contours smoother.
     blurred = cv2.GaussianBlur(image, (5, 5), 0)
+    
+    # The cv2.threshold function returns the threshold value and the binary image.
+    # We use _, binary_image because we don't need the returned threshold value.
     _, binary_image = cv2.threshold(blurred, binary_threshold, 255, cv2.THRESH_BINARY)
+    
+    # --- Step 2: Find Contours ---
+    # cv2.findContours finds the outlines of all white objects in the binary image.
+    # cv2.RETR_EXTERNAL means we only get the outermost contours (doesn't find holes).
+    # cv2.CHAIN_APPROX_SIMPLE compresses the contour points to save memory.
     contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    print(f"Initial detection: Found {len(contours)} potential objects.")
+    print(f"Initial detection: Found {len(contours)} potential objects (contours).")
     
-    candidates_after_shape_filter = []
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        if not (min_area < area < max_area):
-            continue
-
-        perimeter = cv2.arcLength(contour, True)
-        if perimeter == 0: continue
-        circularity = (4 * np.pi * area) / (perimeter ** 2)
-        if circularity < min_circularity:
-            continue
-            
-        candidates_after_shape_filter.append(contour)
-
-    print(f"After shape & area filtering: {len(candidates_after_shape_filter)} candidates remain.")
-
     valid_stars = []
-    
-    # --- Step 2: NEW - PEAK BRIGHTNESS FILTER ---
-    for contour in candidates_after_shape_filter:
-        # Calculate centroid using moments
+
+    # --- Step 3: Analyze Each Contour ---
+    for contour in contours:
+        # --- Filter by Area ---
+        area = cv2.contourArea(contour)
+        if area < min_area:
+            continue # Skip this contour, it's too small (likely noise)
+
+        # --- Filter by Shape (Circularity) ---
+        perimeter = cv2.arcLength(contour, True)
+        if perimeter == 0:
+            continue # Avoid division by zero for invalid shapes
+
+        # This is the formula for circularity
+        circularity = (4 * np.pi * area) / (perimeter ** 2)
+        
+        if circularity < min_circularity:
+            continue # Skip this contour, it's not round enough (it's a line or squiggle)
+
+        # --- If it passes all filters, it's a valid star candidate ---
+        # Calculate the center of the contour using "moments"
         M = cv2.moments(contour)
-        if M["m00"] == 0: continue
+        if M["m00"] == 0:
+            continue # Avoid division by zero
+        
         cx = int(M["m10"] / M["m00"])
         cy = int(M["m01"] / M["m00"])
-
-        # Define radii for our inner core and outer ring
-        inner_radius = 2
-        outer_radius = 4
-
-        # Create two masks: one for the inner core, one for the outer area
-        mask = np.zeros(image.shape, dtype=np.uint8)
-        outer_mask = cv2.circle(mask.copy(), (cx, cy), outer_radius, 255, -1)
-        inner_mask = cv2.circle(mask.copy(), (cx, cy), inner_radius, 255, -1)
         
-        # The "donut" is the outer circle minus the inner circle
-        donut_mask = outer_mask - inner_mask
+        # We store the centroid and its area (as a proxy for brightness)
+        valid_stars.append(((cx, cy), area))
 
-        try:
-            # Calculate the average brightness in the core and the donut
-            # We use the ORIGINAL grayscale image for this
-            avg_inner_brightness = np.mean(image[inner_mask == 255])
-            avg_outer_brightness = np.mean(image[donut_mask == 255])
-            
-            # Avoid division by zero if the outer ring is completely black
-            if avg_outer_brightness == 0:
-                continue
-
-            # This is the core of the filter
-            brightness_ratio = avg_inner_brightness / avg_outer_brightness
-
-            # If the center is significantly brighter than the surroundings, it's a star
-            if brightness_ratio > min_peak_ratio:
-                valid_stars.append(((cx, cy), M["m00"]))
-
-        except (ValueError, ZeroDivisionError):
-            # This can happen for very small or edge-case contours
-            continue
-            
-    print(f"After peak brightness filtering: {len(valid_stars)} valid stars remain.")
+    print(f"Filtering complete: Found {len(valid_stars)} valid star-like objects.")
     
-    # --- Step 3: Sort by Brightness/Size and Select Top N ---
+    # --- Step 4: Sort by Brightness/Size and Select the Top N ---
+    # Sort the list of valid stars in descending order based on their area
     valid_stars.sort(key=lambda s: s[1], reverse=True)
+    
+    # Select the top N stars
     num_to_select = min(n_stars, len(valid_stars))
     brightest_stars = valid_stars[:num_to_select]
+    
+    # Extract just the centroids (the (x, y) coordinates)
     centroids = np.array([star[0] for star in brightest_stars])
     
-    return centroids, image, binary_image
+    return centroids, image
 
 
-# =============================================================================
-# --- VISUALIZATION FUNCTION (UNCHANGED) ---
-# =============================================================================
-
-def visualize_processing_steps(original_img, binary_img, final_centroids):
-    fig, axes = plt.subplots(1, 3, figsize=(24, 8))
-    axes[0].imshow(original_img, cmap='gray')
-    axes[0].set_title('1. Original Image')
-    axes[0].axis('off')
-    axes[1].imshow(binary_img, cmap='gray')
-    axes[1].set_title('2. Processed View (Binary Threshold)')
-    axes[1].axis('off')
-    axes[2].imshow(original_img, cmap='gray')
-    axes[2].set_title('3. Final Detections (Filtered)')
-    if len(final_centroids) > 0:
-        axes[2].scatter(final_centroids[:, 0], final_centroids[:, 1], s=120, facecolors='none', edgecolors='cyan', linewidth=2)
-        for i, (x, y) in enumerate(final_centroids):
-            axes[2].text(x + 12, y + 12, str(i + 1), color='magenta', fontsize=12, weight='bold')
-    axes[2].axis('off')
-    plt.tight_layout()
+def visualize_detections(image, centroids):
+    """Displays the image with detected centroids circled."""
+    # (This function remains unchanged)
+    if image is None: return
+    plt.figure(figsize=(10, 8))
+    plt.imshow(image, cmap='gray')
+    plt.title(f'Detected {len(centroids)} Brightest & Roundest Stars')
+    plt.scatter(centroids[:, 0], centroids[:, 1], s=80, facecolors='none', edgecolors='r', linewidth=1.5)
+    for i, (x, y) in enumerate(centroids):
+        plt.text(x + 10, y + 10, str(i + 1), color='cyan', fontsize=12)
+    plt.xlabel('X Pixel Coordinate')
+    plt.ylabel('Y Pixel Coordinate')
     plt.show()
 
 # =============================================================================
-# --- MAIN EXECUTION (UPDATED) ---
+# --- MAIN EXECUTION ---
 # =============================================================================
 if __name__ == '__main__':
     try:
-        star_centroids, original_image, binary_image = find_stars_with_peak_filter(
-            IMAGE_PATH, N_STARS_TO_DETECT, BINARY_THRESHOLD, MIN_STAR_AREA, MAX_STAR_AREA, MIN_CIRCULARITY, MIN_PEAK_RATIO
+        # 1. Call our NEW function to detect and filter stars
+        star_centroids, original_image = find_stars_with_shape_filter(
+            IMAGE_PATH, N_STARS_TO_DETECT, BINARY_THRESHOLD, MIN_STAR_AREA, MIN_CIRCULARITY
         )
         
-        if original_image is not None:
-            print(f"\nFinal Result: Visualizing the top {len(star_centroids)} stars in a 3-step plot.")
-            visualize_processing_steps(original_image, binary_image, star_centroids)
+        # 2. Visualize the results
+        if original_image is not None and len(star_centroids) > 0:
+            print(f"\nFinal Result: Visualizing the top {len(star_centroids)} stars.")
+            visualize_detections(original_image, star_centroids)
         else:
-            print("No stars were detected that met all criteria.")
+            print("No stars were detected that met the criteria.")
 
     except FileNotFoundError as e:
         print(f"Error: {e}")
