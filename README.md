@@ -1,6 +1,6 @@
 # Repo: Star Tracker
 
-**Unofficial Team Name:** 404: Star Not Found
+**Team Name:** 404: Star Not Found
 
 **Unofficial Project Name:** CASSI (Celestial Alignment System for Satellite Inertial-control)
 
@@ -43,15 +43,14 @@ To run the script just run:
 ```bash
 python3 main.py 
 ```
-The results should be:
-- valid stars that math the Angular distance.
-- cordinates of stars found on the picture
-- all angular distances that are close to the angular distances of the found stars
-- candidates for stars in the python code in format `{star-number} -> [{star 1 hip}, {star 2 hip}, ... {star n hip}]`
-
+The results in your Terminal should be:
+- pixel cordinates of stars found on the picture
+- the angular distance of each pair (close to the real ones - needs to be optimized)
+- candidates from the database for each star in our image 
+- the image we're testing on should be displayed with the N brightest stars circled
 ## System Architecture
 
-![Cool Diagram here](https://github.com/IvaylooTs/StarTracker/tree/main/Docs/Diagrams/AlgorithmDiagram.png "cool diagram")
+![Cool Diagram here](https://github.com/IvaylooTs/StarTracker/tree/main/Docs/Diagrams/AlgorithmDiagram.png)
 
 ### Software
 
