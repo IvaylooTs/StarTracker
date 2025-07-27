@@ -9,16 +9,16 @@ import matplotlib.pyplot as plt
 # =============================================================================
 
 # --- Input ---
-IMAGE_PATH = 'src/image_processing_test/test_images/clean.jpg' # The image with drawings
+IMAGE_PATH = 'src/image_processing_test/test_images/clean1.jpg' # The image with drawings
 
 # --- Initial Detection Parameters ---
-N_STARS_TO_DETECT = 20
+N_STARS_TO_DETECT = 30
 BINARY_THRESHOLD = 87      # Keep this high to isolate bright objects
 MIN_STAR_AREA = 2
 MAX_STAR_AREA = 150        # Filter out very large objects
 
 # --- Shape Filter ---
-MIN_CIRCULARITY = 0.85      # Keep this high to ensure roundness
+MIN_CIRCULARITY = 0.60      # Keep this high to ensure roundness
 
 # --- NEW: PEAK BRIGHTNESS FILTER ---
 # This is the ratio of brightness between the core and the surrounding area.

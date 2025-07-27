@@ -12,7 +12,7 @@ from collections import defaultdict
 # =============================================================================
 
 # --- Input & Database ---
-IMAGE_PATH = 'newFinal/clean3.jpg' # Or your 'clean.jpg'
+IMAGE_PATH = 'src/image_processing_test/test_images/clean8.jpg' # The image with drawings
 DATABASE_PATH = 'star_distances.db'
 
 # --- Image Processing Parameters ---
