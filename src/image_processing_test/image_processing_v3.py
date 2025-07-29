@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # =============================================================================
 
 # --- Input ---
-IMAGE_PATH = 'newFinal/clean.jpg' # The image with drawings
+IMAGE_PATH = 'src/image_processing_test/test_images/clean9.jpeg' # The image with drawings
 
 # --- Initial Detection Parameters ---
 N_STARS_TO_DETECT = 20
@@ -140,33 +140,13 @@ def visualize_processing_steps(original_img, binary_img, final_centroids):
 # =============================================================================
 if __name__ == '__main__':
     try:
-        # --- Step 1: Run the detection and get the results ---
         star_centroids, original_image, binary_image = find_stars_with_peak_filter(
             IMAGE_PATH, N_STARS_TO_DETECT, BINARY_THRESHOLD, MIN_STAR_AREA, MAX_STAR_AREA, MIN_CIRCULARITY, MIN_PEAK_RATIO
         )
         
-        # --- Step 2: Print all coordinate information to the console FIRST ---
         if original_image is not None:
-            print("\n--- Final Star Coordinates ---")
-            
-            if star_centroids.size > 0:
-                # Convert the NumPy array to a list of tuples
-                coordinate_list = [tuple(coords) for coords in star_centroids]
-                
-                print(f"Successfully found {len(coordinate_list)} stars.")
-                
-                # Print the formatted coordinates for each star
-                print("\nFormatted Coordinates (ordered by brightness):")
-                for i, coords in enumerate(coordinate_list, 1):
-                    print(f"  Star {i}: (x={coords[0]}, y={coords[1]})")
-            else:
-                print("No stars were detected.")
-
-            # --- Step 3: Display the visualization window LAST ---
-            # The script will now pause here until you close the image.
-            print(f"\n--- Visualizing Results (Close window to exit script) ---")
+            print(f"\nFinal Result: Visualizing the top {len(star_centroids)} stars in a 3-step plot.")
             visualize_processing_steps(original_image, binary_image, star_centroids)
-        
         else:
             print("No stars were detected that met all criteria.")
 

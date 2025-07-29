@@ -48,7 +48,9 @@ The results in your terminal should be:
 
 ## System Architecture
 
-![Cool Diagram here](https://github.com/IvaylooTs/StarTracker/tree/main/Docs/Diagrams/AlgorithmDiagram.png)
+![Algorithm Diagram](https://raw.githubusercontent.com/IvaylooTs/StarTracker/refs/heads/main/Docs/Diagrams/AlgorithmDiagram.png)
+
+![Cad Design](https://raw.githubusercontent.com/IvaylooTs/StarTracker/refs/heads/main/Docs/CAD%20Images%20%2B%20drawings/CAD%20image.png)
 
 ### Software
 
