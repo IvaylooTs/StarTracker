@@ -1,0 +1,74 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0" version="28.0.7">
+  <diagram name="Page-1" id="4YZ19eFIGqYHpETlewSG">
+    <mxGraphModel dx="1026" dy="568" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-2" value="WebPage" style="rounded=0;whiteSpace=wrap;html=1;fontSize=19;fontFamily=ubuntu;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3Dubuntu;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="90" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="RUfh_pRC9RxJwpSQb9b9-3" target="RUfh_pRC9RxJwpSQb9b9-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="530" y="240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="RUfh_pRC9RxJwpSQb9b9-3" target="RUfh_pRC9RxJwpSQb9b9-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="530" y="240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="RUfh_pRC9RxJwpSQb9b9-3" target="RUfh_pRC9RxJwpSQb9b9-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-3" value="&lt;div&gt;Main.py&lt;/div&gt;&lt;div&gt;- initalizes data&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=19;fontFamily=ubuntu;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3Dubuntu;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="460" y="60" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-4" value="&lt;div&gt;Current hardware system&lt;/div&gt;&lt;div&gt;and hardware debugging system&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fillColor=none;fontColor=#333333;strokeColor=#666666;strokeWidth=0;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="19" y="30" width="430" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;" edge="1" parent="1" source="RUfh_pRC9RxJwpSQb9b9-6" target="RUfh_pRC9RxJwpSQb9b9-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-6" value="Flask Server" style="rounded=1;whiteSpace=wrap;html=1;fontSize=17;fontFamily=ubuntu;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3Dubuntu;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="300" y="210" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-7" value="Web socket" style="rounded=1;whiteSpace=wrap;html=1;fontSize=17;fontFamily=ubuntu;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3Dubuntu;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="690" y="210" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-8" value="&lt;div&gt;IMU.py&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=17;fontFamily=ubuntu;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3Dubuntu;fillColor=#1ba1e2;fontColor=#ffffff;strokeColor=#006EAF;" vertex="1" parent="1">
+          <mxGeometry x="470" y="390" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="RUfh_pRC9RxJwpSQb9b9-9" target="RUfh_pRC9RxJwpSQb9b9-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="RUfh_pRC9RxJwpSQb9b9-9" target="RUfh_pRC9RxJwpSQb9b9-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="RUfh_pRC9RxJwpSQb9b9-9" target="RUfh_pRC9RxJwpSQb9b9-6">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="530" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="700" y="500" />
+              <mxPoint x="240" y="500" />
+              <mxPoint x="240" y="310" />
+              <mxPoint x="360" y="310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-9" value="Flare" style="rounded=1;whiteSpace=wrap;html=1;fontSize=17;fontFamily=ubuntu;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3Dubuntu;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="640" y="390" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="RUfh_pRC9RxJwpSQb9b9-16" target="RUfh_pRC9RxJwpSQb9b9-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="RUfh_pRC9RxJwpSQb9b9-16" value="&lt;div&gt;Math.py&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=17;fontFamily=ubuntu;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3Dubuntu;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="320" y="390" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
