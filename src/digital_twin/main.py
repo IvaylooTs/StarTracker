@@ -5,16 +5,13 @@ import math
 from itertools import combinations
 from itertools import product
 
-# ==============================================================================
-# --- CAMERA & SENSOR CONFIGURATION ---
-# ==============================================================================
 IMAGE_HEIGHT = 1964
 IMAGE_WIDTH = 3024
 ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH
 FOV_Y = 20
 FOV_X = math.degrees(2 * math.atan(math.tan(math.radians(FOV_Y / 2)) / ASPECT_RATIO))
-CENTER_X = IMAGE_WIDTH / 2
-CENTER_Y = IMAGE_HEIGHT / 2
+CENTER_X = IMAGE_WIDTH/2
+CENTER_Y = IMAGE_HEIGHT/2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 3
@@ -22,133 +19,42 @@ IMAGE_FILE = "./test_images/testing23.png"
 NUM_STARS = 10
 EPSILON = 1e-6
 
-# ==============================================================================
-# --- NEW: STAR DETECTION PARAMETERS ---
-# ==============================================================================
-BINARY_THRESHOLD = 87      # Keep this high to isolate bright objects
-MIN_STAR_AREA = 10
-MAX_STAR_AREA = 400        # Filter out very large objects
-MIN_CIRCULARITY = 0.80     # How close to a perfect circle (1.0). Good for spiky noise.
-MAX_ECCENTRICITY = 0.5     # 0 = circle, closer to 1 = elongated.
-MIN_SOLIDITY = 0.98        # How "solid" the shape is. 1.0 has no holes/dents. Rejects notches.
-MIN_PEAK_RATIO = 0.9       # Ratio of core brightness to surrounding area brightness.
+#tape fix
 
+def find_brightest_stars(image_path: str, num_stars_to_find: int):
+    img = cv2.imread(image_path)
+    if img is None:
+        print(f"Error: Unable to load image at '{image_path}'")
+        return []
 
-# ==============================================================================
-# --- REPLACED IMAGE FILTER FUNCTION ---
-# ==============================================================================
-def find_stars_with_advanced_filters(
-    image_path: str,
-    n_stars: int,
-    binary_threshold: int,
-    min_area: int,
-    max_area: int,
-    min_circularity: float,
-    max_eccentricity: float,
-    min_solidity: float,
-    min_peak_ratio: float
-    ):
-    """
-    Identifies stars using a multi-stage filtering pipeline.
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    Returns:
-        A NumPy array of (x, y) coordinates for the brightest N stars.
-    """
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    if image is None:
-        raise FileNotFoundError(f"Image not found at path: {image_path}")
+    params = cv2.SimpleBlobDetector_Params()
+    params.filterByArea = True
+    params.minArea = 4
+    params.maxArea = 500
 
-    # --- Step 1: Find Initial Candidates ---
-    blurred = cv2.GaussianBlur(image, (5, 5), 0)
-    _, binary_image = cv2.threshold(blurred, binary_threshold, 255, cv2.THRESH_BINARY)
-    contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    params.filterByCircularity = True
+    params.minCircularity = 0.5
 
-    print(f"Initial detection: Found {len(contours)} potential objects.")
+    params.filterByConvexity = True
+    params.minConvexity = 0.8
 
-    candidates_after_shape_filter = []
+    params.filterByInertia = True
+    params.minInertiaRatio = 0.8
 
-    # --- Step 2: The Shape Gauntlet ---
-    for contour in contours:
-        # Filter 2a: Area
-        area = cv2.contourArea(contour)
-        if not (min_area < area < max_area):
-            continue
+    detector = cv2.SimpleBlobDetector_create(params)
+    keypoints = detector.detect(255 - img_gray)
 
-        # Filter 2b: Circularity
-        perimeter = cv2.arcLength(contour, True)
-        if perimeter == 0: continue
-        circularity = (4 * np.pi * area) / (perimeter ** 2)
-        if circularity < min_circularity:
-            continue
+    if not keypoints:
+        print("Warning: No blobs passed the detector's filters.")
+        return []
 
-        # Filter 2c: Eccentricity (Ellipse Fitting)
-        if len(contour) >= 5: # cv2.fitEllipse requires at least 5 points
-            ellipse = cv2.fitEllipse(contour)
-            (x, y), (MA, ma), angle = ellipse
-            if MA == 0: continue # Avoid division by zero
-            # Eccentricity formula: e = sqrt(1 - (b/a)^2) where a is major axis, b is minor
-            eccentricity = np.sqrt(1 - (min(MA, ma)**2 / max(MA, ma)**2))
-            if eccentricity > max_eccentricity:
-                continue
-        else:
-            # If the contour is too small to fit an ellipse, reject it.
-            continue
+    keypoints = sorted(keypoints, key=lambda k: k.size, reverse=True)
+    brightest_stars_coords = [kp.pt for kp in keypoints[:num_stars_to_find]]
 
-        # Filter 2d: Solidity
-        hull = cv2.convexHull(contour)
-        hull_area = cv2.contourArea(hull)
-        if hull_area == 0: continue
-        solidity = float(area) / hull_area
-        if solidity < min_solidity:
-            continue
-
-        candidates_after_shape_filter.append(contour)
-
-    print(f"After shape gauntlet (area, circularity, eccentricity, solidity): {len(candidates_after_shape_filter)} candidates remain.")
-
-    valid_stars = []
-
-    # --- Step 3: Peak Brightness Filter ---
-    for contour in candidates_after_shape_filter:
-        M = cv2.moments(contour)
-        if M["m00"] == 0: continue
-        cx = int(M["m10"] / M["m00"])
-        cy = int(M["m01"] / M["m00"])
-
-        inner_radius = 2
-        outer_radius = 5
-
-        mask = np.zeros(image.shape, dtype=np.uint8)
-        outer_mask = cv2.circle(mask.copy(), (cx, cy), outer_radius, 255, -1)
-        inner_mask = cv2.circle(mask.copy(), (cx, cy), inner_radius, 255, -1)
-        donut_mask = outer_mask & ~inner_mask
-
-        try:
-            avg_inner_brightness = np.mean(image[inner_mask == 255])
-            avg_outer_brightness = np.mean(image[donut_mask == 255])
-
-            if avg_outer_brightness == 0:
-                if avg_inner_brightness > binary_threshold:
-                    valid_stars.append(((cx, cy), cv2.contourArea(contour)))
-                continue
-
-            brightness_ratio = avg_inner_brightness / avg_outer_brightness
-
-            if brightness_ratio > min_peak_ratio:
-                valid_stars.append(((cx, cy), cv2.contourArea(contour)))
-
-        except (ValueError, ZeroDivisionError):
-            continue
-
-    print(f"After peak brightness filtering: {len(valid_stars)} valid stars remain.")
-
-    # --- Step 4: Sort by Brightness/Size and Select Top N ---
-    valid_stars.sort(key=lambda s: s[1], reverse=True)
-    brightest_stars = valid_stars[:n_stars]
-    centroids = np.array([star[0] for star in brightest_stars]) if brightest_stars else np.array([])
-
-    # Return only the centroids to match the requirements of the main script
-    return centroids
+    print(f"Found {len(keypoints)} valid stars. Returning the {len(brightest_stars_coords)} brightest.")
+    return brightest_stars_coords
 
 def display_star_detections(image_path: str, star_coords: list, output_filename: str = 'stars_identified.png'):
     img_color = cv2.imread(image_path)
@@ -181,6 +87,8 @@ def display_star_detections(image_path: str, star_coords: list, output_filename:
     cv2.imshow('Identified Stars', img_color)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+#End of tape fix
 
 def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
     cx, cy = center_coords
@@ -355,79 +263,45 @@ def is_consistent(assignment, image_distances, catalog_distances, tolerance):
 
 if __name__ == "__main__":
     img = cv2.imread(IMAGE_FILE)
-    if img is None:
-        print(f"FATAL ERROR: Could not load image from '{IMAGE_FILE}'")
-        exit() # Exit immediately if the image can't be found
-
     print(f"Actual size: {img.shape[1]} x {img.shape[0]}")
 
-    # --- MODIFIED: Calling the new, advanced star detection function ---
-    star_coords = find_stars_with_advanced_filters(
-        IMAGE_FILE,
-        NUM_STARS,
-        BINARY_THRESHOLD,
-        MIN_STAR_AREA,
-        MAX_STAR_AREA,
-        MIN_CIRCULARITY,
-        MAX_ECCENTRICITY,
-        MIN_SOLIDITY,
-        MIN_PEAK_RATIO
-    )
+    star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
 
-    print(f"\n☆ Star pixel coordinates:")
-    if len(star_coords) > 0:
-        print(f"Coordinates of the {len(star_coords)} brightest stars:")
+    print(f"☆ Star pixel coordinates:\n")
+    if star_coords:
+        print(f"\nCoordinates of the {len(star_coords)} brightest stars:")
         for i, (x, y) in enumerate(star_coords):
-            print(f"  Star {i}: (x={x:.4f}, y={y:.4f})")
-
-        # --- Continue with geometric analysis and database lookups ---
-        print(f"\n☆ Image pair angular distance:")
-        ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
-        for (s1,s2), ang_dist in ang_dists.items():
-            print(f"  {s1} -> {s2}: {ang_dist:.4f} degrees")
-
-        # --- Load candidate HIPs from the database based on angular distances ---
-        hypothesises = load_hypothesies(len(star_coords), ang_dists, TOLERANCE)
-        print(f"\n☆ Candidates for each star:")
-        for star, elements in hypothesises.items():
-            # Truncate long lists of candidates for better readability
-            if len(elements) > 25:
-                 print(f"  Image star {star} -> {len(elements)} HIP candidates: {list(elements)[:25]}...")
-            else:
-                 print(f"  Image star {star} -> HIPs: {elements}")
-
-
-        # --- Generate geometric hashes from star triplets ---
-        print(f"\n☆ Generated Geometric Hashes:")
-        geometric_hashes = generate_geometric_hashes(star_coords)
-        for key, val in geometric_hashes.items():
-            print(f"  Hash {key} -> stars {val}")
-
-
-        # --- FINAL MATCHING: This section performs the DFS to find a consistent assignment. ---
-        # --- It is commented out by default as it can be slow. Uncomment to run. ---
-        #
-        # print("\n--- Attempting to find a consistent star assignment... ---")
-        # assignment = {}
-        # image_stars = list(range(len(star_coords)))
-        # catalog_dists = catalog_angular_distances(ang_dists) # This query can be slow
-        #
-        # result = DFS(assignment, image_stars, hypothesises, ang_dists, catalog_dists, TOLERANCE)
-        #
-        # if result:
-        #     print("\n☆ Final assignment (image star → HIP):")
-        #     for image_star, hip in sorted(result.items()):
-        #         print(f"  Image Star {image_star} → HIP {hip}")
-        # else:
-        #     print("\n☆ No valid assignment found. Try increasing tolerance or checking star detection parameters.")
-
-
-        # --- VISUALIZATION: This section displays the identified stars on the image. ---
-        # --- Uncomment to show the final image and save it to a file. ---
-        #
-        # print("\n--- Displaying final detections... ---")
-        # display_star_detections(IMAGE_FILE, star_coords)
-
-    else:
-        # This runs if the star detection function returns an empty list
-        print("\nNo stars were detected that met all the filter criteria. Halting script.")
+            print(f"  Star {i+1}: (x={x:.4f}, y={y:.4f})")
+        
+    print(f"\n☆ Image pair angular distance:\n")
+    ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
+    for (s1,s2), ang_dist in ang_dists.items():
+        print(f"{s1}->{s2}: {ang_dist}")
+    
+    hypothesises = load_hypothesies(NUM_STARS, ang_dists, TOLERANCE)
+    
+    
+    print(f"☆ Candidates for each star:\n")
+    for star, elements in hypothesises.items():
+        print(f"image star: {star} -> hips: {elements}")
+        print("\n")
+        
+    a = generate_geometric_hashes(star_coords)
+    for key, val in a.items():
+        print(f"{key} -> {val}")
+    
+    # assignment = {}
+    # image_stars = []
+    # for i in range(0, NUM_STARS):
+    #     image_stars.append(i)
+    # catalog_dists = catalog_angular_distances(ang_dists)
+    # result = DFS(assignment, image_stars, hypothesises, ang_dists, catalog_dists, TOLERANCE)
+    # if result:
+    #     print("\n☆ Final assignment (image star → HIP):")
+    #     for image_star, hip in result.items():
+    #         print(f"  Image Star {image_star} → HIP {hip}")
+    # else:
+    #     print("☆ No valid assignment found. Try increasing tolerance or reducing number of stars.")
+        
+    
+    # display_star_detections(IMAGE_FILE, star_coords)
