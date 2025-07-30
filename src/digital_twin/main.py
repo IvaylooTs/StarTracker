@@ -8,16 +8,17 @@ from itertools import product
 IMAGE_HEIGHT = 1964
 IMAGE_WIDTH = 3024
 ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH
-FOV_Y = 20
+FOV_Y = 53
 FOV_X = math.degrees(2 * math.atan(math.tan(math.radians(FOV_Y / 2)) / ASPECT_RATIO))
 CENTER_X = IMAGE_WIDTH/2
 CENTER_Y = IMAGE_HEIGHT/2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
-TOLERANCE = 3
-IMAGE_FILE = "./test_images/testing23.png"
+TOLERANCE = 2
+IMAGE_FILE = "./test_images/testing29.png"
 NUM_STARS = 10
 EPSILON = 1e-6
+MIN_MATCHES = 5
 
 #tape fix
 
@@ -144,6 +145,29 @@ def load_catalog_angular_distances(min_distance=0.1, max_distance=0.5, db_path='
         if conn:
             conn.close()
 
+def load_catalog_unit_vectors(db_path):
+    conn = None
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT hip_id, x, y, z FROM Stars")
+    
+        hip_to_vector = {}
+        for hip_id, x, y, z in cursor.fetchall():
+            vector = np.array([x, y, z], dtype=float)
+            hip_to_vector[hip_id] = vector
+    
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return {}
+
+    finally:
+        if conn:
+            conn.close()
+            
+    return hip_to_vector
+
 def catalog_angular_distances(angular_distances):
     catalog_ang_dists = {}
     for (s1, s2), ang_dist in angular_distances.items():
@@ -178,55 +202,12 @@ def load_hypothesies(num_stars, angular_distances, tolerance):
 
     return hypothesises_dict
 
-def triplet_properties(triplet, star_coords):
-    a, b, c = triplet
-    d_ab = math.dist(star_coords[a], star_coords[b])
-    d_ac = math.dist(star_coords[a], star_coords[c])
-    d_bc = math.dist(star_coords[b], star_coords[c])
-    
-    p = (d_ab + d_ac + d_bc) / 2
-    area = math.sqrt(p*(p - d_ab)*(p - d_ac)*(p - d_bc))
-    
-    elongation = max(d_ab, d_ac, d_bc) / max(min(d_ab, d_ac, d_bc), EPSILON)
+def DFS(assignment, image_stars, candidate_hips, image_angular_distances, catalog_angular_distances, tolerance, solutions):
+    if len(assignment) >= MIN_MATCHES:
+        solutions.append(dict(assignment))
 
-    return d_ab, d_ac, d_bc, area, elongation
-
-def is_degenerate_triplet(triplet, min_area = EPSILON, max_elongation = 10):
-    _, _, _, area, elongation = triplet
-    
-    if area < min_area:
-        return True
-    
-    if elongation > max_elongation:
-        return True
-    
-    return False
-
-def hash_key(triplet):
-    a, b, c, _, _ = triplet
-    sides = sorted([a, b, c])
-    norm = sides[-1]
-    normalized_sides = [side / norm for side in sides]
-    rounded_sides = tuple(round(x, 5) for x in normalized_sides)
-    return rounded_sides
-
-def generate_geometric_hashes(image_coords):
-    triplets = list(combinations(range(NUM_STARS), 3))
-    filtered_triplets = {}
-    
-    for triplet in triplets:
-        triplet_props = triplet_properties(triplet, image_coords)
-        if not is_degenerate_triplet(triplet_props):
-            key = hash_key(triplet_props)
-            if key not in filtered_triplets:
-                filtered_triplets[key] = set()
-            filtered_triplets[key].update(triplet)
-            
-    return filtered_triplets
-
-def DFS(assignment, image_stars, candidate_hips, image_angular_distances, catalog_angular_distances, tolerance):
     if len(assignment) == len(image_stars):
-        return assignment 
+        return 
 
     current_star = next(s for s in image_stars if s not in assignment)
 
@@ -237,13 +218,9 @@ def DFS(assignment, image_stars, candidate_hips, image_angular_distances, catalo
         assignment[current_star] = hip_candidate
         
         if is_consistent(assignment, image_angular_distances, catalog_angular_distances, tolerance):
-            result = DFS(assignment, image_stars, candidate_hips, image_angular_distances, catalog_angular_distances, tolerance)
-            if result is not None:
-                return result
-
+            DFS(assignment, image_stars, candidate_hips, image_angular_distances, catalog_angular_distances, tolerance, solutions)
+        
         del assignment[current_star]
-
-    return None
 
 def is_consistent(assignment, image_distances, catalog_distances, tolerance):
     for (i1, i2), img_angle in image_distances.items():
@@ -261,6 +238,41 @@ def is_consistent(assignment, image_distances, catalog_distances, tolerance):
                 return False
     return True
 
+def score_solution(solution, image_angular_distances, catalog_angular_distances, tolerance=TOLERANCE):
+    total_diff = 0
+    count = 0
+
+    for (s1, s2), img_ang_dist in image_angular_distances.items():
+
+        if s1 in solution and s2 in solution:
+            hip1, hip2 = solution[s1], solution[s2]
+            
+            subdict = catalog_angular_distances.get((s1, s2))
+            key = (hip1, hip2) if (hip1, hip2) in subdict else (hip2, hip1)
+            cat_ang_dist = subdict.get(key)
+    
+            if cat_ang_dist is None:
+                continue
+
+            diff = abs(cat_ang_dist - img_ang_dist)
+            diff = min(diff, 360 - diff)
+            total_diff += diff
+            count += 1
+    
+    if count == 0:
+        return float('inf')
+
+    coverage = count / len(image_angular_distances)
+    score = (total_diff / count) * (1 / coverage)
+    return score
+
+def load_solution_scoring(solutions, image_angular_distances, catalog_angular_distances):
+    scored_solutions = []
+    for sol in solutions:
+        score = score_solution(sol, image_angular_distances, catalog_angular_distances)
+        scored_solutions.append(tuple((sol, score)))
+    return scored_solutions
+            
 if __name__ == "__main__":
     img = cv2.imread(IMAGE_FILE)
     print(f"Actual size: {img.shape[1]} x {img.shape[0]}")
@@ -286,22 +298,22 @@ if __name__ == "__main__":
         print(f"image star: {star} -> hips: {elements}")
         print("\n")
         
-    a = generate_geometric_hashes(star_coords)
-    for key, val in a.items():
-        print(f"{key} -> {val}")
+    assignment = {}
+    image_stars = []
+    for i in range(0, NUM_STARS):
+        image_stars.append(i)
+    catalog_dists = catalog_angular_distances(ang_dists)
+    solutions = []
+    DFS(assignment, image_stars, hypothesises, ang_dists, catalog_dists, TOLERANCE, solutions)
+    for sol in solutions:
+        print(f"{sol}")
     
-    # assignment = {}
-    # image_stars = []
-    # for i in range(0, NUM_STARS):
-    #     image_stars.append(i)
-    # catalog_dists = catalog_angular_distances(ang_dists)
-    # result = DFS(assignment, image_stars, hypothesises, ang_dists, catalog_dists, TOLERANCE)
-    # if result:
-    #     print("\n☆ Final assignment (image star → HIP):")
-    #     for image_star, hip in result.items():
-    #         print(f"  Image Star {image_star} → HIP {hip}")
-    # else:
-    #     print("☆ No valid assignment found. Try increasing tolerance or reducing number of stars.")
-        
+    scored_solutions = load_solution_scoring(solutions, ang_dists, catalog_dists)
+    for element in scored_solutions:
+        print(f"{element}")
     
-    # display_star_detections(IMAGE_FILE, star_coords)
+    sorted_arr = sorted(scored_solutions, key=lambda x: x[1])
+    best_match = sorted_arr[0]
+    print(f"Best match: ")
+    print(f"{best_match[0]}")
+    display_star_detections(IMAGE_FILE, star_coords)
