@@ -272,7 +272,63 @@ def load_solution_scoring(solutions, image_angular_distances, catalog_angular_di
         score = score_solution(sol, image_angular_distances, catalog_angular_distances)
         scored_solutions.append(tuple((sol, score)))
     return scored_solutions
-            
+
+def image_vector_matrix(image_unit_vectors):
+    return np.array(image_unit_vectors, dtype=np.float64)
+
+def catalog_vector_matrix(final_solution, catalog_unit_vectors):
+    matrix = []
+    for star, hip in final_solution[0].items():
+        cat_vector = catalog_unit_vectors.get(hip)
+        if cat_vector is None:
+            raise ValueError(f"Catalog vector for HIP {hip} not found.")
+        matrix.append(cat_vector)
+    return np.array(matrix, dtype=np.float64)
+
+def build_B_matrix(image_vectors, catalog_vectors, weights=None):
+    
+    assert image_vectors.shape == catalog_vectors.shape, "Shape mismatch between image and catalog vectors"
+    
+    N = image_vectors.shape[0]
+    if weights is None:
+        weights = np.ones(N)
+    
+    B = np.zeros((3, 3))
+    for i in range(N):
+        B += weights[i] * np.outer(image_vectors[i], catalog_vectors[i])
+    
+    return B
+
+def build_K_matrix(B):
+    S = B + B.T
+    sigma = np.trace(B)
+    Z = np.array([
+        B[1, 2] - B[2, 1],
+        B[2, 0] - B[0, 2],
+        B[0, 1] - B[1, 0]
+    ])
+
+    K = np.zeros((4, 4))
+    K[0, 0] = sigma
+    K[0, 1:] = Z
+    K[1:, 0] = Z
+    K[1:, 1:] = S - sigma * np.eye(3)
+    return K
+
+def find_optimal_quaternion(K):
+    eigenvalues, eigenvectors = np.linalg.eigh(K)
+    max_index = np.argmax(eigenvalues)
+    optimal_quaternion = eigenvectors[:, max_index]
+    optimal_quaternion /= np.linalg.norm(optimal_quaternion)
+    return optimal_quaternion
+
+def compute_attitude_quaternion(image_vectors, catalog_vectors, weights=None):
+    B = build_B_matrix(image_vectors, catalog_vectors, weights)
+    K = build_K_matrix(B)
+    q = find_optimal_quaternion(K)
+    
+    return q
+        
 if __name__ == "__main__":
     img = cv2.imread(IMAGE_FILE)
     print(f"Actual size: {img.shape[1]} x {img.shape[0]}")
@@ -286,6 +342,7 @@ if __name__ == "__main__":
             print(f"  Star {i+1}: (x={x:.4f}, y={y:.4f})")
         
     print(f"\n☆ Image pair angular distance:\n")
+    img_unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     for (s1,s2), ang_dist in ang_dists.items():
         print(f"{s1}->{s2}: {ang_dist}")
@@ -314,6 +371,15 @@ if __name__ == "__main__":
     
     sorted_arr = sorted(scored_solutions, key=lambda x: x[1])
     best_match = sorted_arr[0]
+    best_dict = best_match[0]
     print(f"Best match: ")
     print(f"{best_match[0]}")
+    
+    a = load_catalog_unit_vectors("star_distances_sorted.db")
+    
+    img_matrix = image_vector_matrix(img_unit_vectors)
+    cat_matrix = catalog_vector_matrix(best_match, a)
+    
+    q = compute_attitude_quaternion(img_matrix, cat_matrix)
+    print(f"{q}")
     display_star_detections(IMAGE_FILE, star_coords)
