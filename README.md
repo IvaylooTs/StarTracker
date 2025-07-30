@@ -48,7 +48,7 @@ The results in your terminal should be:
 
 ## System Architecture
 
-![Algorithm Diagram](https://raw.githubusercontent.com/IvaylooTs/StarTracker/refs/heads/main/Docs/Diagrams/AlgorithmDiagram.png)
+![Algorithm Diagram](https://raw.githubusercontent.com/IvaylooTs/StarTracker/refs/heads/main/Docs/Diagrams/system.png)
 
 ![Cad Design](https://raw.githubusercontent.com/IvaylooTs/StarTracker/refs/heads/main/Docs/CAD%20Images%20%2B%20drawings/CAD%20image.png)
 
