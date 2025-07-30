@@ -1,3 +1,3 @@
 - [ ] Space wire or other communication algorithm
-- [ ] Random jumps problem
+- [x] Random jumps problem
 - [ ] Filter for fusion 
