@@ -1,0 +1,87 @@
+DIRECTORY - /home/pi/UART_protocol
+
+1. Created a virtual env with - python3 -m uart_env
+2. Need to activate everytime we boot it - source uart_env/bin/activate
+3. UART is by default set to Bluetooth, added "dtoverlay = miniuart -bt" to /boot/config.txt
+4. Communication is working fine.
+
+Test - 
+ARDUINO: 
+
+void setup() {
+  // Initialize the serial port. The baud rate (9600) must match the Raspberry Pi script.
+  Serial.begin(9600); 
+  Serial.println("Arduino Echo is Ready."); // This message goes to your PC, not the Pi.
+}
+
+void loop() {
+  // Check if there is any incoming data from the Raspberry Pi
+  if (Serial.available() > 0) {
+    // Read the incoming byte
+    byte incomingByte = Serial.read();
+
+    // Send the exact same byte back to the Raspberry Pi
+    Serial.write(incomingByte);
+  }
+}
+
+RASPBERRY:
+
+import serial
+import time
+
+# --- Configuration ---
+SERIAL_PORT = '/dev/serial0'  # The hardware UART on the GPIO pins
+BAUD_RATE = 9600              # This MUST match the baud rate in your Arduino sketch
+
+# --- Main Program Logic ---
+ser = None  # Initialize ser to None so it exists in the finally block
+try:
+    print("Initializing serial connection...")
+
+    # Open the serial port
+    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=2) # 2-second timeout for reading
+
+    # Wait for the connection to settle (Arduinos often reset upon serial connection)
+    time.sleep(2)
+
+    # --- The Test ---
+    message_to_send = b"Hello from your Pi!" # The 'b' makes it a byte string
+    print(f"Sending: '{message_to_send.decode()}'")
+    ser.write(message_to_send)
+
+    print("Waiting for echo...")
+
+    # Read the echoed data back from the Arduino
+    # We expect to get the same number of bytes back that we sent.
+    echoed_message = ser.read(len(message_to_send))
+
+    # --- Verification ---
+    if echoed_message == message_to_send:
+        print("\n--- SUCCESS ---")
+        print(f"The Arduino correctly echoed back: '{echoed_message.decode()}'")
+    elif echoed_message:
+        print("\n--- FAILURE ---")
+        print(f"Expected '{message_to_send.decode()}' but received '{echoed_message.decode()}' instead.")
+        print("Check for baud rate mismatch or wiring issues.")
+    else:
+        print("\n--- FAILURE ---")
+        print("No response received from the Arduino.")
+        print("Please check your wiring: Pi TX -> Arduino RX, Pi RX <- Arduino TX, and a shared GND pin.")
+
+except serial.SerialException as e:
+    print(f"\n[ERROR] Could not open or use the serial port: {e}")
+    print("Make sure the serial port is enabled in 'sudo raspi-config' and not in use by another program.")
+
+except Exception as e:
+    print(f"\nAn unexpected error occurred: {e}")
+
+finally:
+    # --- Cleanup ---
+    # This part always runs, even if there was an error, to ensure the port is closed.
+    if ser and ser.is_open:
+        ser.close()
+        print("\nSerial port closed.")
+
+5.  Going to create a custom protocol for sending quanternion.
+
