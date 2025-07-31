@@ -3,7 +3,16 @@ DIRECTORY - /home/pi/UART_protocol
 1. Created a virtual env with - python3 -m uart_env
 2. Need to activate everytime we boot it - source uart_env/bin/activate
 3. UART is by default set to Bluetooth, added "dtoverlay = miniuart -bt" to /boot/config.txt
-4. Communication is working fine.
+4. Access for protocols in Raspberry: 
+ How to Enable/Use These on Raspberry Pi 4
+Protocol	Enable in raspi-config?	Linux Device
+UART	Yes (under Interface Options)	/dev/serial0, /dev/ttyAMA0
+I²C	Yes	/dev/i2c-1
+SPI	Yes	/dev/spidev0.0, /dev/spidev0.1
+USB	No need (automatic)	/dev/ttyUSBx, /dev/video0, etc.
+CAN	Requires overlay + transceiver	can0 (via SocketCAN)
+
+5. Communication is working fine.
 
 Test - 
 ARDUINO: 
@@ -83,5 +92,5 @@ finally:
         ser.close()
         print("\nSerial port closed.")
 
-5.  Going to create a custom protocol for sending quanternion.
+6.  Going to create a custom protocol for sending quanternion.
 
