@@ -15,7 +15,7 @@ CENTER_Y = IMAGE_HEIGHT/2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing29.png"
+IMAGE_FILE = "./test_images/testing32.png"
 NUM_STARS = 10
 EPSILON = 1e-6
 MIN_MATCHES = 5
@@ -54,7 +54,7 @@ def find_brightest_stars(image_path: str, num_stars_to_find: int):
     keypoints = sorted(keypoints, key=lambda k: k.size, reverse=True)
     brightest_stars_coords = [kp.pt for kp in keypoints[:num_stars_to_find]]
 
-    print(f"Found {len(keypoints)} valid stars. Returning the {len(brightest_stars_coords)} brightest.")
+    # print(f"Found {len(keypoints)} valid stars. Returning the {len(brightest_stars_coords)} brightest.")
     return brightest_stars_coords
 
 def display_star_detections(image_path: str, star_coords: list, output_filename: str = 'stars_identified.png'):
@@ -328,58 +328,46 @@ def compute_attitude_quaternion(image_vectors, catalog_vectors, weights=None):
     q = find_optimal_quaternion(K)
     
     return q
-        
-if __name__ == "__main__":
-    img = cv2.imread(IMAGE_FILE)
-    print(f"Actual size: {img.shape[1]} x {img.shape[0]}")
-
+   
+def lost_in_space():
+    
     star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
-
-    print(f"☆ Star pixel coordinates:\n")
-    if star_coords:
-        print(f"\nCoordinates of the {len(star_coords)} brightest stars:")
-        for i, (x, y) in enumerate(star_coords):
-            print(f"  Star {i+1}: (x={x:.4f}, y={y:.4f})")
-        
-    print(f"\n☆ Image pair angular distance:\n")
     img_unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
-    for (s1,s2), ang_dist in ang_dists.items():
-        print(f"{s1}->{s2}: {ang_dist}")
-    
+
     hypothesises = load_hypothesies(NUM_STARS, ang_dists, TOLERANCE)
-    
-    
-    print(f"☆ Candidates for each star:\n")
-    for star, elements in hypothesises.items():
-        print(f"image star: {star} -> hips: {elements}")
-        print("\n")
+    sorted_hypothesises = dict(sorted(hypothesises.items(), key=lambda item: len(item[1])))
         
     assignment = {}
     image_stars = []
+    
     for i in range(0, NUM_STARS):
         image_stars.append(i)
+        
     catalog_dists = catalog_angular_distances(ang_dists)
+    
     solutions = []
-    DFS(assignment, image_stars, hypothesises, ang_dists, catalog_dists, TOLERANCE, solutions)
-    for sol in solutions:
-        print(f"{sol}")
+    DFS(assignment, image_stars, sorted_hypothesises, ang_dists, catalog_dists, TOLERANCE, solutions)
     
     scored_solutions = load_solution_scoring(solutions, ang_dists, catalog_dists)
-    for element in scored_solutions:
-        print(f"{element}")
     
     sorted_arr = sorted(scored_solutions, key=lambda x: x[1])
     best_match = sorted_arr[0]
-    best_dict = best_match[0]
+    
     print(f"Best match: ")
     print(f"{best_match[0]}")
     
-    a = load_catalog_unit_vectors("star_distances_sorted.db")
+    cat_ang_dists = load_catalog_unit_vectors("star_distances_sorted.db")
     
-    img_matrix = image_vector_matrix(img_unit_vectors)
-    cat_matrix = catalog_vector_matrix(best_match, a)
+    new_img_vectors = []
+    for i in range(0, len(best_match[0])):
+        new_img_vectors.append(img_unit_vectors[i])
+    img_matrix = image_vector_matrix(new_img_vectors)
+    cat_matrix = catalog_vector_matrix(best_match, cat_ang_dists)
     
-    q = compute_attitude_quaternion(img_matrix, cat_matrix)
+    quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
+    return quaternion
+     
+if __name__ == "__main__":
+    q = lost_in_space()
     print(f"{q}")
-    display_star_detections(IMAGE_FILE, star_coords)
