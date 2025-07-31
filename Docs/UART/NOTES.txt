@@ -94,3 +94,132 @@ finally:
 
 6.  Going to create a custom protocol for sending quanternion.
 
+ARDUINO: 
+
+/*
+  Quaternion Binary Receiver
+
+  This sketch listens for a specific 18-byte packet from the Raspberry Pi,
+  unpacks it into four floats, verifies a checksum, and prints the result.
+*/
+
+// A 'union' is a C++ trick that lets us access the same block of memory
+// in different ways. We can fill the 'bytes' array and instantly
+// read the data as four floats without any conversion.
+typedef union {
+  struct {
+    float w, x, y, z;
+  } q;
+  byte bytes[16];
+} QuaternionUnion;
+
+QuaternionUnion receivedQuaternion;
+
+void setup() {
+  // Use a faster baud rate for sending more data.
+  // Make sure this matches your Python script!
+  Serial.begin(9600); 
+  Serial.println("Arduino Quaternion Receiver Ready.");
+}
+
+void loop() {
+  // Check if a full packet is available to be read (start byte + 16 bytes payload + checksum byte)
+  if (Serial.available() >= 18) {
+    // 1. Look for the start byte to sync up.
+    if (Serial.read() == 0xAA) { // Our chosen start byte
+      
+      // 2. Read the 16 bytes of the quaternion payload into our union.
+      Serial.readBytes(receivedQuaternion.bytes, 16);
+
+      // 3. Read the checksum byte sent by the Pi.
+      byte receivedChecksum = Serial.read();
+
+      // 4. Calculate our own checksum from the data we received.
+      byte calculatedChecksum = 0;
+      for (int i = 0; i < 16; i++) {
+        calculatedChecksum += receivedQuaternion.bytes[i];
+      }
+
+      // 5. Verify if the checksums match.
+      if (receivedChecksum == calculatedChecksum) {
+        // Success! The data is valid. Print it.
+        printQuaternion();
+      } else {
+        // Data was corrupted during transmission.
+        Serial.println("Checksum mismatch! Packet dropped.");
+      }
+    }
+  }
+}
+
+void printQuaternion() {
+  Serial.print("Received OK: [w=");
+  Serial.print(receivedQuaternion.q.w, 4); // Print with 4 decimal places
+  Serial.print(", x=");
+  Serial.print(receivedQuaternion.q.x, 4);
+  Serial.print(", y=");
+  Serial.print(receivedQuaternion.q.y, 4);
+  Serial.print(", z=");
+  Serial.print(receivedQuaternion.q.z, 4);
+  Serial.println("]");
+}
+
+RASPBERRY PI:
+
+import serial
+import time
+import struct
+
+# --- Configuration ---
+SERIAL_PORT = '/dev/serial0'
+# Baud rate MUST match the Arduino sketch
+BAUD_RATE = 9600
+
+# --- Main Program ---
+ser = None
+try:
+    ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
+    print("Serial port opened. Waiting for Arduino to be ready...")
+    time.sleep(2) # Wait for Arduino to reset
+    print("Ready to send quaternion data.")
+
+    # Loop to continuously send changing quaternion data
+    angle = 0
+    while True:
+        # Create some sample data. In a real project, this would come
+        # from a sensor or calculation.
+        w = 0.707
+        x = angle
+        y = 0.5
+        z = 0.0
+
+        # 1. Pack the four floats into a 16-byte structure.
+        #    '<' means little-endian byte order (standard for Arduino)
+        #    '4f' means four floats.
+        payload = struct.pack('<4f', w, x, y, z)
+
+        # 2. Calculate a simple checksum (sum of all bytes in the payload)
+        checksum = sum(payload) & 0xFF # '& 0xFF' ensures it's a single byte
+
+        # 3. Assemble the packet: Start Byte + Payload + Checksum
+        packet = b'\xAA' + payload + struct.pack('<B', checksum)
+
+        # 4. Send the packet
+        ser.write(packet)
+        print(f"Sent: w={w:.2f}, x={x:.2f}, y={y:.2f}, z={z:.2f}")
+
+        # Update the angle for the next loop to make the data change
+        angle += 1
+        if angle > 360.0:
+            angle = 0.0
+
+        time.sleep(0.5) # Send data 10 times per second
+
+except serial.SerialException as e:
+    print(f"ERROR: {e}")
+except KeyboardInterrupt:
+    print("\nProgram stopped by user.")
+finally:
+    if ser and ser.is_open:
+        ser.close()
+        print("Serial port closed.")
