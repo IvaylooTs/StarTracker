@@ -4,6 +4,7 @@ import sqlite3
 import math
 from itertools import combinations
 from itertools import product
+from collections import defaultdict
 
 IMAGE_HEIGHT = 1964
 IMAGE_WIDTH = 3024
@@ -147,29 +148,6 @@ def get_angular_distances(star_coords, center_coords, f_x, f_y):
     unit_vectors = star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y)
     return angular_dist_helper(unit_vectors)
 
-def load_catalog_angular_distances(min_distance=0.1, max_distance=0.5, db_path='star_distances_sorted.db', table_name='AngularDistances'):
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        query = f"""
-            SELECT hip1, hip2, angular_distance
-            FROM {table_name}
-            WHERE angular_distance BETWEEN ? AND ?
-        """
-        cursor.execute(query, (min_distance, max_distance))
-        rows = cursor.fetchall()
-
-        return { (row[0], row[1]): row[2] for row in rows }
-
-    except sqlite3.Error as e:
-        print(f"Database error: {e}")
-        return {}
-
-    finally:
-        if conn:
-            conn.close()
-
 def load_catalog_unit_vectors(db_path):
     conn = None
     try:
@@ -193,39 +171,76 @@ def load_catalog_unit_vectors(db_path):
             
     return hip_to_vector
 
-def catalog_angular_distances(angular_distances):
+# Function that loads a dict from the database where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
+def load_catalog_angular_distances(db_path='star_distances_sorted.db', table_name='AngularDistances'):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    query = f"SELECT hip1, hip2, angular_distance FROM {table_name}"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return { (row[0], row[1]): row[2] for row in rows }
+
+# Function that returns a dict where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
+# angular_distance ∈ [min_ang_dist, max_ang_dist]
+# Inputs:
+# - cat_ang_dists: dict where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
+# - bounds[2]: array where bounds[0] = min_ang_dist and bounds[1] = max_ang_dist
+def filter_catalog_angular_distances(cat_ang_dists, bounds):
+    min_ang_dist, max_ang_dist = bounds
+    filtered = {
+        pair: ang_dist
+        for pair, ang_dist in cat_ang_dists.items()
+        if min_ang_dist <= ang_dist <= max_ang_dist
+    }
+    return filtered
+
+# Function that returns an angular distance interval based on initial angular distance and a tolerance
+# Outputs:
+# - bounds: tuple where bounds[0] = min_ang_dist and bounds[1] = max_ang_dist
+def get_bounds(ang_dist, tolerance):
+    return (ang_dist - tolerance, ang_dist + tolerance)
+
+# Function that returns a dict {(image star index 1, image star index 2): dict2}
+# dict2 - {(HIP ID 1, HIP ID 2): angular distnace}
+# Inputs:
+# - angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
+# - all_cat_ang_dists: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
+# - tolerance: angular distance tolerance
+def catalog_angular_distances(angular_distances, all_cat_ang_dists, tolerance):
     catalog_ang_dists = {}
     for (s1, s2), ang_dist in angular_distances.items():
-        min_ang_dist = ang_dist - TOLERANCE
-        max_ang_dist = ang_dist + TOLERANCE
-        cur_cat_ang_dist = load_catalog_angular_distances(min_ang_dist, max_ang_dist)
+        bounds = get_bounds(ang_dist, tolerance)
+        cur_cat_ang_dist = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
         catalog_ang_dists[(s1,s2)] = cur_cat_ang_dist
     return catalog_ang_dists
 
-def within_bounds(ang_dist, tolerance):
-    min_max = []
-    min_max.append(ang_dist - tolerance)
-    min_max.append(ang_dist + tolerance)
-    return min_max
+# Function that loads candidate catalog HIP IDs for each image star
+# Inputs:
+# - num_stars: number of stars from the image
+# - angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
+# - all_cat_ang_dists: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
+# - tolerance: angular distance tolerance
+# Outputs:
+# - hypotheses_dict: {image star index: [HIP ID 1, ... HIP ID N]}
+def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
+    hypotheses_dict = defaultdict(set)
 
-def load_hypotheses(num_stars, angular_distances, tolerance):
-    hypothesises_dict = {i: set() for i in range(num_stars)}
+    for (i, j), cur_ang_dist in angular_distances.items():
+        if cur_ang_dist is None:
+            continue
 
-    for i in range(num_stars):
-        for j in range(i + 1, num_stars):
-            pair = (i, j)
-            cur_ang_dist = angular_distances.get(pair)
-            if cur_ang_dist is None:
-                continue
+        bounds = get_bounds(cur_ang_dist, tolerance)
+        cur_dict = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
 
-            bounded_ang_dist = within_bounds(cur_ang_dist, tolerance)
-            cur_dict = load_catalog_angular_distances(bounded_ang_dist[0], bounded_ang_dist[1])
+        for h1, h2 in cur_dict.keys():
+            hypotheses_dict[i].update([h1, h2])
+            hypotheses_dict[j].update([h1, h2])
 
-            for (h1, h2), _ in cur_dict.items():
-                hypothesises_dict[i].update([h1, h2])
-                hypothesises_dict[j].update([h1, h2])
-
-    return hypothesises_dict
+    return hypotheses_dict
 
 def DFS(assignment, image_stars, candidate_hips, image_angular_distances, catalog_angular_distances, tolerance, solutions):
     if len(assignment) >= MIN_MATCHES:
@@ -362,7 +377,8 @@ def lost_in_space():
     for (i, j), and_dist in ang_dists.items():
         print(f"{i}->{j}: {ang_dists}")
 
-    hypotheses = load_hypotheses(NUM_STARS, ang_dists, TOLERANCE)
+    all_cat_ang_dists = load_catalog_angular_distances()
+    hypotheses = load_hypotheses(ang_dists, all_cat_ang_dists, TOLERANCE)
     sorted_hypothesises = dict(sorted(hypotheses.items(), key=lambda item: len(item[1])))
         
     assignment = {}
@@ -371,7 +387,7 @@ def lost_in_space():
     for i in range(0, NUM_STARS):
         image_stars.append(i)
         
-    catalog_dists = catalog_angular_distances(ang_dists)
+    catalog_dists = catalog_angular_distances(ang_dists, all_cat_ang_dists, TOLERANCE)
     
     solutions = []
     DFS(assignment, image_stars, sorted_hypothesises, ang_dists, catalog_dists, TOLERANCE, solutions)
@@ -384,13 +400,13 @@ def lost_in_space():
     print(f"Best match: ")
     print(f"{best_match[0]}")
     
-    cat_ang_dists = load_catalog_unit_vectors("star_distances_sorted.db")
+    cat_unit_vectors = load_catalog_unit_vectors("star_distances_sorted.db")
     
     new_img_vectors = []
     for i in range(0, len(best_match[0])):
         new_img_vectors.append(img_unit_vectors[i])
     img_matrix = image_vector_matrix(new_img_vectors)
-    cat_matrix = catalog_vector_matrix(best_match, cat_ang_dists)
+    cat_matrix = catalog_vector_matrix(best_match, cat_unit_vectors)
     
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
     display_star_detections(IMAGE_FILE, star_coords)
