@@ -5,6 +5,11 @@ import math
 from itertools import combinations
 from itertools import product
 from collections import defaultdict
+import sys
+import os
+image_processing_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'image_processing'))
+sys.path.append(image_processing_folder_path)
+import image_processing_v4 as ip
 
 IMAGE_HEIGHT = 1964
 IMAGE_WIDTH = 3024
@@ -16,8 +21,8 @@ CENTER_Y = IMAGE_HEIGHT/2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing34.png"
-NUM_STARS = 10
+IMAGE_FILE = "./test_images/testing37.png"
+NUM_STARS = 15
 EPSILON = 1e-6
 MIN_MATCHES = 5
 
@@ -408,6 +413,8 @@ def compute_attitude_quaternion(image_vectors, catalog_vectors, weights=None):
 def lost_in_space():
     
     star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
+    # star_coords = ip.get_star_coords(IMAGE_FILE, NUM_STARS)
+    img_unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     img_unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     for (i, j), and_dist in ang_dists.items():
