@@ -15,7 +15,7 @@ CENTER_Y = IMAGE_HEIGHT/2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing32.png"
+IMAGE_FILE = "./test_images/testing34.png"
 NUM_STARS = 10
 EPSILON = 1e-6
 MIN_MATCHES = 5
@@ -91,16 +91,40 @@ def display_star_detections(image_path: str, star_coords: list, output_filename:
 
 #End of tape fix
 
+# Unit vector function -> finds star unit vectros based on star pixel coordinates using pinhole projection
+# We're only finding the direction where the 3D object lies since we don't know the actual depth.
+# Inputs:
+# - star_coords: array of tuples that holds (x, y) pixel coordinates of stars in the image
+# - center_coords: image center (principal point) coordinates in tuple form: (xc, yc)
+# - f_x: const. Describes the scaling factor by x
+# - f_y: const. Describes the scaling factor by y
+# Outputs:
+# - unit_vectors: array of np arrays holding (x, y, z) coordinates of each unit vector
 def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
+    # Unpack center_coords
     cx, cy = center_coords
+    # Initialize empty unit vector array
     unit_vectors = []
+    
+    # Reverse pinhole projection to get X, Y, Z coords of each star
     for (x, y) in star_coords:
-        dx = x - cx
-        dy = y - cy
-        direction_vector = np.array([dx, dy, f_x])
+        # Pick arbitrary depth for each 3D point (we don't know how far away they really are, we just want their direction)
+        z_p = 1
+        
+        # Convert pixel coordinates into normalized camera coordinates (back-projection step)
+        # These correspond to where the pixel projects onto the image plane at depth z_p
+        # Inversing pinhole projection formula for x (back-projecting). Formula: x = f_x * (x_p / z_p) + c_x
+        x_p = (x - cx) / f_x
+        # Inversing pinhole projection formula for y (back-projecting). Formula: y = f_y * (x_p / z_p) + c_y
+        y_p = (y - cy) / f_y
+        
+        # array holding [X, Y, Z] coordinates of the direction vector
+        direction_vector = np.array([x_p, y_p, z_p])
+        # Normalize vector to save on calculations later on
         normalized_vector = direction_vector / np.linalg.norm(direction_vector)
         unit_vectors.append(normalized_vector)
-    return unit_vectors
+        
+    return np.array(unit_vectors)
 
 def angular_dist_helper(unit_vectors):
     num_of_vectors = len(unit_vectors)
@@ -183,7 +207,7 @@ def within_bounds(ang_dist, tolerance):
     min_max.append(ang_dist + tolerance)
     return min_max
 
-def load_hypothesies(num_stars, angular_distances, tolerance):
+def load_hypotheses(num_stars, angular_distances, tolerance):
     hypothesises_dict = {i: set() for i in range(num_stars)}
 
     for i in range(num_stars):
@@ -334,9 +358,11 @@ def lost_in_space():
     star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
     img_unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
+    for (i, j), and_dist in ang_dists.items():
+        print(f"{i}->{j}: {ang_dists}")
 
-    hypothesises = load_hypothesies(NUM_STARS, ang_dists, TOLERANCE)
-    sorted_hypothesises = dict(sorted(hypothesises.items(), key=lambda item: len(item[1])))
+    hypotheses = load_hypotheses(NUM_STARS, ang_dists, TOLERANCE)
+    sorted_hypothesises = dict(sorted(hypotheses.items(), key=lambda item: len(item[1])))
         
     assignment = {}
     image_stars = []
@@ -366,6 +392,7 @@ def lost_in_space():
     cat_matrix = catalog_vector_matrix(best_match, cat_ang_dists)
     
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
+    display_star_detections(IMAGE_FILE, star_coords)
     return quaternion
      
 if __name__ == "__main__":
