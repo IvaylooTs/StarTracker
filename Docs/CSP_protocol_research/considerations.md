@@ -44,3 +44,8 @@ While using the full, official `libcsp` library is feasible on the Raspberry Pi,
     2.  **On the Arduino:** We will implement a lightweight, memory-efficient protocol that borrows the key concepts from CSP.
 
 *   **The Problems:** The Arduino in our case is simulating a central main computer between the other subsystems. It should be a node in our system, it should be the main CSP runner. By implementing a lightweight protocol on it it crosses the logic behind it being the main computer. At last it makes the Rasberry our main computer, but the raspberry is merely a proccesing unit for a star tracker.
+
+*   **Other considerations** 
+1. Continue with the initial idea, even though the logic is not right
+2. Don't do it
+3. Change Arduino for a more powerful microcontroller, since its weak anyway.
