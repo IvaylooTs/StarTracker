@@ -5,7 +5,9 @@
 - Raspberry PI AI camera datasheet: https://datasheets.raspberrypi.com/camera/ai-camera-product-brief.pdf
 - Raspberry PI cameras in general: https://www.raspberrypi.com/documentation/accessories/camera.html (some comparisons)
 ##### IMU
+- Bosch product website: https://www.bosch-sensortec.com/products/smart-sensor-systems/bno055/#applications
 - bno055 chip datasheet: https://cdn-shop.adafruit.com/datasheets/BST_BNO055_DS000_12.pdf
+- bno055 chip mounting docs: https://www.bosch-sensortec.com/media/boschsensortec/downloads/handling_soldering_mounting_instructions/bst-bno055-hs000.pdf
 ### Math
 - Quaternion explained:https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html  
 - Kalman filtering: https://blog.tkjelectronics.dk/2012/09/a-practical-approach-to-kalman-filter-and-how-to-implement-it/
