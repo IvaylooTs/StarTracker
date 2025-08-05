@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+  <script src="loadingScreen.js"></script>
+
+  <meta charset="UTF-8">
+  <title>CASSI-UI</title>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+
+
+  <div class="main-grid">
+  <div id="three-container"></div>
+  <div class="video-box">
+    <!-- <img id="stream" src="https://192.168.55.160:5000/video_feed" alt="Live Stream"> -->
+  </div>
+  <div id="quaternion-container">
+    <h2>Real-Time Quaternion Display</h2>
+    <canvas id="quaternionChart"></canvas>
+  </div>
+  <div id="infoWindow">
+    <h3>Quaternion Values</h3>
+    <pre id="quaternionOutput">Waiting for data...</pre>
+    <h3>System stats</h3>
+    <pre id="systemStats">Waiting for data...</pre>
+  </div>
+  <div id="messages"></div>
+  <div class="control-panel">
+    <div class="scrollable-content">
+
+      <h2>Controls</h2>
+      <button class="btn" onclick="downloadPhotoCapture()">Capture & download</button>
+      <button class="btn" onclick="sendCommand('calibrate')">Calibrate IMU</button>
+      <button class="btn" onclick="sendCommand('lostInSpace')">Lost in space!</button>
+      <div class="quaternion-inputs">
+          <label for="q_w">W: </label>
+        <input type="number" step="any" id="q_w" name="q_w" placeholder="w (real)" class="quat-field">
+          <label for="q_x">X: </label>
+        <input type="number" step="any" id="q_x" name="q_x" placeholder="x" class="quat-field">
+          <label for="q_y">Y: </label>
+        <input type="number" step="any" id="q_y" name="q_y" placeholder="y" class="quat-field">
+          <label for="q_z">Z: </label>
+        <input type="number" step="any" id="q_z" name="q_z" placeholder="z" class="quat-field">
+        <button class="btn" onclick="sendCommand('addOffset')">Send Quaternion</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div id="load-screen">
+     <img id="logo" src="Logo-nobg.png">
+    <div id="text-container">
+      <h1>Loading...</h1>
+    </div>
+  </div>
+
+  <script type="module" >
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+    // import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js';
+
+  // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  const container = document.getElementById('three-container');
+
+  // Scene
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xffffff); // white background
+
+  // Camera
+      const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+  camera.position.set(2,3,-5);
+  camera.lookAt(0, 1, 0);
+  // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  // camera.position.set(2, 2, 5);
+  // camera.lookAt(0, 0, 0);
+
+  // Renderer
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+
+  // renderer.setSize(window.innerWidth, window.innerHeight);
+  container.appendChild(renderer.domElement);
+
+  // Cube
+  const cubeMaterials = [
+      new THREE.MeshBasicMaterial({ color: 0xff0000 }), // right
+      new THREE.MeshBasicMaterial({ color: 0x00ff00 }), // left
+      new THREE.MeshBasicMaterial({ color: 0x0000ff }), // top
+      new THREE.MeshBasicMaterial({ color: 0xffff00 }), // bottom
+      new THREE.MeshBasicMaterial({ color: 0xff00ff }), // front
+      new THREE.MeshBasicMaterial({ color: 0x00ffff })  // back
+  ];
+
+  const satellite = new THREE.Group();
+  const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+  // const cubeMaterial = new THREE.MeshNormalMaterial(); // colorful material
+  const cube = new THREE.Mesh(cubeGeometry, cubeMaterials);
+  satellite.add( cube);
+
+  // Arrow pointing out +Z (front face)
+  const origin = new THREE.Vector3(0.5, 0, 0); // front face center
+  const direction = new THREE.Vector3(1,0,0).normalize();
+  const length = 2;
+  const color = 0xff00ff;
+  const arrowHelper = new THREE.ArrowHelper(direction, origin, length, color, 0.2, 0.1);
+  // scene.add(arrowHelper);
+  satellite.add(arrowHelper);
+
+  scene.add(satellite);
+
+  window.Satellite3DObject = satellite;
+
+
+  // Render loop
+  function animate() {
+      requestAnimationFrame(animate);
+      // rotateCube(satellite,Math.PI/360);
+      renderer.render(scene, camera);
+  }
+  function createXYZArrows(scene, length = 2) {
+      const origin = new THREE.Vector3(0, 0, 0);
+
+      // X axis — Red
+      const xArrow = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0), // direction
+      origin,
+      length,
+      0xff0000
+      );
+
+      // Y axis — Green
+      const yArrow = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 1, 0),
+      origin,
+      length,
+      0x00ff00
+      );
+
+      // Z axis — Blue
+      const zArrow = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 0, 1),
+      origin,
+      length,
+      0x0000ff
+      );
+
+      scene.add(xArrow, yArrow, zArrow);
+  }
+  function createLabel(text, position, color = "white") {
+      const canvas = document.createElement("canvas");
+      const size = 256;
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext("2d");
+      context.fillStyle = color;
+      context.font = "bold 100px Arial";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(text, size / 2, size / 2);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(0.5, 0.5, 0.5); // Adjust label size
+      sprite.position.copy(position);
+      return sprite;
+  }
+
+  // Add labels a bit beyond the arrow tips
+  const offset = 0.3;
+  scene.add(createLabel("X", new THREE.Vector3(length + offset, 0, 0), "#ff0000"));
+  scene.add(createLabel("Y", new THREE.Vector3(0, length + offset, 0), "#00ff00"));
+  scene.add(createLabel("Z", new THREE.Vector3(0, 0, length + offset), "#0000ff"));
+
+  function AddOffsetInQuaternion(saveRotation, nextRotation){
+
+  }
+
+  function rotateCube(cube, angle = Math.PI/4,x =1) {
+
+      const axis = new THREE.Vector3(x,1,1).normalize(); // X axis
+      const origin = new THREE.Vector3(0, 0, 0); // front face center
+      const point_Vector = new THREE.ArrowHelper(
+      axis,
+      origin,
+      length,
+      0x252540
+      );
+
+      scene.add(point_Vector);
+      const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+      cube.applyQuaternion(quaternion);
+  }
+  createXYZArrows(scene,4);
+  animate();
+  // scene.scale.z =-1;
+  scene.rotation.x = -Math.PI / 2;
+  window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+  });
+  // Responsive resize
+  // window.addEventListener('resize', () => {
+  //   camera.aspect = window.innerWidth / window.innerHeight;
+  //   camera.updateProjectionMatrix();
+  //   renderer.setSize(window.innerWidth, window.innerHeight);
+  // });
+  </script>
+  <script src="websocketConnection.js"></script>
+  <script src="charts.js"></script>
+</body>
+</html>
