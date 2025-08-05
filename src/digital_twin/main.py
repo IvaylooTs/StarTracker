@@ -14,7 +14,7 @@ image_processing_folder_path = os.path.abspath(
 sys.path.append(image_processing_folder_path)
 # import image_processing_v4 as ip
 
-IMAGE_HEIGHT = 1964
+IMAGE_HEIGHT = 1908  # 1964
 IMAGE_WIDTH = 3024
 ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH
 FOV_Y = 53
@@ -24,7 +24,7 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing37.png"
+IMAGE_FILE = "./test_images/testing40.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_MATCHES = 5
@@ -122,7 +122,7 @@ def display_star_detections(
 # End of tape fix
 
 
-# Unit vector function -> finds star unit vectros based on star pixel coordinates 
+# Unit vector function -> finds star unit vectros based on star pixel coordinates
 # using pinhole projection
 # We're only finding the direction where the 3D object lies since we don't know the actual depth.
 # Inputs:
@@ -140,7 +140,7 @@ def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
 
     # Reverse pinhole projection to get X, Y, Z coords of each star
     for x, y in star_coords:
-        # Pick arbitrary depth for each 3D point 
+        # Pick arbitrary depth for each 3D point
         # (we don't know how far away they really are, we just want their direction)
         z_p = 1
 
@@ -393,9 +393,9 @@ def score_solution(
         if s1 in solution and s2 in solution:
             hip1, hip2 = solution[s1], solution[s2]
 
-            cat_ang_dist = ( catalog_angular_distances.get((hip1, hip2)) \
-                            or catalog_angular_distances.get((hip2, hip1))
-            )
+            cat_ang_dist = catalog_angular_distances.get(
+                (hip1, hip2)
+            ) or catalog_angular_distances.get((hip2, hip1))
 
             if cat_ang_dist is None:
                 continue
@@ -423,7 +423,7 @@ def score_solution(
 # - image_angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
 # - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
 # Outputs:
-# - scored_solutions: array of tuples where the first element of each tuple is the solution 
+# - scored_solutions: array of tuples where the first element of each tuple is the solution
 # and the second is it's score
 def load_solution_scoring(
     solutions, image_angular_distances, catalog_angular_distances
@@ -437,6 +437,7 @@ def load_solution_scoring(
 def image_vector_matrix(image_unit_vectors):
     return np.array(image_unit_vectors, dtype=np.float64)
 
+
 def catalog_vector_matrix(final_solution, catalog_unit_vectors):
     matrix = []
     for star, hip in final_solution[0].items():
@@ -447,21 +448,33 @@ def catalog_vector_matrix(final_solution, catalog_unit_vectors):
     return np.array(matrix, dtype=np.float64)
 
 
-def build_B_matrix(image_vectors, catalog_vectors, weights=None):
+# Function that approximates the rotational relationship between the two sets of vectors (image and catalog)
+# using the weighted sum of their outer products (You can represent any
+# full-rank matrix as a sum of outer products of vectors)
+# Inputs:
+# - image_vectors: np array of the unit vectors from the image.
+# - catalog_vectors: np array of the unit vectors from the catalog
+# - weights: array of floats. Represent how much we can trust each pair of image to catalog vectors
+# Outputs:
+# - weighted_sum_matrix: 3x3 matrix that is the sum of the outer product of each pair of vectors,
+# multiplied by the pair's weight
+def build_weighted_sum_matrix(image_vectors, catalog_vectors, weights=None):
 
     assert (
         image_vectors.shape == catalog_vectors.shape
     ), "Shape mismatch between image and catalog vectors"
 
-    N = image_vectors.shape[0]
+    number_of_rows = image_vectors.shape[0]
     if weights is None:
-        weights = np.ones(N)
+        weights = np.ones(number_of_rows)
 
-    B = np.zeros((3, 3))
-    for i in range(N):
-        B += weights[i] * np.outer(image_vectors[i], catalog_vectors[i])
+    weighted_sum_matrix = np.zeros((3, 3))
+    for i in range(0, number_of_rows):
+        weighted_sum_matrix += weights[i] * np.outer(
+            image_vectors[i], catalog_vectors[i]
+        )
 
-    return B
+    return weighted_sum_matrix
 
 
 def build_K_matrix(B):
@@ -486,8 +499,10 @@ def find_optimal_quaternion(K):
 
 
 def compute_attitude_quaternion(image_vectors, catalog_vectors, weights=None):
-    B = build_B_matrix(image_vectors, catalog_vectors, weights)
-    K = build_K_matrix(B)
+    weighted_sum_matrix = build_weighted_sum_matrix(
+        image_vectors, catalog_vectors, weights
+    )
+    K = build_K_matrix(weighted_sum_matrix)
     q = find_optimal_quaternion(K)
 
     return q
