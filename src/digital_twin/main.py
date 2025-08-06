@@ -12,9 +12,9 @@ image_processing_folder_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "image_processing")
 )
 sys.path.append(image_processing_folder_path)
-# import image_processing_v4 as ip
+import image_processing_v5 as ip
 
-IMAGE_HEIGHT = 1908  # 1964
+IMAGE_HEIGHT = 1964
 IMAGE_WIDTH = 3024
 ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH
 FOV_Y = 53
@@ -24,102 +24,10 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing40.png"
+IMAGE_FILE = "./test_images/testing41.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_MATCHES = 5
-
-# tape fix
-
-
-def find_brightest_stars(image_path: str, num_stars_to_find: int):
-    img = cv2.imread(image_path)
-    if img is None:
-        print(f"Error: Unable to load image at '{image_path}'")
-        return []
-
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    params = cv2.SimpleBlobDetector_Params()
-    params.filterByArea = True
-    params.minArea = 4
-    params.maxArea = 500
-
-    params.filterByCircularity = True
-    params.minCircularity = 0.5
-
-    params.filterByConvexity = True
-    params.minConvexity = 0.8
-
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.8
-
-    detector = cv2.SimpleBlobDetector_create(params)
-    keypoints = detector.detect(255 - img_gray)
-
-    if not keypoints:
-        print("Warning: No blobs passed the detector's filters.")
-        return []
-
-    keypoints = sorted(keypoints, key=lambda k: k.size, reverse=True)
-    brightest_stars_coords = [kp.pt for kp in keypoints[:num_stars_to_find]]
-
-    return brightest_stars_coords
-
-
-def display_star_detections(
-    image_path: str, star_coords: list, output_filename: str = "stars_identified.png"
-):
-    img_color = cv2.imread(image_path)
-    if img_color is None:
-        print(f"Error: Cannot load image for display at '{image_path}'")
-        return
-
-    cross_color = (0, 0, 255)
-    circle_color = (255, 204, 229)
-    text_color = (255, 204, 229)
-    cross_thickness = 1
-    circle_radius = 30
-    circle_thickness = 2
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 1
-    font_thickness = 2
-
-    for idx, (x, y) in enumerate(star_coords):
-        x_int, y_int = int(round(x)), int(round(y))
-
-        cv2.circle(
-            img_color, (x_int, y_int), circle_radius, circle_color, circle_thickness
-        )
-        cv2.drawMarker(
-            img_color,
-            (x_int, y_int),
-            cross_color,
-            markerType=cv2.MARKER_CROSS,
-            thickness=cross_thickness,
-        )
-
-        text_position = (x_int + 10, y_int - 10)
-        cv2.putText(
-            img_color,
-            str(idx),
-            text_position,
-            font,
-            font_scale,
-            text_color,
-            font_thickness,
-            cv2.LINE_AA,
-        )
-
-    cv2.imwrite(output_filename, img_color)
-    print(f"\nVisual result saved to '{output_filename}'.")
-
-    cv2.imshow("Identified Stars", img_color)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-
-# End of tape fix
 
 
 # Unit vector function -> finds star unit vectros based on star pixel coordinates
@@ -449,16 +357,16 @@ def catalog_vector_matrix(final_solution, catalog_unit_vectors):
 
 
 # Function that approximates the rotational relationship between the two sets of vectors (image and catalog)
-# using the weighted sum of their outer products (You can represent any
+# in a matrix using the weighted sum of their outer products (You can represent any
 # full-rank matrix as a sum of outer products of vectors)
 # Inputs:
 # - image_vectors: np array of the unit vectors from the image.
 # - catalog_vectors: np array of the unit vectors from the catalog
 # - weights: array of floats. Represent how much we can trust each pair of image to catalog vectors
 # Outputs:
-# - weighted_sum_matrix: 3x3 matrix that is the sum of the outer product of each pair of vectors,
-# multiplied by the pair's weight
-def build_weighted_sum_matrix(image_vectors, catalog_vectors, weights=None):
+# - attitude_profile_matrix: 3x3 matrix that is the sum of the outer product of each pair of vectors,
+# multiplied by the pair's weight (attitude profile matrix)
+def build_attitude_profile_matrix(image_vectors, catalog_vectors, weights=None):
 
     assert (
         image_vectors.shape == catalog_vectors.shape
@@ -468,30 +376,47 @@ def build_weighted_sum_matrix(image_vectors, catalog_vectors, weights=None):
     if weights is None:
         weights = np.ones(number_of_rows)
 
-    weighted_sum_matrix = np.zeros((3, 3))
+    attitude_profile_matrix = np.zeros((3, 3))
     for i in range(0, number_of_rows):
-        weighted_sum_matrix += weights[i] * np.outer(
+        attitude_profile_matrix += weights[i] * np.outer(
             image_vectors[i], catalog_vectors[i]
         )
 
-    return weighted_sum_matrix
+    return attitude_profile_matrix
 
+# Function that transforms Wahba's problem into quaternion form
+# I don't fully understand the math behind why this matrix is constructed exactly in this way,
+# but I got the end construction from the end of this lecture:
+# https://www.youtube.com/watch?v=BL4KLCEBUUs
+# Inputs:
+# - attitude_profile_matrix: 3x3 matrix
+# Outputs:
+# - quaternion_attitude_profile_matrix: 4x4 matrix
+def build_quaternion_attitude_profile_matrix(attitude_profile_matrix):
+    symmetric_part = attitude_profile_matrix + attitude_profile_matrix.T
+    trace = np.trace(attitude_profile_matrix)
+    antisymmetric_part = np.array([attitude_profile_matrix[1, 2] - attitude_profile_matrix[2, 1], 
+                  attitude_profile_matrix[2, 0] - attitude_profile_matrix[0, 2], 
+                  attitude_profile_matrix[0, 1] - attitude_profile_matrix[1, 0]])
 
-def build_K_matrix(B):
-    S = B + B.T
-    sigma = np.trace(B)
-    Z = np.array([B[1, 2] - B[2, 1], B[2, 0] - B[0, 2], B[0, 1] - B[1, 0]])
+    quaternion_attitude_profile_matrix = np.zeros((4, 4))
+    quaternion_attitude_profile_matrix[0, 0] = trace
+    quaternion_attitude_profile_matrix[0, 1:] = antisymmetric_part
+    quaternion_attitude_profile_matrix[1:, 0] = antisymmetric_part
+    quaternion_attitude_profile_matrix[1:, 1:] = symmetric_part - trace * np.eye(3)
+    return quaternion_attitude_profile_matrix
 
-    K = np.zeros((4, 4))
-    K[0, 0] = sigma
-    K[0, 1:] = Z
-    K[1:, 0] = Z
-    K[1:, 1:] = S - sigma * np.eye(3)
-    return K
-
-
-def find_optimal_quaternion(K):
-    eigenvalues, eigenvectors = np.linalg.eigh(K)
+# Wahba's problem can be rewritten as maximizing this form: q^TKq
+# where K is the quaternion_attitude_profile_matrix
+# We solve this by finding the eigenvector with the maximum 
+# eigenvalue which then will correspond to the quaternion
+# that best aligns with our rotation
+# Inputs:
+# - quaternion_attitude_profile_matrix: 4x4 matrix
+# Outputs:
+# - optimal_quaternion: quaternion that corresponds to our rotation
+def find_optimal_quaternion(quaternion_attitude_profile_matrix):
+    eigenvalues, eigenvectors = np.linalg.eigh(quaternion_attitude_profile_matrix)
     max_index = np.argmax(eigenvalues)
     optimal_quaternion = eigenvectors[:, max_index]
     optimal_quaternion /= np.linalg.norm(optimal_quaternion)
@@ -499,33 +424,31 @@ def find_optimal_quaternion(K):
 
 
 def compute_attitude_quaternion(image_vectors, catalog_vectors, weights=None):
-    weighted_sum_matrix = build_weighted_sum_matrix(
+    attitude_profile = build_attitude_profile_matrix(
         image_vectors, catalog_vectors, weights
     )
-    K = build_K_matrix(weighted_sum_matrix)
-    q = find_optimal_quaternion(K)
+    quaternion_attitude_profile_matrix = \
+    build_quaternion_attitude_profile_matrix(attitude_profile)
+    q = find_optimal_quaternion(quaternion_attitude_profile_matrix)
 
     return q
 
 
 def lost_in_space():
 
-    star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
-    # star_coords = ip.get_star_coords(IMAGE_FILE, NUM_STARS)
-    img_unit_vectors = star_coords_to_unit_vector(
-        star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
-    )
+    # star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
+    star_coords = ip.get_star_coords(IMAGE_FILE, NUM_STARS)
     img_unit_vectors = star_coords_to_unit_vector(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
     ang_dists = get_angular_distances(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
-    for (i, j), and_dist in ang_dists.items():
-        print(f"{i}->{j}: {ang_dists}")
+    # for (i, j), ang_dist in ang_dists.items():
+    #     print(f"{i}->{j}: {ang_dist}")
 
-    all_cat_ang_dists = load_catalog_angular_distances()
-    hypotheses = load_hypotheses(ang_dists, all_cat_ang_dists, TOLERANCE)
+    all_catalog_angular_distances = load_catalog_angular_distances()
+    hypotheses = load_hypotheses(ang_dists, all_catalog_angular_distances, TOLERANCE)
     sorted_hypothesises = dict(
         sorted(hypotheses.items(), key=lambda item: len(item[1]))
     )
@@ -542,29 +465,30 @@ def lost_in_space():
         image_stars,
         sorted_hypothesises,
         ang_dists,
-        all_cat_ang_dists,
+        all_catalog_angular_distances,
         TOLERANCE,
         solutions,
     )
 
-    scored_solutions = load_solution_scoring(solutions, ang_dists, all_cat_ang_dists)
+    scored_solutions = load_solution_scoring(solutions, ang_dists, all_catalog_angular_distances)
 
     sorted_arr = sorted(scored_solutions, key=lambda x: x[1])
     best_match = sorted_arr[0]
+    best_match_solution = best_match[0]
 
     print(f"Best match: ")
-    print(f"{best_match[0]}")
+    print(f"{best_match_solution}")
 
     cat_unit_vectors = load_catalog_unit_vectors("star_distances_sorted.db")
 
-    new_img_vectors = []
-    for i in range(0, len(best_match[0])):
-        new_img_vectors.append(img_unit_vectors[i])
-    img_matrix = image_vector_matrix(new_img_vectors)
+    mapped_image_vectors = []
+    for key in best_match_solution.keys():
+        mapped_image_vectors.append(img_unit_vectors[key])
+    img_matrix = image_vector_matrix(mapped_image_vectors)
     cat_matrix = catalog_vector_matrix(best_match, cat_unit_vectors)
 
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
-    display_star_detections(IMAGE_FILE, star_coords)
+    ip.display_star_detections(IMAGE_FILE, star_coords)
     return quaternion
 
 
