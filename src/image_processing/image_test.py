@@ -7,43 +7,52 @@ import matplotlib.pyplot as plt
 # =============================================================================
 
 # --- Input ---
-IMAGE_PATH = './test_images/clean.jpg' 
+# !!! IMPORTANT: Update this path to a valid image on your machine !!!
+IMAGE_PATH = 'src\digital_twin\\test_images\\testing6.png' 
 
 # --- Initial Detection Parameters ---
-N_STARS_TO_DETECT = 30     # The maximum number of stars to find.
+N_STARS_TO_DETECT = 10     # The maximum number of stars to find.
 BINARY_THRESHOLD = 87      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
 MIN_STAR_AREA = 20         # The minimum number of pixels for an object to be considered a star.
 MAX_STAR_AREA = 500        # The maximum pixel area. Filters out very large/bright objects.
 
 # --- Shape Filter Gauntlet ---
-MIN_CIRCULARITY = 0.70     # How close to a perfect circle (1.0). Good for filtering spiky noise.
+MIN_CIRCULARITY = 0.80     # How close to a perfect circle (1.0). Good for filtering spiky noise.
 MAX_ECCENTRICITY = 0.5     # Measures elongation. 0 is a perfect circle, closer to 1 is a line.
 MIN_SOLIDITY = 0.95        # How "solid" the shape is. 1.0 has no holes or dents. Rejects notched shapes.
 
 # --- Peak Brightness Filter ---
 MIN_PEAK_RATIO = 0.9       # How much brighter the star's core must be than its immediate surroundings.
 
-output_images = {}
+# =============================================================================
+# --- CORE DETECTION LOGIC ---
+# =============================================================================
 
 def find_stars_with_advanced_filters(
     image_path: str, 
     n_stars: int, 
-    binary_threshold: int = BINARY_THRESHOLD, 
-    min_area: int = MIN_STAR_AREA, 
-    max_area: int = MAX_STAR_AREA, 
-    min_circularity: float = MIN_CIRCULARITY, 
-    max_eccentricity: float = MAX_ECCENTRICITY, 
-    min_solidity: float = MIN_SOLIDITY, 
-    min_peak_ratio: float = MIN_PEAK_RATIO
+    binary_threshold: int, 
+    min_area: int, 
+    max_area: int, 
+    min_circularity: float, 
+    max_eccentricity: float, 
+    min_solidity: float, 
+    min_peak_ratio: float
     ):
-    
+    """
+    Identifies the N brightest, most star-like objects in an image using a
+    multi-stage filtering pipeline with Eccentricity and Solidity filters.
+
+    Returns:
+        A tuple containing: (centroids, original_image, binary_image)
+    """
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if image is None:
         raise FileNotFoundError(f"Image not found at path: {image_path}")
 
     # --- Step 1: Find Initial Candidates ---
+    # _, binary_image = cv2.threshold(blurred, binary_threshold, 255, cv2.THRESH_BINARY) ---- global treshhold version (old)
     blurred = cv2.GaussianBlur(image, (5, 5), 0)
-    # _, binary_image = cv2.threshold(blurred, binary_threshold, 255, cv2.THRESH_BINARY)
     binary_image = cv2.adaptiveThreshold(
     blurred, 
     255, 
@@ -51,8 +60,9 @@ def find_stars_with_advanced_filters(
     cv2.THRESH_BINARY, 
     blockSize=31, # Size of the neighborhood area (must be odd)
     C= -5        # A constant subtracted from the mean. A negative C detects darker objects.
-    )
+)
     contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    print(f"Initial detection: Found {len(contours)} potential objects.")
 
     candidates_after_shape_filter = []
 
@@ -93,6 +103,8 @@ def find_stars_with_advanced_filters(
         # If a contour passes ALL shape tests, it's a good candidate.
         candidates_after_shape_filter.append(contour)
 
+    print(f"After shape gauntlet (area, circularity, eccentricity, solidity): {len(candidates_after_shape_filter)} candidates remain.")
+
     valid_stars = []
 
     # --- Step 3: Peak Brightness Filter ---
@@ -128,22 +140,19 @@ def find_stars_with_advanced_filters(
         except (ValueError, ZeroDivisionError):
             continue
 
+    print(f"After peak brightness filtering: {len(valid_stars)} valid stars remain.")
 
     # --- Step 4: Sort by Brightness/Size and Select Top N ---
     valid_stars.sort(key=lambda s: s[1], reverse=True)
     brightest_stars = valid_stars[:n_stars]
     centroids = np.array([star[0] for star in brightest_stars]) if brightest_stars else np.array([])
-    if output_images is not None:
-        output_images['original'] = image
-        output_images['binary'] = binary_image
-    
-    return centroids
 
-def visualize_processing_steps(final_centroids, original_img = None, binary_img = None):
-    if original_img is None:
-        original_img = output_images.get("original")
-    if binary_img is None:
-        binary_img = output_images.get("binary")
+    return centroids, image, binary_image
+
+# =============================================================================
+# --- VISUALIZATION FUNCTION ---
+# =============================================================================
+def visualize_processing_steps(original_img, binary_img, final_centroids):
     """A helper function to visualize the detection steps using Matplotlib."""
     fig, axes = plt.subplots(1, 3, figsize=(24, 8))
     
@@ -165,92 +174,49 @@ def visualize_processing_steps(final_centroids, original_img = None, binary_img 
     
     plt.tight_layout()
     plt.show()
-    
-def get_star_coords(image_path, n_stars):
-    centroids = find_stars_with_advanced_filters(image_path, n_stars)
-    return centroids
 
-def display_star_detections(
-    image_path: str, star_coords: list, output_filename: str = "stars_identified.png"
-):
-    img_color = cv2.imread(image_path)
-    if img_color is None:
-        print(f"Error: Cannot load image for display at '{image_path}'")
-        return
-
-    cross_color = (0, 0, 255)
-    circle_color = (255, 204, 229)
-    text_color = (255, 204, 229)
-    cross_thickness = 1
-    circle_radius = 30
-    circle_thickness = 2
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 1
-    font_thickness = 2
-
-    for idx, (x, y) in enumerate(star_coords):
-        x_int, y_int = int(round(x)), int(round(y))
-
-        cv2.circle(
-            img_color, (x_int, y_int), circle_radius, circle_color, circle_thickness
-        )
-        cv2.drawMarker(
-            img_color,
-            (x_int, y_int),
-            cross_color,
-            markerType=cv2.MARKER_CROSS,
-            thickness=cross_thickness,
+# =============================================================================
+# --- MAIN EXECUTION BLOCK ---
+# This part of the script runs when you execute the file directly.
+# =============================================================================
+if __name__ == '__main__':
+    try:
+        # Call the main detection function with all the configured parameters
+        star_centroids, original_image, binary_image = find_stars_with_advanced_filters(
+            IMAGE_PATH, 
+            N_STARS_TO_DETECT, 
+            BINARY_THRESHOLD, 
+            MIN_STAR_AREA, 
+            MAX_STAR_AREA, 
+            MIN_CIRCULARITY, 
+            MAX_ECCENTRICITY, 
+            MIN_SOLIDITY, 
+            MIN_PEAK_RATIO
         )
 
-        text_position = (x_int + 10, y_int - 10)
-        cv2.putText(
-            img_color,
-            str(idx),
-            text_position,
-            font,
-            font_scale,
-            text_color,
-            font_thickness,
-            cv2.LINE_AA,
-        )
+        # --- Print and display the results ---
+        if original_image is not None:
+            print("\n--- Final Star Coordinates ---")
+            
+            if star_centroids.size > 0:
+                coordinate_list = [tuple(coords) for coords in star_centroids]
+                print(f"Successfully found {len(coordinate_list)} stars.")
+                print("\nFormatted Coordinates (ordered by brightness):")
+                for i, coords in enumerate(coordinate_list, 1):
+                    print(f"  Star {i}: (x={coords[0]}, y={coords[1]})")
+            else:
+                print("No stars were detected that met all criteria.")
 
-    cv2.imwrite(output_filename, img_color)
-    print(f"\nVisual result saved to '{output_filename}'.")
+            # Call the visualization function to show the image plots
+            print(f"\n--- Visualizing Results (Close the plot window to exit script) ---")
+            visualize_processing_steps(original_image, binary_image, star_centroids)
+        
+        else:
+            # This case should not be hit if the image exists, but it's good practice to have it.
+            print("Processing failed: could not get a valid image.")
 
-    cv2.imshow("Identified Stars", img_color)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-def find_brightest_stars(image_path: str, num_stars_to_find: int):
-    img = cv2.imread(image_path)
-    if img is None:
-        print(f"Error: Unable to load image at '{image_path}'")
-        return []
-
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    params = cv2.SimpleBlobDetector_Params()
-    params.filterByArea = True
-    params.minArea = 4
-    params.maxArea = 500
-
-    params.filterByCircularity = True
-    params.minCircularity = 0.5
-
-    params.filterByConvexity = True
-    params.minConvexity = 0.8
-
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.8
-
-    detector = cv2.SimpleBlobDetector_create(params)
-    keypoints = detector.detect(255 - img_gray)
-
-    if not keypoints:
-        print("Warning: No blobs passed the detector's filters.")
-        return []
-
-    keypoints = sorted(keypoints, key=lambda k: k.size, reverse=True)
-    brightest_stars_coords = [kp.pt for kp in keypoints[:num_stars_to_find]]
-
-    return brightest_stars_coords
+    except FileNotFoundError as e:
+        print(f"ERROR: {e}")
+        print("Please make sure the IMAGE_PATH variable at the top of the script is correct.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
