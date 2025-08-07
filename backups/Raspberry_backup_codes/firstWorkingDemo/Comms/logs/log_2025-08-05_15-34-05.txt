@@ -1,0 +1,33 @@
+2025-08-05 15:34:08,363  | Error   | No camera detected.
+2025-08-05 15:34:08,364  | Info    | BNO055 IMU detected and responding.
+2025-08-05 15:34:08,365  | Info    | Setting CONFIG mode
+2025-08-05 15:34:08,466  | Info    | Running tests:
+2025-08-05 15:34:08,468  | Info    | Self-Test Results:
+2025-08-05 15:34:08,468  | Info    |  - Accelerometer: PASS
+2025-08-05 15:34:08,468  | Info    |  - Magnetometer:  PASS
+2025-08-05 15:34:08,469  | Info    |  - Gyroscope:     PASS
+2025-08-05 15:34:08,469  | Info    |  - MCU:           PASS
+2025-08-05 15:34:08,471  | Warning | System idle.
+2025-08-05 15:34:08,471  | Info    | All BNO055 self-tests passed.
+2025-08-05 15:34:08,472  | Success | All IMU tests passed!
+2025-08-05 15:34:08,472  | Info    | loading calibration data...
+2025-08-05 15:34:08,478  | Warning | Calibration written to sensor.
+2025-08-05 15:34:08,478  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-05 15:34:08,780  | Warning | Final testing...
+2025-08-05 15:34:08,781  | Info    | Self-Test Results:
+2025-08-05 15:34:08,781  | Info    |  - Accelerometer: PASS
+2025-08-05 15:34:08,781  | Info    |  - Magnetometer:  PASS
+2025-08-05 15:34:08,782  | Info    |  - Gyroscope:     PASS
+2025-08-05 15:34:08,782  | Info    |  - MCU:           PASS
+2025-08-05 15:34:08,783  | Warning | System status code: 133
+2025-08-05 15:34:08,783  | Warning | One or more self-tests failed.
+2025-08-05 15:34:08,784  | Error   | Final testing failed!
+2025-08-05 15:34:08,784  | Fatal   | No mode changes accrued! Missing logic?
+2025-08-05 15:34:08,784  | Success | IMU setup successful!
+2025-08-05 15:34:08,784  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-05 15:34:08,785  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-05 15:34:08,789  | Info    | Starting serial communications...
+2025-08-05 15:34:08,794  | Info    | Starting WebSocket server...
+2025-08-05 15:34:08,819  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-05 15:34:09,404  | Warning | Jitter detected Difference: 1.9999048591490451
+2025-08-05 15:34:20,520  | Warning | Jitter detected Difference: 1.9999025758758653

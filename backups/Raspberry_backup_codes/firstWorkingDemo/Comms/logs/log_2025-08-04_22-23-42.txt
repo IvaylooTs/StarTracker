@@ -1,0 +1,29 @@
+2025-08-04 22:23:45,650  | Error   | No camera detected.
+2025-08-04 22:23:45,652  | Info    | BNO055 IMU detected and responding.
+2025-08-04 22:23:45,652  | Info    | Setting CONFIG mode
+2025-08-04 22:23:45,754  | Info    | loading calibration data...
+2025-08-04 22:23:45,760  | Warning | Calibration written to sensor.
+2025-08-04 22:23:45,760  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-04 22:23:45,862  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-04 22:23:45,863  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-04 22:23:45,867  | Info    | Starting serial communications...
+2025-08-04 22:23:45,872  | Info    | Starting WebSocket server...
+2025-08-04 22:23:45,899  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-04 22:24:11,019  | Warning | Jitter detected Difference: 1.055622951815212
+2025-08-04 22:24:15,367  | Warning | Jitter detected Difference: 1.055622951815212
+2025-08-04 22:24:16,118  | Warning | Jitter detected Difference: 1.0617742297050954
+2025-08-04 22:24:19,716  | Warning | Jitter detected Difference: 1.055622951815212
+2025-08-04 22:24:20,052  | Warning | Jitter detected Difference: 1.055622951815212
+2025-08-04 22:24:24,751  | Warning | Jitter detected Difference: 1.0617742297050954
+2025-08-04 22:24:30,860  | Warning | Jitter detected Difference: 1.055622951815212
+2025-08-04 22:24:34,159  | Warning | Jitter detected Difference: 1.0617742297050954
+2025-08-04 22:24:37,507  | Warning | Jitter detected Difference: 1.0617742297050954
+2025-08-04 22:24:38,258  | Warning | Jitter detected Difference: 1.0617742297050954
+2025-08-04 22:24:43,000  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-04 22:24:43,001  | Info    | Received command: {"action":"disconnecting"}
+2025-08-04 22:24:43,003  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-04 22:24:43,200  | Warning | Requested live video feed.
+2025-08-04 22:24:43,203  | Info    | Starting video feed
+2025-08-04 22:24:43,204  | Error   | Camera is not initialized.
+2025-08-04 22:24:44,761  | Warning | Jitter detected Difference: 1.0617742297050954
+2025-08-04 22:24:45,054  | Warning | Jitter detected Difference: 1.0617742297050954

@@ -1,0 +1,24 @@
+2025-08-05 15:27:32,199  | Error   | No camera detected.
+2025-08-05 15:27:32,201  | Info    | BNO055 IMU detected and responding.
+2025-08-05 15:27:32,201  | Info    | Setting CONFIG mode
+2025-08-05 15:27:32,303  | Info    | Running tests:
+2025-08-05 15:27:32,305  | Info    | Self-Test Results:
+2025-08-05 15:27:32,305  | Info    |  - Accelerometer: PASS
+2025-08-05 15:27:32,305  | Info    |  - Magnetometer:  PASS
+2025-08-05 15:27:32,306  | Info    |  - Gyroscope:     PASS
+2025-08-05 15:27:32,306  | Info    |  - MCU:           PASS
+2025-08-05 15:27:32,308  | Warning | System idle.
+2025-08-05 15:27:32,308  | Error   | Exception during BNO055 test: name 'all_pass' is not defined
+2025-08-05 15:27:32,309  | Warning | Chaning IMU working modes...
+2025-08-05 15:27:32,309  | Fatal   | No mode changes accrued! Missing logic?
+2025-08-05 15:27:32,309  | Info    | loading calibration data...
+2025-08-05 15:27:32,315  | Warning | Calibration written to sensor.
+2025-08-05 15:27:32,315  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-05 15:27:32,417  | Success | IMU setup successful!
+2025-08-05 15:27:32,418  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-05 15:27:32,418  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-05 15:27:32,423  | Info    | Starting serial communications...
+2025-08-05 15:27:32,427  | Info    | Starting WebSocket server...
+2025-08-05 15:27:32,455  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-05 15:27:34,486  | Warning | Jitter detected Difference: 1.9999150501667724
+2025-08-05 15:28:37,729  | Warning | Jitter detected Difference: 1.9999150054689865

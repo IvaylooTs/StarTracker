@@ -1,0 +1,14 @@
+2025-08-06 15:29:50,716  | Info    | System calibration attempt: 1/2
+2025-08-06 15:29:50,717  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 15:29:50,718  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 15:29:50,718  | Warning | retrying initialization again...
+2025-08-06 15:29:51,719  | Info    | System calibration attempt: 2/2
+2025-08-06 15:29:51,719  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 15:29:51,720  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 15:29:51,720  | Warning | retrying initialization again...
+2025-08-06 15:29:52,721  | Error   | IMU module failed
+2025-08-06 15:29:52,725  | Info    | Starting WebSocket server...
+2025-08-06 15:29:52,759  | Success | WebSocket server started on ws://192.168.55.160:6789
+2025-08-06 15:29:53,686  | Info    | Client connected
+2025-08-06 15:29:53,763  | Error   | Connection closed unexpectedly: sent 1011 (internal error); then received 1011 (internal error)
+2025-08-06 15:29:54,845  | Info    | Client connected

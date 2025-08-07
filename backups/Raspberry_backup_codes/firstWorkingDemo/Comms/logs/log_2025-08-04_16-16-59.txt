@@ -1,0 +1,44 @@
+2025-08-04 16:17:07,368  | Error   | No camera detected.
+2025-08-04 16:17:07,369  | Warning | Unexpected CHIP ID: 0xD0
+2025-08-04 16:17:07,370  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-04 16:17:07,373  | Info    | Starting serial communications...
+2025-08-04 16:17:07,376  | Info    | Starting WebSocket server...
+2025-08-04 16:17:07,428  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-04 16:17:18,996  | Warning | Jitter detected Difference: 1.9957008297161312
+2025-08-04 16:17:20,554  | Warning | Jitter detected Difference: 1.0554402062511317
+2025-08-04 16:17:24,096  | Warning | Jitter detected Difference: 1.0729960663501112
+2025-08-04 16:17:24,909  | Warning | Jitter detected Difference: 1.098916092596882
+2025-08-04 16:17:25,693  | Warning | Jitter detected Difference: 1.1618749063764
+2025-08-04 16:17:31,490  | Warning | Jitter detected Difference: 1.2749526032385243
+2025-08-04 16:17:33,388  | Warning | Jitter detected Difference: 1.061654560579479
+2025-08-04 16:17:34,639  | Warning | Jitter detected Difference: 1.2749535826826823
+2025-08-04 16:17:40,813  | Warning | Jitter detected Difference: 1.061654560579479
+2025-08-04 16:17:49,116  | Warning | Jitter detected Difference: 1.061654560579479
+2025-08-04 16:17:53,830  | Warning | Jitter detected Difference: 1.2749535826826823
+2025-08-04 16:17:54,529  | Warning | Jitter detected Difference: 1.2749535826826823
+2025-08-04 16:17:56,378  | Warning | Jitter detected Difference: 1.2749535826826823
+2025-08-04 16:17:57,728  | Warning | Jitter detected Difference: 1.061654560579479
+2025-08-04 16:17:59,127  | Warning | Jitter detected Difference: 1.2749535826826823
+2025-08-04 16:18:11,671  | Warning | Jitter detected Difference: 1.2749535826826823
+2025-08-04 16:18:13,170  | Warning | Jitter detected Difference: 1.2749535826826823
+2025-08-04 16:18:13,470  | Warning | Jitter detected Difference: 1.2749535826826823
+2025-08-04 16:18:14,036  | Warning | Jitter detected Difference: 1.2749280706296955
+2025-08-04 16:18:16,168  | Warning | Jitter detected Difference: 1.0611140764459501
+2025-08-04 16:18:17,667  | Warning | Jitter detected Difference: 1.0611140764459501
+2025-08-04 16:18:17,968  | Warning | Jitter detected Difference: 1.2749535476607903
+2025-08-04 16:18:20,067  | Warning | Jitter detected Difference: 1.0658545727110327
+2025-08-04 16:18:24,564  | Warning | Jitter detected Difference: 1.0611966106559956
+2025-08-04 16:18:30,616  | Warning | Jitter detected Difference: 1.060845623521938
+2025-08-04 16:18:31,812  | Warning | Jitter detected Difference: 1.0658768028567962
+2025-08-04 16:18:36,605  | Warning | Jitter detected Difference: 1.0658768028567962
+2025-08-04 16:18:38,158  | Warning | Jitter detected Difference: 1.0662516603821213
+2025-08-04 16:18:38,458  | Warning | Jitter detected Difference: 1.0611787012162703
+2025-08-04 16:18:39,507  | Warning | Jitter detected Difference: 1.0611787012162703
+2025-08-04 16:18:43,405  | Warning | Jitter detected Difference: 1.2693093501740165
+2025-08-04 16:18:45,955  | Warning | Jitter detected Difference: 1.0609018652501803
+2025-08-04 16:18:46,508  | Warning | Jitter detected Difference: 1.0609431382498915
+2025-08-04 16:18:49,702  | Warning | Jitter detected Difference: 1.2693417026840237
+2025-08-04 16:18:51,106  | Warning | Jitter detected Difference: 1.060936435444447
+2025-08-04 16:18:55,605  | Warning | Jitter detected Difference: 1.060936435444447
+2025-08-04 16:19:03,044  | Warning | Jitter detected Difference: 1.2693417026840237
+2025-08-04 16:19:05,417  | Warning | Jitter detected Difference: 1.9087301063717086

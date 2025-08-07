@@ -1,0 +1,47 @@
+2025-08-04 22:13:53,847  | Error   | No camera detected.
+2025-08-04 22:13:53,849  | Info    | BNO055 IMU detected and responding.
+2025-08-04 22:13:53,849  | Info    | Setting CONFIG mode
+2025-08-04 22:13:53,951  | Info    | loading calibration data...
+2025-08-04 22:13:53,957  | Warning | Calibration written to sensor.
+2025-08-04 22:13:53,958  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-04 22:13:54,060  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-04 22:13:54,060  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-04 22:13:54,064  | Info    | Starting serial communications...
+2025-08-04 22:13:54,066  | Info    | Starting WebSocket server...
+2025-08-04 22:13:54,115  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-04 22:13:54,708  | Warning | Jitter detected Difference: 0.9123345530579793
+2025-08-04 22:13:58,675  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:14:20,802  | Warning | Jitter detected Difference: 1.4859165393524225
+2025-08-04 22:14:32,940  | Warning | Jitter detected Difference: 1.4859165393524225
+2025-08-04 22:14:42,528  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:14:55,691  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:15:01,505  | Warning | Jitter detected Difference: 1.055333232090567
+2025-08-04 22:15:12,828  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:15:49,544  | Warning | Jitter detected Difference: 1.055333232090567
+2025-08-04 22:16:05,559  | Warning | Jitter detected Difference: 1.055333232090567
+2025-08-04 22:17:32,145  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:17:35,820  | Warning | Jitter detected Difference: 1.4859165393524225
+2025-08-04 22:17:38,882  | Warning | Jitter detected Difference: 1.4859165393524225
+2025-08-04 22:17:40,210  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:17:49,391  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:17:58,775  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:18:45,995  | Warning | Jitter detected Difference: 1.055333232090567
+2025-08-04 22:18:51,606  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:18:53,036  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:19:06,091  | Warning | Jitter detected Difference: 1.055333232090567
+2025-08-04 22:19:31,082  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:19:38,327  | Warning | Jitter detected Difference: 1.055333232090567
+2025-08-04 22:19:41,520  | Warning | Requested live video feed.
+2025-08-04 22:19:41,521  | Info    | Starting video feed
+2025-08-04 22:19:41,521  | Error   | Camera is not initialized.
+2025-08-04 22:19:42,050  | Warning | Jitter detected Difference: 1.4859165393524225
+2025-08-04 22:19:46,999  | Warning | Jitter detected Difference: 1.7142813716249388
+2025-08-04 22:19:50,650  | Warning | Jitter detected Difference: 1.055333232090567
+2025-08-04 22:19:53,349  | Warning | Jitter detected Difference: 1.055333232090567
+2025-08-04 22:19:54,455  | Warning | Jitter detected Difference: 1.055333232090567
+2025-08-04 22:19:56,497  | Warning | Jitter detected Difference: 1.7142831579659428
+2025-08-04 22:19:57,248  | Warning | Jitter detected Difference: 1.4859177956810101
+2025-08-04 22:19:57,398  | Warning | Jitter detected Difference: 1.4859177956810101
+2025-08-04 22:19:57,848  | Warning | Jitter detected Difference: 1.0552921527293768
+2025-08-04 22:20:03,046  | Warning | Jitter detected Difference: 1.4859177956810101
+2025-08-04 22:20:04,246  | Warning | Jitter detected Difference: 1.4859177956810101

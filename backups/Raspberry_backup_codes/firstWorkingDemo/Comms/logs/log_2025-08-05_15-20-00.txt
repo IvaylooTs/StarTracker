@@ -1,0 +1,14 @@
+2025-08-05 15:20:03,882  | Error   | No camera detected.
+2025-08-05 15:20:03,884  | Info    | BNO055 IMU detected and responding.
+2025-08-05 15:20:03,885  | Info    | Setting CONFIG mode
+2025-08-05 15:20:03,986  | Info    | Running tests:
+2025-08-05 15:20:03,987  | Warning | IMU not available — skipping BNO055 tests.
+2025-08-05 15:20:03,988  | Info    | loading calibration data...
+2025-08-05 15:20:03,994  | Warning | Calibration written to sensor.
+2025-08-05 15:20:03,994  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-05 15:20:04,096  | Success | IMU setup successful!
+2025-08-05 15:20:04,097  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-05 15:20:04,097  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-05 15:20:04,105  | Info    | Starting serial communications...
+2025-08-05 15:20:04,107  | Info    | Starting WebSocket server...
+2025-08-05 15:20:04,135  | Info    | WebSocket server started on ws://192.168.55.160:6789

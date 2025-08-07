@@ -17,7 +17,7 @@
   <div class="main-grid">
   <div id="three-container"></div>
   <div class="video-box">
-    <!-- <img id="stream" src="https://192.168.55.160:5000/video_feed" alt="Live Stream"> -->
+<!--    <img id="stream" src="https://192.168.55.160:5000/video_feed" alt="Live Stream"> -->
   </div>
   <div id="quaternion-container">
     <h2>Real-Time Quaternion Display</h2>
@@ -36,7 +36,8 @@
       <h2>Controls</h2>
       <button class="btn" onclick="downloadPhotoCapture()">Capture & download</button>
       <button class="btn" onclick="sendCommand('calibrate')">Calibrate IMU</button>
-      <button class="btn" onclick="sendCommand('lostInSpace')">Lost in space!</button>
+      <button class="btn" onclick="sendCommand('lostInSpaceTest')">Lost in space! test</button>
+      <button class="btn" onclick="sendCommand('lostInSpaceCamera')">Lost in space! Camera</button>
       <div class="quaternion-inputs">
           <label for="q_w">W: </label>
         <input type="number" step="any" id="q_w" name="q_w" placeholder="w (real)" class="quat-field">

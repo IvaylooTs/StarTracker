@@ -1,8 +1,15 @@
 function TerminalDisplayInfo(message){
     const messageDiv = document.getElementById('messages');
+    const MAX_MESSAGES = 100;
+
     const p = document.createElement('p');
     p.textContent = message;
     messageDiv.appendChild(p);
+
+    while (messageDiv.children.length > MAX_MESSAGES) {
+        messageDiv.removeChild(messageDiv.firstChild);
+    }
+
     messageDiv.scrollTop = messageDiv.scrollHeight;
 }
 
@@ -20,12 +27,20 @@ function ConnectToWebSocket() {
     }
     try {
         ws = new WebSocket('ws://192.168.55.160:6789');
+
+        const timeout = setTimeout(() => {
+            if (ws.readyState !== WebSocket.OPEN) {
+                ws.close();
+                TerminalDisplayInfo("Connection timed out.");
+            }
+        },5000); // 5 seconds
+        ws.onopen = () => clearTimeout(timeout);
+
     } catch (e) {
         console.error("Failed to create WebSocket:", e);
         TerminalDisplayInfo("WebSocket creation failed.");
         return; // Prevent running rest of connect logic
     }
-    // ws = new WebSocket('ws://192.168.55.160:6789');
 
     ws.onopen = () => {
         console.log('WebSocket connected');
@@ -80,6 +95,7 @@ function retryWebSocketConnection() {
 }
 
 function sendCommand(cmd) {
+    console.log("sending",cmd);
     if (ws.readyState === WebSocket.OPEN) {
         if (!confirm("Are you sure you want to send command: \"" + cmd + "\"?"))
             return;
@@ -97,7 +113,7 @@ function sendCommand(cmd) {
                 return;
             }
             ws.send(JSON.stringify({ action: cmd, data: {w, x, y, z} }));
-        } else if(cmd === "lostInSpace") {
+        } else {
             ws.send(JSON.stringify({ action: cmd }));
         }
     } else {

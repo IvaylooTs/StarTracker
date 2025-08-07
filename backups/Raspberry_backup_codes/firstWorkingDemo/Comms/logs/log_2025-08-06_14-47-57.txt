@@ -1,0 +1,31 @@
+2025-08-06 14:48:00,539  | Info    | System calibration attempt: 1/2
+2025-08-06 14:48:00,540  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 14:48:00,540  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 14:48:00,541  | Warning | retrying initialization again...
+2025-08-06 14:48:01,541  | Info    | System calibration attempt: 2/2
+2025-08-06 14:48:01,542  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 14:48:01,543  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 14:48:01,543  | Warning | retrying initialization again...
+2025-08-06 14:48:02,544  | Error   | IMU module failed
+2025-08-06 14:48:02,548  | Info    | Starting WebSocket server...
+2025-08-06 14:48:02,580  | Success | WebSocket server started on ws://192.168.55.160:6789
+2025-08-06 14:48:04,312  | Info    | Client connected
+2025-08-06 14:48:04,440  | Error   | Connection closed unexpectedly: sent 1011 (internal error); no close frame received
+2025-08-06 14:48:04,650  | Warning | Requested live video feed.
+2025-08-06 14:48:04,651  | Info    | Starting video feed
+2025-08-06 14:48:04,830  | Info    | Client connected
+2025-08-06 14:48:14,835  | Error   | Connection closed unexpectedly: sent 1011 (internal error); then received 1011 (internal error)
+2025-08-06 14:48:20,166  | Info    | Client connected
+2025-08-06 14:48:20,204  | Info    | Client connected
+2025-08-06 14:48:20,207  | Info    | Client connected
+2025-08-06 14:48:20,268  | Info    | Client connected
+2025-08-06 14:48:20,272  | Info    | Client connected
+2025-08-06 14:48:20,281  | Error   | Connection closed unexpectedly: sent 1011 (internal error); no close frame received
+2025-08-06 14:48:20,335  | Error   | Connection closed unexpectedly: sent 1011 (internal error); no close frame received
+2025-08-06 14:48:20,336  | Error   | Connection closed unexpectedly: sent 1011 (internal error); no close frame received
+2025-08-06 14:48:20,337  | Error   | Connection closed unexpectedly: sent 1011 (internal error); no close frame received
+2025-08-06 14:48:21,463  | Error   | Connection closed unexpectedly: sent 1011 (internal error); then received 1011 (internal error)
+2025-08-06 14:48:23,145  | Info    | Client connected
+2025-08-06 14:48:23,407  | Error   | Connection closed unexpectedly: sent 1011 (internal error); then received 1011 (internal error)
+2025-08-06 14:48:24,243  | Info    | Client connected
+2025-08-06 14:48:24,518  | Error   | Connection closed unexpectedly: sent 1011 (internal error); then received 1011 (internal error)

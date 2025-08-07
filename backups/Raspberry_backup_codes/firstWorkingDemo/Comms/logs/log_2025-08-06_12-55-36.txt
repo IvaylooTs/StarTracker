@@ -1,0 +1,17 @@
+2025-08-06 12:55:39,998  | Info    | System calibration attempt: 1/2
+2025-08-06 12:55:39,999  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 12:55:39,999  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 12:55:39,999  | Warning | retrying initialization again...
+2025-08-06 12:55:41,000  | Info    | System calibration attempt: 2/2
+2025-08-06 12:55:41,001  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 12:55:41,001  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 12:55:41,001  | Warning | retrying initialization again...
+2025-08-06 12:55:42,002  | Error   | IMU module failed
+2025-08-06 12:55:42,006  | Info    | Starting WebSocket server...
+2025-08-06 12:55:42,041  | Success | WebSocket server started on ws://192.168.55.160:6789
+2025-08-06 12:55:52,198  | Warning | Requested live video feed.
+2025-08-06 12:55:52,220  | Info    | Starting video feed
+2025-08-06 12:56:04,831  | Warning | Requested live video feed.
+2025-08-06 12:56:04,850  | Info    | Starting video feed
+2025-08-06 12:56:18,037  | Warning | Requested live video feed.
+2025-08-06 12:56:18,054  | Info    | Starting video feed

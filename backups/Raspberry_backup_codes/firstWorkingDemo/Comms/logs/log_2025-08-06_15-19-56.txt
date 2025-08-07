@@ -1,0 +1,24 @@
+2025-08-06 15:19:59,879  | Info    | System calibration attempt: 1/2
+2025-08-06 15:19:59,880  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 15:19:59,881  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 15:19:59,881  | Warning | retrying initialization again...
+2025-08-06 15:20:00,882  | Info    | System calibration attempt: 2/2
+2025-08-06 15:20:00,883  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 15:20:00,883  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 15:20:00,884  | Warning | retrying initialization again...
+2025-08-06 15:20:01,885  | Error   | IMU module failed
+2025-08-06 15:20:01,893  | Info    | Starting WebSocket server...
+2025-08-06 15:20:01,922  | Success | WebSocket server started on ws://192.168.55.160:6789
+2025-08-06 15:20:04,477  | Warning | Requested live video feed.
+2025-08-06 15:20:04,479  | Info    | Starting video feed
+2025-08-06 15:20:06,443  | Info    | Client connected
+2025-08-06 15:20:06,823  | Info    | Client connected
+2025-08-06 15:20:24,396  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-06 15:20:24,397  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-06 15:20:24,397  | Info    | Lost in space... with camera
+2025-08-06 15:21:08,847  | Info    | Lost in space quaternion: [-0.21271116 -0.85632681  0.39339242  0.25826491]
+2025-08-06 15:21:08,848  | Warning | Continue normal operation
+2025-08-06 15:21:30,775  | Info    | Received from client: {"action":"lostInSpaceTest"}
+2025-08-06 15:21:30,776  | Info    | Received command: {"action":"lostInSpaceTest"}
+2025-08-06 15:21:30,777  | Info    | Lost in space... with test images
+2025-08-06 15:22:14,889  | Info    | Lost in space quaternion: [-0.04008328 -0.36487463 -0.91215681  0.18229041]

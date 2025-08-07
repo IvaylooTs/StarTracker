@@ -1,0 +1,29 @@
+2025-08-05 15:21:29,861  | Error   | No camera detected.
+2025-08-05 15:21:29,863  | Info    | BNO055 IMU detected and responding.
+2025-08-05 15:21:29,863  | Info    | Setting CONFIG mode
+2025-08-05 15:21:29,965  | Info    | Running tests:
+2025-08-05 15:21:29,966  | Info    | CHIP ID verified: 0xA0
+2025-08-05 15:21:29,968  | Info    | Self-Test Results:
+2025-08-05 15:21:29,968  | Info    |  - Accelerometer: PASS
+2025-08-05 15:21:29,968  | Info    |  - Magnetometer:  PASS
+2025-08-05 15:21:29,968  | Info    |  - Gyroscope:     PASS
+2025-08-05 15:21:29,969  | Info    |  - MCU:           PASS
+2025-08-05 15:21:29,971  | Warning | System idle.
+2025-08-05 15:21:29,972  | Warning | One or more self-tests failed.
+2025-08-05 15:21:29,972  | Info    | loading calibration data...
+2025-08-05 15:21:29,978  | Warning | Calibration written to sensor.
+2025-08-05 15:21:29,979  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-05 15:21:30,081  | Success | IMU setup successful!
+2025-08-05 15:21:30,081  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-05 15:21:30,082  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-05 15:21:30,086  | Info    | Starting serial communications...
+2025-08-05 15:21:30,091  | Info    | Starting WebSocket server...
+2025-08-05 15:21:30,120  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-05 15:22:20,457  | Warning | Jitter detected Difference: 1.999913876850875
+2025-08-05 15:22:32,198  | Warning | Jitter detected Difference: 1.999913876850875
+2025-08-05 15:22:33,931  | Warning | Jitter detected Difference: 1.999913876850875
+2025-08-05 15:24:09,321  | Warning | Jitter detected Difference: 1.999917296234395
+2025-08-05 15:25:48,340  | Warning | Jitter detected Difference: 1.9999161862365147
+2025-08-05 15:26:04,677  | Warning | Jitter detected Difference: 1.9999150650660356
+2025-08-05 15:27:15,931  | Warning | Jitter detected Difference: 1.9999150501667724
+2025-08-05 15:27:22,556  | Warning | Jitter detected Difference: 1.9999150501667724

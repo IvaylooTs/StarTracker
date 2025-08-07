@@ -1,0 +1,26 @@
+2025-08-05 15:29:17,919  | Error   | No camera detected.
+2025-08-05 15:29:17,921  | Info    | BNO055 IMU detected and responding.
+2025-08-05 15:29:17,921  | Info    | Setting CONFIG mode
+2025-08-05 15:29:18,023  | Info    | Running tests:
+2025-08-05 15:29:18,025  | Info    | Self-Test Results:
+2025-08-05 15:29:18,025  | Info    |  - Accelerometer: PASS
+2025-08-05 15:29:18,026  | Info    |  - Magnetometer:  PASS
+2025-08-05 15:29:18,026  | Info    |  - Gyroscope:     PASS
+2025-08-05 15:29:18,026  | Info    |  - MCU:           PASS
+2025-08-05 15:29:18,029  | Warning | System idle.
+2025-08-05 15:29:18,029  | Info    | All BNO055 self-tests passed.
+2025-08-05 15:29:18,029  | Success | All IMU tests passed!
+2025-08-05 15:29:18,030  | Info    | loading calibration data...
+2025-08-05 15:29:18,035  | Warning | Calibration written to sensor.
+2025-08-05 15:29:18,036  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-05 15:29:18,138  | Success | IMU setup successful!
+2025-08-05 15:29:18,139  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-05 15:29:18,139  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-05 15:29:18,146  | Info    | Starting serial communications...
+2025-08-05 15:29:18,148  | Info    | Starting WebSocket server...
+2025-08-05 15:29:18,176  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-05 15:30:38,680  | Warning | Jitter detected Difference: 1.9999061702654004
+2025-08-05 15:30:57,570  | Warning | Jitter detected Difference: 1.9999062447607254
+2025-08-05 15:31:22,377  | Warning | Jitter detected Difference: 1.9999062447607254
+2025-08-05 15:31:22,482  | Warning | Jitter detected Difference: 1.9999062447607254
+2025-08-05 15:31:22,583  | Info    | Last quaternion glitch wasn't a glitch returning to save state.

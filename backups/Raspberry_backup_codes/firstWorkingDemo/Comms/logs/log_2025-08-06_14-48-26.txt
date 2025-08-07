@@ -1,0 +1,87 @@
+2025-08-06 14:48:29,200  | Info    | System calibration attempt: 1/2
+2025-08-06 14:48:29,201  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 14:48:29,201  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 14:48:29,202  | Warning | retrying initialization again...
+2025-08-06 14:48:30,202  | Info    | System calibration attempt: 2/2
+2025-08-06 14:48:30,203  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 14:48:30,204  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 14:48:30,204  | Warning | retrying initialization again...
+2025-08-06 14:48:31,205  | Error   | IMU module failed
+2025-08-06 14:48:31,210  | Info    | Starting WebSocket server...
+2025-08-06 14:48:31,243  | Success | WebSocket server started on ws://192.168.55.160:6789
+2025-08-06 14:48:33,450  | Info    | Client connected
+2025-08-06 14:48:42,253  | Info    | Received from client: {"action":"lostInSpace"}
+2025-08-06 14:48:42,254  | Info    | Received command: {"action":"lostInSpace"}
+2025-08-06 14:48:42,255  | Error   | Unknown command: {'action': 'lostInSpace'}
+2025-08-06 14:49:21,638  | Info    | Client connected
+2025-08-06 14:49:40,896  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:49:40,897  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:49:40,898  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:49:41,366  | Info    | Client connected
+2025-08-06 14:49:54,143  | Info    | Received from client: {"action":"lostInSpace"}
+2025-08-06 14:49:54,145  | Info    | Received command: {"action":"lostInSpace"}
+2025-08-06 14:49:54,146  | Error   | Unknown command: {'action': 'lostInSpace'}
+2025-08-06 14:51:21,668  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:51:21,669  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:51:21,669  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:51:22,013  | Info    | Client connected
+2025-08-06 14:51:22,229  | Warning | Requested live video feed.
+2025-08-06 14:51:22,231  | Info    | Starting video feed
+2025-08-06 14:51:37,307  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:51:37,308  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:51:37,308  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:51:37,840  | Warning | Requested live video feed.
+2025-08-06 14:51:37,841  | Info    | Starting video feed
+2025-08-06 14:51:37,930  | Info    | Client connected
+2025-08-06 14:52:14,277  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:52:14,277  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:52:14,278  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:52:14,492  | Info    | Client connected
+2025-08-06 14:52:14,954  | Warning | Requested live video feed.
+2025-08-06 14:52:14,955  | Info    | Starting video feed
+2025-08-06 14:52:35,856  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:52:35,857  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:52:35,857  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:52:36,049  | Warning | Requested live video feed.
+2025-08-06 14:52:36,051  | Info    | Starting video feed
+2025-08-06 14:52:36,123  | Info    | Client connected
+2025-08-06 14:53:05,528  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:53:05,528  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:53:05,529  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:53:05,628  | Warning | Requested live video feed.
+2025-08-06 14:53:05,630  | Info    | Starting video feed
+2025-08-06 14:53:05,732  | Info    | Client connected
+2025-08-06 14:53:24,078  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:53:24,078  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:53:24,079  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:53:24,617  | Info    | Client connected
+2025-08-06 14:53:24,702  | Warning | Requested live video feed.
+2025-08-06 14:53:24,704  | Info    | Starting video feed
+2025-08-06 14:53:26,300  | Info    | Client connected
+2025-08-06 14:53:27,797  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:53:27,797  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:53:27,798  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:53:27,898  | Warning | Requested live video feed.
+2025-08-06 14:53:27,900  | Info    | Starting video feed
+2025-08-06 14:53:27,969  | Info    | Client connected
+2025-08-06 14:54:19,492  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:54:19,493  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:54:19,494  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:54:19,627  | Info    | Client connected
+2025-08-06 14:54:19,751  | Warning | Requested live video feed.
+2025-08-06 14:54:19,752  | Info    | Starting video feed
+2025-08-06 14:54:28,652  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:54:28,653  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:54:28,653  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:54:29,013  | Info    | Client connected
+2025-08-06 14:54:29,013  | Warning | Requested live video feed.
+2025-08-06 14:54:29,014  | Info    | Starting video feed
+2025-08-06 14:54:29,976  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 14:54:29,976  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 14:54:29,977  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 14:54:30,425  | Info    | Client connected
+2025-08-06 14:54:30,518  | Warning | Requested live video feed.
+2025-08-06 14:54:30,520  | Info    | Starting video feed
+2025-08-06 14:54:47,771  | Info    | Received from client: {"action":"calibrate"}
+2025-08-06 14:54:47,772  | Info    | Received command: {"action":"calibrate"}
+2025-08-06 14:54:47,773  | Info    | Calibrating sensor...

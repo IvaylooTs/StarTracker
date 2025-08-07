@@ -1,7 +1,14 @@
-window.onload = () => {
+const skipLogo = true
 
-    element = document.getElementById("text-container");
-    element.children[0].textContent = "Developer interface";
+window.onload = () => {
+  if(skipLogo == true){
+    document.getElementById('load-screen').style.display = 'none';
+    return
+  }
+  
+  element = document.getElementById("text-container");
+  element.children[0].textContent = "Developer interface";
+
     
     if(typeof anime === 'undefined'){
         element = document.getElementById("logo");
@@ -48,6 +55,7 @@ window.onload = () => {
         delay:1000,
         complete: function() {
             document.getElementById('load-screen').style.display = 'none';
+            document.getElementById('stream').src = 'https://192.168.55.160:5000/video_feed';
         }
     });
   };

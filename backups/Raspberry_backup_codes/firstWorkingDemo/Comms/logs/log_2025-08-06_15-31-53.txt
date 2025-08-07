@@ -1,0 +1,42 @@
+2025-08-06 15:31:56,199  | Info    | System calibration attempt: 1/2
+2025-08-06 15:31:56,200  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 15:31:56,200  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 15:31:56,200  | Warning | retrying initialization again...
+2025-08-06 15:31:57,201  | Info    | System calibration attempt: 2/2
+2025-08-06 15:31:57,202  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 15:31:57,202  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 15:31:57,202  | Warning | retrying initialization again...
+2025-08-06 15:31:58,203  | Error   | IMU module failed
+2025-08-06 15:31:58,207  | Info    | Starting WebSocket server...
+2025-08-06 15:31:58,241  | Success | WebSocket server started on ws://192.168.55.160:6789
+2025-08-06 15:31:58,343  | Info    | Client connected
+2025-08-06 15:31:58,369  | Error   | Connection closed unexpectedly: sent 1011 (internal error); then received 1011 (internal error)
+2025-08-06 15:31:59,413  | Info    | Client connected
+2025-08-06 15:31:59,477  | Error   | Connection closed unexpectedly: no close frame received or sent
+2025-08-06 15:32:00,481  | Info    | Client connected
+2025-08-06 15:32:00,494  | Error   | Connection closed unexpectedly: no close frame received or sent
+2025-08-06 15:32:01,522  | Info    | Client connected
+2025-08-06 15:32:03,354  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 15:32:03,355  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 15:32:03,356  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 15:32:03,552  | Info    | Client connected
+2025-08-06 15:32:03,603  | Warning | Requested live video feed.
+2025-08-06 15:32:03,605  | Info    | Starting video feed
+2025-08-06 15:32:05,091  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-06 15:32:05,091  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-06 15:32:05,093  | Info    | Lost in space... with camera
+2025-08-06 15:32:43,736  | Info    | Lost in space quaternion: [-6.14284017e-01  7.05750736e-03  4.51342991e-04  7.89053315e-01]
+2025-08-06 15:32:43,738  | Warning | Continue normal operation
+2025-08-06 15:40:15,335  | Error   | Connection closed unexpectedly: no close frame received or sent
+2025-08-06 15:40:16,438  | Info    | Client connected
+2025-08-06 15:40:36,257  | Info    | Received from client: {"action":"disconnecting"}
+2025-08-06 15:40:36,258  | Info    | Received command: {"action":"disconnecting"}
+2025-08-06 15:40:36,258  | Error   | Unknown command: {'action': 'disconnecting'}
+2025-08-06 15:40:36,424  | Warning | Requested live video feed.
+2025-08-06 15:40:36,426  | Info    | Starting video feed
+2025-08-06 15:40:36,444  | Info    | Client connected
+2025-08-06 15:40:40,316  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-06 15:40:40,318  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-06 15:40:40,319  | Info    | Lost in space... with camera
+2025-08-06 15:41:37,294  | Info    | Lost in space quaternion: [-0.07131326  0.45081537  0.36256325 -0.81254403]
+2025-08-06 15:41:37,295  | Warning | Continue normal operation

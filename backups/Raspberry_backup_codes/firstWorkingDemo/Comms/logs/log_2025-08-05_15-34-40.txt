@@ -1,0 +1,51 @@
+2025-08-05 15:34:43,256  | Error   | No camera detected.
+2025-08-05 15:34:43,258  | Info    | BNO055 IMU detected and responding.
+2025-08-05 15:34:43,259  | Info    | Setting CONFIG mode
+2025-08-05 15:34:43,361  | Info    | Running tests:
+2025-08-05 15:34:43,362  | Info    | Self-Test Results:
+2025-08-05 15:34:43,363  | Info    |  - Accelerometer: PASS
+2025-08-05 15:34:43,363  | Info    |  - Magnetometer:  PASS
+2025-08-05 15:34:43,363  | Info    |  - Gyroscope:     PASS
+2025-08-05 15:34:43,363  | Info    |  - MCU:           PASS
+2025-08-05 15:34:43,466  | Warning | System idle.
+2025-08-05 15:34:43,466  | Info    | All BNO055 self-tests passed.
+2025-08-05 15:34:43,466  | Success | All IMU tests passed!
+2025-08-05 15:34:43,467  | Info    | loading calibration data...
+2025-08-05 15:34:43,472  | Warning | Calibration written to sensor.
+2025-08-05 15:34:43,473  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-05 15:34:43,775  | Warning | Final testing...
+2025-08-05 15:34:43,776  | Info    | Self-Test Results:
+2025-08-05 15:34:43,776  | Info    |  - Accelerometer: PASS
+2025-08-05 15:34:43,776  | Info    |  - Magnetometer:  PASS
+2025-08-05 15:34:43,776  | Info    |  - Gyroscope:     PASS
+2025-08-05 15:34:43,777  | Info    |  - MCU:           PASS
+2025-08-05 15:34:43,878  | Warning | System status code: 133
+2025-08-05 15:34:43,878  | Warning | One or more self-tests failed.
+2025-08-05 15:34:43,879  | Error   | Final testing failed!
+2025-08-05 15:34:43,879  | Fatal   | No mode changes accrued! Missing logic?
+2025-08-05 15:34:43,879  | Success | IMU setup successful!
+2025-08-05 15:34:43,879  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-05 15:34:43,880  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-05 15:34:43,887  | Info    | Starting serial communications...
+2025-08-05 15:34:43,888  | Info    | Starting WebSocket server...
+2025-08-05 15:34:43,914  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-05 15:34:56,431  | Warning | Jitter detected Difference: 1.9999025758758653
+2025-08-05 15:35:05,699  | Warning | Jitter detected Difference: 1.9999025758758653
+2025-08-05 15:35:13,052  | Warning | Jitter detected Difference: 1.0543612906238808
+2025-08-05 15:35:14,150  | Warning | Jitter detected Difference: 1.197734146137403
+2025-08-05 15:35:14,299  | Warning | Jitter detected Difference: 1.0911811104556655
+2025-08-05 15:35:17,487  | Warning | Jitter detected Difference: 1.9634541851006075
+2025-08-05 15:35:28,367  | Warning | Jitter detected Difference: 1.9040011824501386
+2025-08-05 15:35:28,546  | Warning | Jitter detected Difference: 1.983061176269315
+2025-08-05 15:35:29,211  | Warning | Jitter detected Difference: 0.3899799598527467
+2025-08-05 15:35:36,240  | Warning | Jitter detected Difference: 1.0519616112050236
+2025-08-05 15:35:39,865  | Warning | Jitter detected Difference: 1.2744058455654768
+2025-08-05 15:35:46,304  | Warning | Jitter detected Difference: 0.3229005819246279
+2025-08-05 15:35:51,824  | Warning | Jitter detected Difference: 1.274394990955409
+2025-08-05 15:36:12,978  | Warning | Jitter detected Difference: 1.2743946691380725
+2025-08-05 15:36:25,738  | Warning | Jitter detected Difference: 0.32309509943453146
+2025-08-05 15:36:34,236  | Warning | Jitter detected Difference: 1.274400056122281
+2025-08-05 15:36:53,657  | Warning | Jitter detected Difference: 1.9122076541194524
+2025-08-05 15:37:04,794  | Warning | Jitter detected Difference: 1.9122076541194524
+2025-08-05 15:37:17,484  | Warning | Jitter detected Difference: 1.0544942070318863
+2025-08-05 15:37:18,695  | Warning | Jitter detected Difference: 1.9122174432446755

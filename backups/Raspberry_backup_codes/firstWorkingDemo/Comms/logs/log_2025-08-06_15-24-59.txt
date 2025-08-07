@@ -1,0 +1,28 @@
+2025-08-06 15:25:02,335  | Info    | System calibration attempt: 1/2
+2025-08-06 15:25:02,336  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 15:25:02,337  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 15:25:02,337  | Warning | retrying initialization again...
+2025-08-06 15:25:03,338  | Info    | System calibration attempt: 2/2
+2025-08-06 15:25:03,338  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 15:25:03,339  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 15:25:03,339  | Warning | retrying initialization again...
+2025-08-06 15:25:04,340  | Error   | IMU module failed
+2025-08-06 15:25:04,345  | Info    | Starting WebSocket server...
+2025-08-06 15:25:04,378  | Success | WebSocket server started on ws://192.168.55.160:6789
+2025-08-06 15:25:04,939  | Warning | Requested live video feed.
+2025-08-06 15:25:04,941  | Info    | Starting video feed
+2025-08-06 15:25:04,979  | Info    | Client connected
+2025-08-06 15:25:05,083  | Error   | Connection closed unexpectedly: sent 1011 (internal error); then received 1011 (internal error)
+2025-08-06 15:25:06,136  | Info    | Client connected
+2025-08-06 15:25:10,356  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-06 15:25:10,356  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-06 15:25:10,357  | Info    | Lost in space... with camera
+2025-08-06 15:25:38,714  | Warning | Requested live video feed.
+2025-08-06 15:25:38,736  | Info    | Starting video feed
+2025-08-06 15:25:47,664  | Info    | Lost in space quaternion: [-0.48014065 -0.26447601 -0.31013555 -0.77674535]
+2025-08-06 15:25:47,666  | Warning | Continue normal operation
+2025-08-06 15:26:18,767  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-06 15:26:18,768  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-06 15:26:18,768  | Info    | Lost in space... with camera
+2025-08-06 15:27:03,861  | Info    | Lost in space quaternion: [ 0.06383007  0.52577614 -0.84820322 -0.00603848]
+2025-08-06 15:27:03,862  | Warning | Continue normal operation

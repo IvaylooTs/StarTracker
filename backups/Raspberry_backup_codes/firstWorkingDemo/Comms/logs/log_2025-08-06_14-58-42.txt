@@ -1,0 +1,17 @@
+2025-08-06 14:58:45,655  | Info    | System calibration attempt: 1/2
+2025-08-06 14:58:45,656  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 14:58:45,657  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 14:58:45,657  | Warning | retrying initialization again...
+2025-08-06 14:58:46,658  | Info    | System calibration attempt: 2/2
+2025-08-06 14:58:46,659  | Error   | BNO055 IMU not detected on I2C bus.
+2025-08-06 14:58:46,659  | Fatal   | BNO055 IMU is unresponsive.
+2025-08-06 14:58:46,660  | Warning | retrying initialization again...
+2025-08-06 14:58:47,660  | Error   | IMU module failed
+2025-08-06 14:58:47,665  | Info    | Starting WebSocket server...
+2025-08-06 14:58:47,696  | Success | WebSocket server started on ws://192.168.55.160:6789
+2025-08-06 14:58:49,876  | Info    | Client connected
+2025-08-06 14:58:49,944  | Info    | Client connected
+2025-08-06 14:58:51,826  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-06 14:58:51,826  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-06 14:58:51,827  | Info    | Lost in space... with camera
+2025-08-06 14:58:51,841  | Fatal   | Other error: name 'time' is not defined

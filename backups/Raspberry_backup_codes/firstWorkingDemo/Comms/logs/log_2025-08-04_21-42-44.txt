@@ -1,0 +1,13 @@
+2025-08-04 21:42:51,764  | Error   | No camera detected.
+2025-08-04 21:42:51,766  | Info    | BNO055 IMU detected and responding.
+2025-08-04 21:42:51,766  | Info    | Setting CONFIG mode
+2025-08-04 21:42:51,868  | Info    | loading calibration data...
+2025-08-04 21:42:51,875  | Warning | Calibration written to sensor.
+2025-08-04 21:42:51,875  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-04 21:42:51,977  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-04 21:42:51,977  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-04 21:42:51,982  | Info    | Starting serial communications...
+2025-08-04 21:42:51,983  | Info    | Starting WebSocket server...
+2025-08-04 21:42:52,028  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-04 21:42:52,624  | Warning | Jitter detected Difference: 0.8959664661004724
+2025-08-04 21:42:55,880  | Warning | Jitter detected Difference: 1.6974433694166984

@@ -1,0 +1,32 @@
+2025-08-05 15:37:33,514  | Error   | No camera detected.
+2025-08-05 15:37:33,516  | Info    | BNO055 IMU detected and responding.
+2025-08-05 15:37:33,516  | Info    | Setting CONFIG mode
+2025-08-05 15:37:33,618  | Info    | Running tests:
+2025-08-05 15:37:33,620  | Info    | Self-Test Results:
+2025-08-05 15:37:33,620  | Info    |  - Accelerometer: PASS
+2025-08-05 15:37:33,620  | Info    |  - Magnetometer:  PASS
+2025-08-05 15:37:33,621  | Info    |  - Gyroscope:     PASS
+2025-08-05 15:37:33,621  | Info    |  - MCU:           PASS
+2025-08-05 15:37:33,723  | Warning | System idle.
+2025-08-05 15:37:33,724  | Info    | All BNO055 self-tests passed.
+2025-08-05 15:37:33,724  | Success | All IMU tests passed!
+2025-08-05 15:37:33,724  | Info    | loading calibration data...
+2025-08-05 15:37:33,730  | Warning | Calibration written to sensor.
+2025-08-05 15:37:33,730  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-05 15:37:34,032  | Warning | Final testing...
+2025-08-05 15:37:34,033  | Info    | Self-Test Results:
+2025-08-05 15:37:34,033  | Info    |  - Accelerometer: PASS
+2025-08-05 15:37:34,034  | Info    |  - Magnetometer:  PASS
+2025-08-05 15:37:34,034  | Info    |  - Gyroscope:     PASS
+2025-08-05 15:37:34,034  | Info    |  - MCU:           PASS
+2025-08-05 15:37:34,135  | Warning | System status code: 133
+2025-08-05 15:37:34,136  | Info    | All BNO055 self-tests passed.
+2025-08-05 15:37:34,136  | Success | All IMU tests passed!
+2025-08-05 15:37:34,136  | Success | IMU setup successful!
+2025-08-05 15:37:34,137  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-05 15:37:34,137  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-05 15:37:34,141  | Info    | Starting serial communications...
+2025-08-05 15:37:34,146  | Info    | Starting WebSocket server...
+2025-08-05 15:37:34,173  | Info    | WebSocket server started on ws://192.168.55.160:6789
+2025-08-05 15:37:34,371  | Error   | Connection closed unexpectedly: sent 1011 (internal error); then received 1011 (internal error)
+2025-08-05 15:37:36,796  | Warning | Jitter detected Difference: 1.054545165580712
