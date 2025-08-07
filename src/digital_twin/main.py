@@ -462,9 +462,39 @@ def inverse_rotate_vectors(quaternion, catalog_vectors):
     camera_frame_vectors = rot_object.inv().apply(catalog_vectors)
     return camera_frame_vectors
 
-# def project_to_image_plane():
 
-# def reproject_vectors():
+# Function to project vectors in our camera frame to pixel coordinates in the
+# image plane
+# Inputs:
+# - vectors: array of vectors to project
+# - params: array of camera params:
+#   - params[0] = (f_x, f_y)
+#   - params[1] = (c_x, c_y)
+# Outputs:
+# - projected_coords: coordinates of each point. If point is behind camera
+# the element in the array is None
+def project_to_image_plane(vectors, params):
+    f_x, f_y, c_x, c_y = params
+    projected_coords = []
+    for vector in vectors:
+        x, y, z = vector
+        if z <= 0:
+            projected_coords.append(None)
+        else:
+            projected_x = f_x * (x / z) + c_x
+            projected_y = f_y * (y / z) + c_y
+            projected_coords.append((projected_x, projected_y))
+    
+    return projected_coords
+
+
+# Function that reprojects the assigned catalog unit vectors back into
+# our image plane
+def reproject_vectors(quaternion, catalog_vectors, params):
+    camera_vectors = inverse_rotate_vectors(quaternion, catalog_vectors)
+    projected_coords = project_to_image_plane(camera_vectors, params)
+    return projected_coords
+
 
 def lost_in_space():
 
