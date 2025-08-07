@@ -10,7 +10,7 @@ import sys
 import os
 
 
-IMAGE_PATH = './test_images/LOG.png' 
+IMAGE_PATH = './test_images/checker.png' 
 import cv2
 import cv2
 
@@ -89,14 +89,14 @@ if __name__ == "__main__":
         print(f"Star {i + 1}: ({x:.2f}, {y:.2f})")
         stars.append((x,y))
 
-    height = 765
-    width = 1358
-    angles = 60
+    height = 768
+    width = 1365
+    angles = 78
 
     #optical center
     oc_height = height/2 
     oc_width = width/2 
-    f = height / 2* math.tan(math.radians(angles))
+    f = (height / 2)/ math.tan(math.radians(angles/2))
     print(f)
     for i, (x, y) in enumerate(centroids):
         stars_vectors.append(((x-oc_width)/f, (y-oc_height)/f,1))
