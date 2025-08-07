@@ -12,13 +12,13 @@ IMAGE_PATH = './test_images/clean.jpg'
 # --- Initial Detection Parameters ---
 N_STARS_TO_DETECT = 30     # The maximum number of stars to find.
 BINARY_THRESHOLD = 87      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
-MIN_STAR_AREA = 10         # The minimum number of pixels for an object to be considered a star.
-MAX_STAR_AREA = 600        # The maximum pixel area. Filters out very large/bright objects.
+MIN_STAR_AREA = 20        # The minimum number of pixels for an object to be considered a star.
+MAX_STAR_AREA = 500       # The maximum pixel area. Filters out very large/bright objects.
 
 # --- Shape Filter Gauntlet ---
 MIN_CIRCULARITY = 0.80     # How close to a perfect circle (1.0). Good for filtering spiky noise.
 MAX_ECCENTRICITY = 0.5     # Measures elongation. 0 is a perfect circle, closer to 1 is a line.
-MIN_SOLIDITY = 0.98        # How "solid" the shape is. 1.0 has no holes or dents. Rejects notched shapes.
+MIN_SOLIDITY = 0.95     # How "solid" the shape is. 1.0 has no holes or dents. Rejects notched shapes.
 
 # --- Peak Brightness Filter ---
 MIN_PEAK_RATIO = 0.9       # How much brighter the star's core must be than its immediate surroundings.

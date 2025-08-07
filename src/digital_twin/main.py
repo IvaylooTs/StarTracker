@@ -25,8 +25,8 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing44.png"
-NUM_STARS = 10
+IMAGE_FILE = "./test_images/testing45.png"
+NUM_STARS = 15
 EPSILON = 1e-6
 MIN_MATCHES = 5
 MIN_SUPPORT = 5
@@ -429,7 +429,7 @@ def build_quaternion_attitude_profile_matrix(attitude_profile_matrix):
 # Inputs:
 # - quaternion_attitude_profile_matrix: 4x4 matrix
 # Outputs:
-# - optimal_quaternion: quaternion that corresponds to our rotation
+# - optimal_quaternion: quaternion that corresponds to our rotation [qw, qx, qy, qz]
 def find_optimal_quaternion(quaternion_attitude_profile_matrix):
     eigenvalues, eigenvectors = np.linalg.eigh(quaternion_attitude_profile_matrix)
     max_index = np.argmax(eigenvalues)
@@ -474,7 +474,8 @@ def inverse_rotate_vectors(quaternion, catalog_vectors):
 # - projected_coords: coordinates of each point. If point is behind camera
 # the element in the array is None
 def project_to_image_plane(vectors, params):
-    f_x, f_y, c_x, c_y = params
+    f_x, f_y = params[0]
+    c_x, c_y = params[1]
     projected_coords = []
     for vector in vectors:
         x, y, z = vector
@@ -484,7 +485,7 @@ def project_to_image_plane(vectors, params):
             projected_x = f_x * (x / z) + c_x
             projected_y = f_y * (y / z) + c_y
             projected_coords.append((projected_x, projected_y))
-    
+
     return projected_coords
 
 
@@ -495,11 +496,43 @@ def reproject_vectors(quaternion, catalog_vectors, params):
     projected_coords = project_to_image_plane(camera_vectors, params)
     return projected_coords
 
+# Function to calculate error (offset of image star coords to reprojected
+# star coords)
+def calculate_error(image_star_coords, reprojected_star_coords):
+    error_rate = []
+    for i in range(len(reprojected_star_coords)):
+        x_i, y_i = image_star_coords[i]
+
+        if reprojected_star_coords[i] is None:
+            error_rate.append(float("inf"))
+            continue
+
+        x_p, y_p = reprojected_star_coords[i]
+
+        d_x = (x_i - x_p) ** 2
+        d_y = (y_i - y_p) ** 2
+        dist = np.sqrt(d_x + d_y)
+
+        error_rate.append(dist)
+
+    return error_rate
+
+
+def calculate_weights(error_rates):
+    weights = []
+    for error in error_rates:
+        if error == float("inf"):
+            weights.append(0)
+        else:
+            weights.append(1 / (error**2 + EPSILON))
+
+    return weights
+
 
 def lost_in_space():
 
-    star_coords = ip.find_brightest_stars(IMAGE_FILE, NUM_STARS)
-    # star_coords = ip.get_star_coords(IMAGE_FILE, NUM_STARS)
+    # star_coords = ip.find_brightest_stars(IMAGE_FILE, NUM_STARS)
+    star_coords = ip.get_star_coords(IMAGE_FILE, NUM_STARS)
     img_unit_vectors = star_coords_to_unit_vector(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
@@ -552,6 +585,53 @@ def lost_in_space():
     cat_matrix = catalog_vector_matrix(best_match, cat_unit_vectors)
 
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
+    q_scalar_last = np.roll(quaternion, -1)
+    reprojected_coords = reproject_vectors(
+        q_scalar_last,
+        cat_matrix,
+        [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
+    )
+    print(f"Reprojected:")
+    for el in reprojected_coords:
+        if el is None:
+            print(f"aaa")
+        else:
+            x, y = el
+            print(f"{x}, {y}")
+
+    print(f"Original:")
+    for x, y in star_coords:
+        print(f"{x}, {y}")
+
+    error_rates = calculate_error(star_coords, reprojected_coords)
+    for error in error_rates:
+        print(f"{error}")
+
+    weights = calculate_weights(error_rates)
+    new_q = compute_attitude_quaternion(img_matrix, cat_matrix, weights)
+    print(f"New quaternion: {new_q}")
+    q_scalar_last = np.roll(new_q, -1)
+    reprojected_coords = reproject_vectors(
+        q_scalar_last,
+        cat_matrix,
+        [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
+    )
+    print(f"Reprojected:")
+    for el in reprojected_coords:
+        if el is None:
+            print(f"aaa")
+        else:
+            x, y = el
+            print(f"{x}, {y}")
+
+    print(f"Original:")
+    for x, y in star_coords:
+        print(f"{x}, {y}")
+
+    error_rates = calculate_error(star_coords, reprojected_coords)
+    for error in error_rates:
+        print(f"{error}")
+
     ip.display_star_detections(IMAGE_FILE, star_coords)
     return quaternion
 
