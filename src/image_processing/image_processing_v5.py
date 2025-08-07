@@ -212,3 +212,37 @@ def display_star_detections(
     cv2.imshow("Identified Stars", img_color)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+def find_brightest_stars(image_path: str, num_stars_to_find: int):
+    img = cv2.imread(image_path)
+    if img is None:
+        print(f"Error: Unable to load image at '{image_path}'")
+        return []
+
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    params = cv2.SimpleBlobDetector_Params()
+    params.filterByArea = True
+    params.minArea = 4
+    params.maxArea = 500
+
+    params.filterByCircularity = True
+    params.minCircularity = 0.5
+
+    params.filterByConvexity = True
+    params.minConvexity = 0.8
+
+    params.filterByInertia = True
+    params.minInertiaRatio = 0.8
+
+    detector = cv2.SimpleBlobDetector_create(params)
+    keypoints = detector.detect(255 - img_gray)
+
+    if not keypoints:
+        print("Warning: No blobs passed the detector's filters.")
+        return []
+
+    keypoints = sorted(keypoints, key=lambda k: k.size, reverse=True)
+    brightest_stars_coords = [kp.pt for kp in keypoints[:num_stars_to_find]]
+
+    return brightest_stars_coords

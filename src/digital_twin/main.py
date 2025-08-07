@@ -24,10 +24,11 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing41.png"
+IMAGE_FILE = "./test_images/testing44.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_MATCHES = 5
+MIN_SUPPORT = 8
 
 
 # Unit vector function -> finds star unit vectros based on star pixel coordinates
@@ -164,18 +165,25 @@ def get_bounds(ang_dist, tolerance):
 # Outputs:
 # - hypotheses_dict: {image star index: [HIP ID 1, ... HIP ID N]}
 def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
-    hypotheses_dict = defaultdict(set)
+    matches_counter = defaultdict(int)
 
-    for (i, j), cur_ang_dist in angular_distances.items():
-        if cur_ang_dist is None:
+    for (s1, s2), ang_dist in angular_distances.items():
+        if ang_dist is None:
             continue
 
-        bounds = get_bounds(cur_ang_dist, tolerance)
-        cur_dict = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
+        bounds = get_bounds(ang_dist, tolerance)
+        cur_cat_dict = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
 
-        for h1, h2 in cur_dict.keys():
-            hypotheses_dict[i].update([h1, h2])
-            hypotheses_dict[j].update([h1, h2])
+        for (hip1, hip2), cat_ang_dist in cur_cat_dict.items():
+            matches_counter[(s1, hip1)] += 1
+            matches_counter[(s1, hip2)] += 1
+            matches_counter[(s2, hip1)] += 1
+            matches_counter[(s2, hip2)] += 1
+
+    hypotheses_dict = defaultdict(set)
+    for (star_idx, hip_id), count in matches_counter.items():
+        if count >= MIN_SUPPORT:
+            hypotheses_dict[star_idx].add(hip_id)
 
     return hypotheses_dict
 
@@ -384,6 +392,7 @@ def build_attitude_profile_matrix(image_vectors, catalog_vectors, weights=None):
 
     return attitude_profile_matrix
 
+
 # Function that transforms Wahba's problem into quaternion form
 # I don't fully understand the math behind why this matrix is constructed exactly in this way,
 # but I got the end construction from the end of this lecture:
@@ -395,9 +404,13 @@ def build_attitude_profile_matrix(image_vectors, catalog_vectors, weights=None):
 def build_quaternion_attitude_profile_matrix(attitude_profile_matrix):
     symmetric_part = attitude_profile_matrix + attitude_profile_matrix.T
     trace = np.trace(attitude_profile_matrix)
-    antisymmetric_part = np.array([attitude_profile_matrix[1, 2] - attitude_profile_matrix[2, 1], 
-                  attitude_profile_matrix[2, 0] - attitude_profile_matrix[0, 2], 
-                  attitude_profile_matrix[0, 1] - attitude_profile_matrix[1, 0]])
+    antisymmetric_part = np.array(
+        [
+            attitude_profile_matrix[1, 2] - attitude_profile_matrix[2, 1],
+            attitude_profile_matrix[2, 0] - attitude_profile_matrix[0, 2],
+            attitude_profile_matrix[0, 1] - attitude_profile_matrix[1, 0],
+        ]
+    )
 
     quaternion_attitude_profile_matrix = np.zeros((4, 4))
     quaternion_attitude_profile_matrix[0, 0] = trace
@@ -406,9 +419,10 @@ def build_quaternion_attitude_profile_matrix(attitude_profile_matrix):
     quaternion_attitude_profile_matrix[1:, 1:] = symmetric_part - trace * np.eye(3)
     return quaternion_attitude_profile_matrix
 
+
 # Wahba's problem can be rewritten as maximizing this form: q^TKq
 # where K is the quaternion_attitude_profile_matrix
-# We solve this by finding the eigenvector with the maximum 
+# We solve this by finding the eigenvector with the maximum
 # eigenvalue which then will correspond to the quaternion
 # that best aligns with our rotation
 # Inputs:
@@ -427,8 +441,9 @@ def compute_attitude_quaternion(image_vectors, catalog_vectors, weights=None):
     attitude_profile = build_attitude_profile_matrix(
         image_vectors, catalog_vectors, weights
     )
-    quaternion_attitude_profile_matrix = \
-    build_quaternion_attitude_profile_matrix(attitude_profile)
+    quaternion_attitude_profile_matrix = build_quaternion_attitude_profile_matrix(
+        attitude_profile
+    )
     q = find_optimal_quaternion(quaternion_attitude_profile_matrix)
 
     return q
@@ -436,8 +451,8 @@ def compute_attitude_quaternion(image_vectors, catalog_vectors, weights=None):
 
 def lost_in_space():
 
-    # star_coords = find_brightest_stars(IMAGE_FILE, NUM_STARS)
-    star_coords = ip.get_star_coords(IMAGE_FILE, NUM_STARS)
+    star_coords = ip.find_brightest_stars(IMAGE_FILE, NUM_STARS)
+    # star_coords = ip.get_star_coords(IMAGE_FILE, NUM_STARS)
     img_unit_vectors = star_coords_to_unit_vector(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
@@ -445,7 +460,7 @@ def lost_in_space():
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
     # for (i, j), ang_dist in ang_dists.items():
-    #     print(f"{i}->{j}: {ang_dist}")
+    #      print(f"{i}->{j}: {ang_dist}")
 
     all_catalog_angular_distances = load_catalog_angular_distances()
     hypotheses = load_hypotheses(ang_dists, all_catalog_angular_distances, TOLERANCE)
@@ -470,7 +485,9 @@ def lost_in_space():
         solutions,
     )
 
-    scored_solutions = load_solution_scoring(solutions, ang_dists, all_catalog_angular_distances)
+    scored_solutions = load_solution_scoring(
+        solutions, ang_dists, all_catalog_angular_distances
+    )
 
     sorted_arr = sorted(scored_solutions, key=lambda x: x[1])
     best_match = sorted_arr[0]
