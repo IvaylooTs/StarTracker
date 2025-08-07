@@ -5,6 +5,7 @@ import math
 from itertools import combinations
 from itertools import product
 from collections import defaultdict
+from scipy.spatial.transform import Rotation as rotate
 import sys
 import os
 
@@ -25,10 +26,10 @@ FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
 IMAGE_FILE = "./test_images/testing44.png"
-NUM_STARS = 15
+NUM_STARS = 10
 EPSILON = 1e-6
 MIN_MATCHES = 5
-MIN_SUPPORT = 8
+MIN_SUPPORT = 5
 
 
 # Unit vector function -> finds star unit vectros based on star pixel coordinates
@@ -448,6 +449,22 @@ def compute_attitude_quaternion(image_vectors, catalog_vectors, weights=None):
 
     return q
 
+
+# Function to apply inverse rotation of quaternion to our catalog vectors. We should
+# get vectors in our camera frame
+# Inputs:
+# - quaternion: rotation we got from find_optimal_quaternion()
+# - catalog_vectors: the unit vectors of the assigned HIP IDs stars
+# Output:
+# - camera_frame_vectors: vectors in camera frame
+def inverse_rotate_vectors(quaternion, catalog_vectors):
+    rot_object = rotate.from_quat(quaternion)
+    camera_frame_vectors = rot_object.inv().apply(catalog_vectors)
+    return camera_frame_vectors
+
+# def project_to_image_plane():
+
+# def reproject_vectors():
 
 def lost_in_space():
 
