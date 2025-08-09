@@ -15,8 +15,8 @@ image_processing_folder_path = os.path.abspath(
 sys.path.append(image_processing_folder_path)
 import image_processing_v5 as ip
 
-IMAGE_HEIGHT = 1964
-IMAGE_WIDTH = 3024
+IMAGE_HEIGHT = 1080
+IMAGE_WIDTH = 1920
 ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH
 FOV_Y = 53
 FOV_X = math.degrees(2 * math.atan(math.tan(math.radians(FOV_Y / 2)) / ASPECT_RATIO))
@@ -25,7 +25,7 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing45.png"
+IMAGE_FILE = "./digital_twin/test_images/cad.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_MATCHES = 5
