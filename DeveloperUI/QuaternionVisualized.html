@@ -5,7 +5,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
   <script src="loadingScreen.js"></script>
-
+  <script src="ButtonControl.js"></script>
   <meta charset="UTF-8">
   <title>CASSI-UI</title>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
@@ -15,12 +15,13 @@
 
 
   <div class="main-grid">
+  <img id="CornerLogo" src="Logo-nobg.png" alt="CASSI">
   <div id="three-container"></div>
-  <div class="video-box">
-<!--    <img id="stream" src="https://192.168.55.160:5000/video_feed" alt="Live Stream"> -->
+  <div class="video-box" id="video-box" style="display:none">
+    <!-- <img id="stream" src="https://192.168.55.160:5000/video_feed" alt="Live Stream"> -->
   </div>
   <div id="quaternion-container">
-    <h2>Real-Time Quaternion Display</h2>
+    <h4>Real-Time Quaternion Display</h4>
     <canvas id="quaternionChart"></canvas>
   </div>
   <div id="infoWindow">
@@ -28,8 +29,32 @@
     <pre id="quaternionOutput">Waiting for data...</pre>
     <h3>System stats</h3>
     <pre id="systemStats">Waiting for data...</pre>
+  </div> 
+
+  <div id="additional-bars">
+    <div id="additional-bars-left">
+      <button onclick="displayCLI()" class="bar-btn">Console</button>
+      <button onclick="displayWebCam()" class="bar-btn">Webcam</button>
+      <!-- <button onclick="" class="bar-btn">Realtime data</button> -->
+    </div>
+
+    <div id="additional-bars-right">
+      <button onclick="" class="bar-btn" style="color:coral">Reboot</button>
+      <button onclick="" class="bar-btn" style="color:red">Shutdown</button>
+    </div>
   </div>
-  <div id="messages"></div>
+
+  <div id="websocket-communication-container" style="all:unset;display:none">
+    <div id="messages">
+    </div>
+    <div id="CLI">
+      <div id="cli-cmds-contained"></div>
+    <div class="cli-input-wrapper">
+      <input type="text" id="CLI-input"/>
+      <input type="button" onclick="sendCommandCLI()" value="send" />
+    </div>
+   </div>
+  </div>
   <div class="control-panel">
     <div class="scrollable-content">
 
@@ -62,6 +87,7 @@
 
   <script type="module" >
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+    import { OrbitControls } from 'https://esm.sh/three@0.160.1/examples/jsm/controls/OrbitControls.js';
     // import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js';
 
   // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -72,7 +98,7 @@
   scene.background = new THREE.Color(0xffffff); // white background
 
   // Camera
-      const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
   camera.position.set(2,3,-5);
   camera.lookAt(0, 1, 0);
   // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -115,6 +141,24 @@
 
   window.Satellite3DObject = satellite;
 
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 0, 0); // orbit around origin
+  
+  // smooth motion
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+
+  // remove vertical limit so you can go over the top and under
+  controls.minPolarAngle = 0;          // radians
+  controls.maxPolarAngle = Math.PI;    // radians
+
+  // optional: enable auto rotation around target
+  controls.autoRotate = true;          // rotate automatically
+  controls.autoRotateSpeed = 2.0;      // 2.0 is fairly quick
+
+  // zoom range
+  controls.minDistance = 2;
+  controls.maxDistance = 50;
 
   // Render loop
   function animate() {
@@ -151,6 +195,62 @@
 
       scene.add(xArrow, yArrow, zArrow);
   }
+
+  function createArrow(length = 2, color = 0xff0000) {
+    const arrow = new THREE.Group();
+
+    // Shaft (cylinder)
+    const shaftRadius = 0.05;
+    const shaftLength = length * 0.8;
+    const shaftGeometry = new THREE.CylinderGeometry(shaftRadius, shaftRadius, shaftLength, 8);
+    const shaftMaterial = new THREE.MeshStandardMaterial({ color });
+    const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+    shaft.position.x = shaftLength / 2; // move along X
+    shaft.rotation.z = Math.PI / 2;    // cylinder default is Y-axis, rotate to X-axis
+    arrow.add(shaft);
+
+    // Tip (cone)
+    const coneRadius = 0.12;
+    const coneLength = length * 0.2;
+    const coneGeometry = new THREE.ConeGeometry(coneRadius, coneLength, 16);
+    const coneMaterial = new THREE.MeshStandardMaterial({ color });
+    const cone = new THREE.Mesh(coneGeometry, coneMaterial);
+    cone.position.x = shaftLength + coneLength / 2; // tip at the end of shaft on X-axis
+    cone.rotation.z = -Math.PI / 2;                   // rotate tip to point along X
+    arrow.add(cone);
+
+    return arrow;
+}
+
+  // Make arrow
+  const newerCalibrationArrow = createArrow(2, 0xff0000);
+  const olderCalibrationArrow = createArrow(1, 0x00ff00)
+  window.Arrow3DObjectCalibration = newerCalibrationArrow;
+  window.Arrow3DObjectCalibrationOlder = olderCalibrationArrow;
+  scene.add(newerCalibrationArrow,olderCalibrationArrow);
+  // const CurrentCalibrationArrowLabel = createLabel("X", new THREE.Vector3(length + offset, 0, 0), "#ff0000")
+  // window.Arrow3DObject = CurrentCalibrationArrow
+  // function RotateCalibrationArrow(quat){
+  //   CurrentCalibrationArrow.quaternion.set(quat)
+  // }
+
+  // function setCalibrationArrowQuaternion(w, x, y, z) {
+  //     if (!window.Arrow3DObject) {
+  //         console.error("Arrow3DObject not found. Make sure the main scene is loaded first.");
+  //         return;
+  //     }
+
+  //     // Apply the quaternion directly
+  //     window.Arrow3DObject.quaternion.set(x, y, z, w);
+
+  //     // Optional: Force update if you have dependent objects
+  //     window.Arrow3DObject.updateMatrixWorld(true);
+  // }
+
+  // // Optionally expose it globally
+  // window.setCalibrationArrowQuaternion = setCalibrationArrowQuaternion;
+  // scene.add(CurrentCalibrationArrow);
+
   function createLabel(text, position, color = "white") {
       const canvas = document.createElement("canvas");
       const size = 256;
