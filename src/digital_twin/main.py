@@ -15,18 +15,18 @@ image_processing_folder_path = os.path.abspath(
 sys.path.append(image_processing_folder_path)
 import image_processing_v5 as ip
 
-IMAGE_HEIGHT = 1964
-IMAGE_WIDTH = 3024
+IMAGE_HEIGHT = 1330 #1964
+IMAGE_WIDTH = 2048 #3024
 ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH
 FOV_Y = 53
-FOV_X = math.degrees(2 * math.atan(math.tan(math.radians(FOV_Y / 2)) / ASPECT_RATIO))
+FOV_X = math.degrees(2 * math.atan(math.tan(math.radians(FOV_Y / 2)) * (1 / ASPECT_RATIO)))
 CENTER_X = IMAGE_WIDTH / 2
 CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing45.png"
-NUM_STARS = 15
+IMAGE_FILE = "./test_images/testing54.png"
+NUM_STARS = 10
 EPSILON = 1e-6
 MIN_MATCHES = 5
 MIN_SUPPORT = 5
@@ -531,16 +531,16 @@ def calculate_weights(error_rates):
 
 def lost_in_space():
 
-    # star_coords = ip.find_brightest_stars(IMAGE_FILE, NUM_STARS)
-    star_coords = ip.get_star_coords(IMAGE_FILE, NUM_STARS)
+    star_coords = ip.find_brightest_stars(IMAGE_FILE, NUM_STARS)
+    # star_coords = ip.get_star_coords(IMAGE_FILE, NUM_STARS)
     img_unit_vectors = star_coords_to_unit_vector(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
     ang_dists = get_angular_distances(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
-    # for (i, j), ang_dist in ang_dists.items():
-    #      print(f"{i}->{j}: {ang_dist}")
+    for (i, j), ang_dist in ang_dists.items():
+         print(f"{i}->{j}: {ang_dist}")
 
     all_catalog_angular_distances = load_catalog_angular_distances()
     hypotheses = load_hypotheses(ang_dists, all_catalog_angular_distances, TOLERANCE)
@@ -591,6 +591,7 @@ def lost_in_space():
         cat_matrix,
         [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
     )
+    
     print(f"Reprojected:")
     for el in reprojected_coords:
         if el is None:
@@ -602,7 +603,7 @@ def lost_in_space():
     print(f"Original:")
     for x, y in star_coords:
         print(f"{x}, {y}")
-
+    
     error_rates = calculate_error(star_coords, reprojected_coords)
     for error in error_rates:
         print(f"{error}")
@@ -610,27 +611,6 @@ def lost_in_space():
     weights = calculate_weights(error_rates)
     new_q = compute_attitude_quaternion(img_matrix, cat_matrix, weights)
     print(f"New quaternion: {new_q}")
-    q_scalar_last = np.roll(new_q, -1)
-    reprojected_coords = reproject_vectors(
-        q_scalar_last,
-        cat_matrix,
-        [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-    )
-    print(f"Reprojected:")
-    for el in reprojected_coords:
-        if el is None:
-            print(f"aaa")
-        else:
-            x, y = el
-            print(f"{x}, {y}")
-
-    print(f"Original:")
-    for x, y in star_coords:
-        print(f"{x}, {y}")
-
-    error_rates = calculate_error(star_coords, reprojected_coords)
-    for error in error_rates:
-        print(f"{error}")
 
     ip.display_star_detections(IMAGE_FILE, star_coords)
     return quaternion
