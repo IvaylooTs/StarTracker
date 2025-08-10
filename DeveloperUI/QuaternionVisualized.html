@@ -63,6 +63,7 @@
       <button class="btn" onclick="sendCommand('calibrate')">Calibrate IMU</button>
       <button class="btn" onclick="sendCommand('lostInSpaceTest')">Lost in space! test</button>
       <button class="btn" onclick="sendCommand('lostInSpaceCamera')">Lost in space! Camera</button>
+      <button class="btn" onclick="sendCommand('getCalibrationQuaternions')">Get calibration info</button>
       <div class="quaternion-inputs">
           <label for="q_w">W: </label>
         <input type="number" step="any" id="q_w" name="q_w" placeholder="w (real)" class="quat-field">
@@ -228,29 +229,7 @@
   window.Arrow3DObjectCalibration = newerCalibrationArrow;
   window.Arrow3DObjectCalibrationOlder = olderCalibrationArrow;
   scene.add(newerCalibrationArrow,olderCalibrationArrow);
-  // const CurrentCalibrationArrowLabel = createLabel("X", new THREE.Vector3(length + offset, 0, 0), "#ff0000")
-  // window.Arrow3DObject = CurrentCalibrationArrow
-  // function RotateCalibrationArrow(quat){
-  //   CurrentCalibrationArrow.quaternion.set(quat)
-  // }
-
-  // function setCalibrationArrowQuaternion(w, x, y, z) {
-  //     if (!window.Arrow3DObject) {
-  //         console.error("Arrow3DObject not found. Make sure the main scene is loaded first.");
-  //         return;
-  //     }
-
-  //     // Apply the quaternion directly
-  //     window.Arrow3DObject.quaternion.set(x, y, z, w);
-
-  //     // Optional: Force update if you have dependent objects
-  //     window.Arrow3DObject.updateMatrixWorld(true);
-  // }
-
-  // // Optionally expose it globally
-  // window.setCalibrationArrowQuaternion = setCalibrationArrowQuaternion;
-  // scene.add(CurrentCalibrationArrow);
-
+  
   function createLabel(text, position, color = "white") {
       const canvas = document.createElement("canvas");
       const size = 256;

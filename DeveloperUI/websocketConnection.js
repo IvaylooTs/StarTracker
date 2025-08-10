@@ -51,6 +51,30 @@ function removeCameraElement(){
 
 let latestCalibration, olderCalibration;
 
+function quatRotateVec(q, v) {
+    const [w, x, y, z] = q;
+    const vx = 2*(y*v[2] - z*v[1]);
+    const vy = 2*(z*v[0] - x*v[2]);
+    const vz = 2*(x*v[1] - y*v[0]);
+    return [
+        v[0] + w*vx + (y*vz - z*vy),
+        v[1] + w*vy + (z*vx - x*vz),
+        v[2] + w*vz + (x*vy - y*vx)
+    ];
+}
+
+function axisAngleDeg(q1, q2, axis = [1,0,0]) {
+    const a1 = quatRotateVec(q1, axis);
+    const a2 = quatRotateVec(q2, axis);
+    const dot = a1[0]*a2[0] + a1[1]*a2[1] + a1[2]*a2[2];
+    const len1 = Math.hypot(...a1), len2 = Math.hypot(...a2);
+    return Math.acos(Math.max(-1, Math.min(1, dot/(len1*len2)))) * 180/Math.PI;
+}
+
+// Example:
+
+
+
 function ConnectToWebSocket() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
         return; // Already connected or trying
@@ -109,25 +133,31 @@ function ConnectToWebSocket() {
                 let oldData = "w: " + old.w + " x: " + old.x + " y: "+ old.y + " z: " + old.z;
                 latestCalibration = current;
                 olderCalibration = old;
+
                 // window.Arrow3DObject.quaternion.set(1,0,0,0)
                 console.log(current);
                 console.log(old);
 
-                x = parseFloat(current.x);
-                y = parseFloat(current.y);
-                z = parseFloat(current.z);
-                w = parseFloat(current.w);
+                let c_x = parseFloat(current.x);
+                let c_y = parseFloat(current.y);
+                let c_z = parseFloat(current.z);
+                let c_w = parseFloat(current.w);
                 
-                console.log(x,y,z,w);
+                console.log(c_x,c_y,c_z,c_w);
                 // window.Arrow3DObject.quaternion.set(current.x,current.y,current.z, current.w);
                 
                 
-                window.Arrow3DObjectCalibration.quaternion.set(x, y,z,w);
-                x = parseFloat(old.x);
-                y = parseFloat(old.y);
-                z = parseFloat(old.z);
-                w = parseFloat(old.w);
-                window.Arrow3DObjectCalibrationOlder.quaternion.set(x, y,z,w);
+                window.Arrow3DObjectCalibration.quaternion.set(c_x, c_y,c_z,c_w);
+                let o_x = parseFloat(old.x);
+                let o_y = parseFloat(old.y);
+                let o_z = parseFloat(old.z);
+                let o_w = parseFloat(old.w);
+                window.Arrow3DObjectCalibrationOlder.quaternion.set(o_x, o_y,o_z,o_w);
+
+                
+                let angle = axisAngleDeg([o_w, o_x, o_y, o_z], [ c_w, c_x, c_y, c_z]); // ~90
+                CLIDisplayInfo("Angle between them: "
+                    +angle);
                 // window.Arrow3DObject.setRotationFromQuaternion(
                 // new THREE.Quaternion(current.x, current.y, current.z, current.w)
                 // );
