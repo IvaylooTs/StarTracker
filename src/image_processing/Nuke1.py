@@ -10,7 +10,7 @@ import sys
 import os
 
 
-IMAGE_PATH = './test_images/checker.png' 
+IMAGE_PATH = './test_images/cat3.png' 
 import cv2
 import cv2
 
@@ -90,8 +90,8 @@ if __name__ == "__main__":
         stars.append((x,y))
 
     height = 768
-    width = 1365
-    angles = 78
+    width = 1366
+    angles = 53
 
     #optical center
     oc_height = height/2 
