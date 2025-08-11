@@ -8,6 +8,7 @@ from collections import defaultdict
 from scipy.spatial.transform import Rotation as rotate
 import sys
 import os
+import time
 
 image_processing_folder_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "image_processing")
@@ -24,11 +25,11 @@ CENTER_X = IMAGE_WIDTH / 2
 CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
-TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing55.png"
-NUM_STARS = 10
+TOLERANCE = 1
+IMAGE_FILE = "./test_images/testing63.png"
+NUM_STARS = 15
 EPSILON = 1e-6
-MIN_SUPPORT = 3
+MIN_SUPPORT = 2
 MIN_MATCHES = 5
 
 
@@ -215,10 +216,12 @@ def DFS(
     # End of recursion condition if we've matched all stars
     if len(assignment) == len(image_stars):
         return
+    
 
     # Selection of next star for assignment
     unassigned = [s for s in image_stars if s not in assignment]
     current_star = min(unassigned, key=lambda s: len(candidate_hips.get(s, [])))
+    
 
     # Main loop for trying candidates for current star
     for hip_candidate in candidate_hips.get(current_star, []):
@@ -539,6 +542,7 @@ def lost_in_space():
     ang_dists = get_angular_distances(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
+    print(f"Angular distances:")
     for (i, j), ang_dist in ang_dists.items():
          print(f"{i}->{j}: {ang_dist}")
 
@@ -547,6 +551,9 @@ def lost_in_space():
     sorted_hypothesises = dict(
         sorted(hypotheses.items(), key=lambda item: len(item[1]))
     )
+    # for hypotheses in sorted_hypothesises.items():
+    #     print(f"{hypotheses}")
+    #     print("\n")
 
     assignment = {}
     image_stars = []
@@ -562,12 +569,25 @@ def lost_in_space():
         ang_dists,
         all_catalog_angular_distances,
         TOLERANCE,
-        solutions,
+        solutions
     )
+    
+    # DFS_optimized(
+    #     assignment,
+    #     image_stars,
+    #     sorted_hypothesises,
+    #     ang_dists,
+    #     all_catalog_angular_distances,
+    #     TOLERANCE,
+    #     solutions,
+    #     time.time()
+    # )
 
     scored_solutions = load_solution_scoring(
         solutions, ang_dists, all_catalog_angular_distances
     )
+    for sol in scored_solutions:
+        print(f"{sol}")
 
     sorted_arr = sorted(scored_solutions, key=lambda x: x[1])
     best_match = sorted_arr[0]
@@ -585,32 +605,32 @@ def lost_in_space():
     cat_matrix = catalog_vector_matrix(best_match, cat_unit_vectors)
 
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
-    q_scalar_last = np.roll(quaternion, -1)
-    reprojected_coords = reproject_vectors(
-        q_scalar_last,
-        cat_matrix,
-        [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-    )
+    # q_scalar_last = np.roll(quaternion, -1)
+    # reprojected_coords = reproject_vectors(
+    #     q_scalar_last,
+    #     cat_matrix,
+    #     [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
+    # )
     
-    print(f"Reprojected:")
-    for el in reprojected_coords:
-        if el is None:
-            print(f"aaa")
-        else:
-            x, y = el
-            print(f"{x}, {y}")
+    # print(f"Reprojected:")
+    # for el in reprojected_coords:
+    #     if el is None:
+    #         print(f"aaa")
+    #     else:
+    #         x, y = el
+    #         print(f"{x}, {y}")
 
-    print(f"Original:")
-    for x, y in star_coords:
-        print(f"{x}, {y}")
+    # print(f"Original:")
+    # for x, y in star_coords:
+    #     print(f"{x}, {y}")
     
-    error_rates = calculate_error(star_coords, reprojected_coords)
-    for error in error_rates:
-        print(f"{error}")
+    # error_rates = calculate_error(star_coords, reprojected_coords)
+    # for error in error_rates:
+    #     print(f"{error}")
 
-    weights = calculate_weights(error_rates)
-    new_q = compute_attitude_quaternion(img_matrix, cat_matrix, weights)
-    print(f"New quaternion: {new_q}")
+    # weights = calculate_weights(error_rates)
+    # new_q = compute_attitude_quaternion(img_matrix, cat_matrix, weights)
+    # print(f"New quaternion: {new_q}")
 
     ip.display_star_detections(IMAGE_FILE, star_coords)
     return quaternion
