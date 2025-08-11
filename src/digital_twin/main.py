@@ -7,12 +7,11 @@ from itertools import combinations
 from collections import defaultdict
 from scipy.spatial.transform import Rotation as rotate
 import numpy as np
-import image_processing_v6 as ip
-
 image_processing_folder_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "image_processing")
 )
 sys.path.append(image_processing_folder_path)
+import image_processing_v6 as ip
 
 IMAGE_HEIGHT = 982  # 1964
 IMAGE_WIDTH = 1512  # 3024
