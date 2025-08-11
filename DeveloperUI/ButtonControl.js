@@ -22,6 +22,9 @@ function displayCLI(){
      const container = document.getElementById("websocket-communication-container");
     
     container.style.display = (container.style.display === "none") ? "block" : "none";
+}
+function display3DElementsChanger(){
+     const container = document.getElementById("UI-visibility");
     
-    
+    container.style.display = (container.style.display === "none") ? "block" : "none";
 }

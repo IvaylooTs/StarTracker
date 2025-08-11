@@ -1,6 +1,13 @@
 const skipLogo = true
 
 window.onload = () => {
+
+  document.getElementById("display-cubeCheckBox").checked = true;
+  document.getElementById("display-cubeDirectionVector").checked = true;
+  document.getElementById("display-CordinateSystem").checked = true;
+  document.getElementById("display-CalibrationVectors").checked = true;
+  document.getElementById("display-newCalibrationVectors").checked = true;
+  document.getElementById("display-oldCalibrationVectors").checked = true;
   if(skipLogo == true){
     document.getElementById('load-screen').style.display = 'none';
     return
