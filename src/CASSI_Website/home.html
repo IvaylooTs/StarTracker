@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StarTracker Startup</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(0, 3, 10, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px 0;
+      z-index: 1000;
+    }
+
+    nav a {
+      color: #57697a;
+      text-decoration: none;
+      margin: 0 20px;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    nav a:hover {
+      background: #57697a;
+      color: #0b0c10;
+    }
+
+    
+    nav .logo {
+     height: 40px; /* adjust height */
+     cursor: pointer;
+     flex-shrink: 0;
+    }
+
+    .slider-container {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 400vw; /* total width for 4 slides */
+      height: calc(100vh - 60px);
+      display: flex;
+      transition: transform 0.6s ease-in-out;
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100%;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      color: white;
+      text-align: left;
+    }
+
+    #slide1 {
+      background-image: url(galaxy.jpg);
+      background-size: cover;
+      background-position: center;
+    }
+    #slide2 {
+      background-image: url(Stars.jpg);
+      background-size: cover;
+      background-position: center;
+    }
+    #slide3 {
+      background-image: url(Stars1.jpg);
+      background-size: cover;
+      background-position: center;
+    }
+    #slide4 {
+      background-image: url(Stars2.jpg);
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* Overlay for all slides */
+    .slide::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    .slide-content {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      color: #ffffff;
+    }
+
+    p {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: #fff;
+    }
+
+    .slide-buttons {
+      margin-top: 30px;
+    }
+
+    .slide-buttons button {
+      background: #57697a;
+      color: #ffffff;
+      border: none;
+      padding: 12px 20px;
+      margin-right: 10px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .slide-buttons button:hover {
+      background: #000000;
+    }
+
+    /* Arrows */
+    .slider-arrows {
+  position: fixed;
+  top: 50%;
+  width: 100%;
+  z-index: 1001;
+  pointer-events: none;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.arrow {
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  font-size: 2.5rem;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 50%;
+  transition: background 0.3s, transform 0.2s;
+  user-select: none;
+}
+
+/* This explicitly aligns the left arrow to left */
+.arrow.left {
+  order: 1; /* Ensure it's first */
+}
+
+/* This explicitly aligns the right arrow to right */
+.arrow.right {
+  order: 2; /* Ensure it's second */
+  margin-left: auto; /* Push it to the far right */
+}
+
+  </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <img src="CASSIlogo.png" alt="CASSI Logo" class="logo" />
+  <div class="nav-links">
+    <a href="#" onclick="goToSlide(0); return false;">Home</a>
+    <a href="product.html">Product</a>
+    <a href="data.html">Data</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </div>
+</nav>
+
+<!-- Slides -->
+<div class="slider-container" id="slider">
+  <!-- Slide 1 -->
+  <section class="slide" id="slide1">
+    <div class="slide-content">
+      <center>
+        <h1>Welcome to CASSI</h1>
+        <p>
+          Building the future of spacecraft navigation with compact, precise star trackers.
+        </p>
+        <div class="slide-buttons"> 
+          <button onclick="goToSlide(1)">Our Vision</button>
+          <button onclick="goToSlide(2)">Our Mission</button>
+          <button onclick="goToSlide(3)">Business Plan</button>
+        </div>
+      </center>
+    </div>
+  </section>
+
+  <!-- Slide 2 -->
+  <section class="slide" id="slide2">
+    <div class="slide-content">
+      <h1>Our Vision</h1>
+      <p>
+        Bringing precision space navigation within reach for every satellite mission, by redefining how star trackers are designed, built, and deployed.
+      </p>
+    </div>
+  </section>
+
+  <!-- Slide 3 -->
+  <section class="slide" id="slide3">
+    <div class="slide-content">
+      <h1>Our Mission</h1>
+      <p>
+        CASSI'S compact and cost-efficient design simplifies satellite development and expands mission possibilities.
+      </p>
+    </div>
+  </section>
+
+  <!-- Slide 4 -->
+  <section class="slide" id="slide4">
+    <div class="slide-content">
+      <h1>Business Plan</h1>
+      <p>
+        By offering a low-cost, modular solution adaptable to various satellite configurations, we aim to become the go-to provider for emerging space companies and institutions worldwide.
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- Arrows -->
+<div class="slider-arrows">
+  <button class="arrow left" aria-label="Previous Slide" onclick="goToSlide(currentSlide - 1)">&#10094;</button>
+  <button class="arrow right" aria-label="Next Slide" onclick="goToSlide(currentSlide + 1)">&#10095;</button>
+</div>
+
+<script>
+  let currentSlide = 0;
+  const totalSlides = 4;
+  const slider = document.getElementById("slider");
+  const leftArrow = document.querySelector(".arrow.left");
+  const rightArrow = document.querySelector(".arrow.right");
+
+  function goToSlide(index) {
+    if (index < 0) index = 0;
+    if (index >= totalSlides) index = totalSlides - 1;
+    currentSlide = index;
+    slider.style.transform = `translateX(-${index * 100}vw)`;
+    updateArrows();
+  }
+
+  function updateArrows() {
+    // Hide left arrow on first slide
+    if (currentSlide === 0) {
+      leftArrow.style.display = "none";
+    } else {
+      leftArrow.style.display = "block";
+    }
+
+    // Hide right arrow on last slide
+    if (currentSlide === totalSlides - 1) {
+      rightArrow.style.display = "none";
+    } else {
+      rightArrow.style.display = "block";
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") goToSlide(currentSlide + 1);
+    if (e.key === "ArrowLeft") goToSlide(currentSlide - 1);
+  });
+
+  window.onload = () => {
+    goToSlide(0);
+  };
+</script>
+
+</body>
+</html>

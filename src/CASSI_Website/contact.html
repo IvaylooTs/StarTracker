@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact – CASSI Star Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('Stars.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(0, 3, 10, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px 0;
+      z-index: 1000;
+    }
+
+    nav a {
+      color: #57697a;
+      text-decoration: none;
+      margin: 0 20px;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    nav a:hover {
+      background: #57697a;
+      color: #0b0c10;
+    }
+
+    nav .logo {
+     height: 40px; /* adjust height */
+     cursor: pointer;
+     flex-shrink: 0;
+    }
+
+    .content {
+      padding-top: 120px;
+      max-width: 600px;
+      margin: auto;
+      background: rgba(0, 0, 0, 0.65);
+      border-radius: 16px;
+      padding: 50px 30px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 30px;
+    }
+
+    p {
+      font-size: 1.2rem;
+      color: #cbd5e0;
+      margin-bottom: 40px;
+    }
+
+    .contact-info {
+      font-size: 1.2rem;
+      margin-bottom: 40px;
+    }
+
+    .contact-info a {
+      color: #00d1ff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .contact-info a:hover {
+      text-decoration: underline;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    input, textarea {
+      padding: 12px 15px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      resize: none;
+    }
+
+    input[type="submit"] {
+      background-color: #00d1ff;
+      color: #0b0c10;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #0186b8;
+    }
+
+    @media (max-width: 600px) {
+      .content {
+        padding: 40px 20px;
+        max-width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <img src="CASSIlogo.png" alt="CASSI Logo" class="logo" />
+  <a href="home.html">Home</a>
+  <a href="product.html">Product</a>
+  <a href="data.html">Data</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+</nav>
+
+<!-- Main Content -->
+<div class="content">
+  <h1>Contact Us</h1>
+  <p>If you have any questions about CASSI or wish to request a demo, please leave us a message below or contact us via email.</p>
+
+  <div class="contact-info">
+    Email: <a href="mailto:ivo172004@gmail.com">ivo172004@gmail.com</a><br />
+    
+  </div>
+
+  <!-- Optional contact form for user messages -->
+  <form action="#" method="POST">
+    <input type="text" name="name" placeholder="Your Name" required />
+    <input type="email" name="email" placeholder="Your Email" required />
+    <textarea name="message" rows="5" placeholder="Your Message" required></textarea>
+    <input type="submit" value="Send Message" />
+  </form>
+</div>
+
+</body>
+</html>
+

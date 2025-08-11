@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CASSI – About the Team</title>
+  <style>
+    /* Keep your existing styles here */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('Stars.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(0, 3, 10, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px 0;
+      z-index: 1000;
+    }
+
+    nav a {
+      color: #57697a;
+      text-decoration: none;
+      margin: 0 20px;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    nav a:hover {
+      background: #57697a;
+      color: #0b0c10;
+    }
+
+    nav .logo {
+     height: 40px;
+     cursor: pointer;
+     flex-shrink: 0;
+    }
+
+    .content {
+      padding-top: 120px;
+      max-width: 900px;
+      margin: auto;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 16px;
+      padding: 60px 40px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    h1 {
+      font-size: 3.2rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    p {
+      font-size: 1.2rem;
+      line-height: 1.8;
+      color: #e2e8f0;
+      margin-bottom: 25px;
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+
+    .team-photo {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+    }
+
+    .team-members {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .member {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 250px;
+      flex: 1 1 250px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      transition: background 0.3s;
+      text-align: center;
+    }
+
+    .member:hover {
+      background: rgba(0, 209, 255, 0.2);
+    }
+
+    .member img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-bottom: 15px;
+      border: 3px solid #00d1ff;
+    }
+
+    .member h3 {
+      margin-bottom: 10px;
+      color: #00d1ff;
+      font-size: 1.3rem;
+    }
+
+    .member p {
+      font-size: 1rem;
+      color: #cbd5e1;
+    }
+
+    .back-button {
+      display: inline-block;
+      background:#57697a;
+      color: #0b0c10;
+      border: none;
+      padding: 12px 24px;
+      font-weight: bold;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.3s, transform 0.2s;
+      margin-top: 40px;
+    }
+
+    .back-button:hover {
+      background: #0b0c10;
+      color: #ffffff;
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        padding: 40px 20px;
+      }
+      h1 {
+        font-size: 2.2rem;
+      }
+      p {
+        font-size: 1rem;
+      }
+      .team-members {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <img src="CASSIlogo.png" alt="CASSI Logo" class="logo" />
+  <a href="home.html">Home</a>
+  <a href="product.html">Product</a>
+  <a href="data.html">Data</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+</nav>
+
+<!-- Main Content -->
+<div class="content">
+  <h1>Meet the Team</h1>
+  <p>It all started with a Space Challenge...</p>
+
+  <!-- Team group photo -->
+  <img src="Team.JPG" alt="Team Photo" class="team-photo" />
+
+ <p>Ivaylo Tsekov, Dilyana Vasileva, Tsvetomir Staykov, Alexandra Nedela, Michael Yan </p>
+
+  <a href="home.html" class="back-button">← Back to Home</a>
+</div>
+
+</body>
+</html>
