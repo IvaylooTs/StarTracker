@@ -7,7 +7,8 @@
   <script src="loadingScreen.js"></script>
   <script src="ButtonControl.js"></script>
   <meta charset="UTF-8">
-  <title>CASSI-UI</title>
+  <link rel="icon" type="image/x-icon" href="Images/favicon.ico">
+  <title>CASSI: Development UI</title>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
   <link href="style.css" rel="stylesheet">
 </head>
@@ -15,7 +16,7 @@
 
 
   <div class="main-grid">
-  <img id="CornerLogo" src="Logo-nobg.png" alt="CASSI">
+  <img id="CornerLogo" src="Images/Logo-white-nobg.png" alt="CASSI">
   <div id="three-container"></div>
   <div class="video-box" id="video-box" style="display:none">
     <!-- <img id="stream" src="https://192.168.55.160:5000/video_feed" alt="Live Stream"> -->
@@ -31,16 +32,25 @@
     <pre id="systemStats">Waiting for data...</pre>
   </div> 
 
+  <div id="UI-visibility" style="display:none">
+    <label><input type="checkbox" id="display-cubeCheckBox" checked>Cube</label><br>
+    <label style="padding-left: 20px;" ><input type="checkbox" id="display-cubeDirectionVector" checked>Cube direction vector</label><br>
+    <label><input type="checkbox" id="display-CordinateSystem" checked>Cordinate system</label><br>
+    <label><input type="checkbox" id="display-CalibrationVectors" checked>Calibration vectors</label><br>
+    <label style="padding-left: 20px;" ><input type="checkbox" id="display-newCalibrationVectors" checked>new (longer) calibration vector</label><br>
+    <label style="padding-left: 20px;" ><input type="checkbox" id="display-oldCalibrationVectors" checked>old (shorter) calibration vector </label><br>
+  </div>
   <div id="additional-bars">
     <div id="additional-bars-left">
       <button onclick="displayCLI()" class="bar-btn">Console</button>
       <button onclick="displayWebCam()" class="bar-btn">Webcam</button>
+      <button onclick="display3DElementsChanger()" class="bar-btn">3D elements</button>
       <!-- <button onclick="" class="bar-btn">Realtime data</button> -->
     </div>
 
     <div id="additional-bars-right">
-      <button onclick="" class="bar-btn" style="color:coral">Reboot</button>
-      <button onclick="" class="bar-btn" style="color:red">Shutdown</button>
+      <button  class="bar-btn" onclick="sendCommand('reboot')" style="color:coral">Reboot</button>
+      <button  class="bar-btn" onclick="sendCommand('shutdown')" style="color:red">Shutdown</button>
     </div>
   </div>
 
@@ -127,6 +137,7 @@
   const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
   // const cubeMaterial = new THREE.MeshNormalMaterial(); // colorful material
   const cube = new THREE.Mesh(cubeGeometry, cubeMaterials);
+  cube.name ="Cube"
   satellite.add( cube);
 
   // Arrow pointing out +Z (front face)
@@ -140,6 +151,40 @@
 
   scene.add(satellite);
 
+
+
+  function setSkyFromJPEG(scene, url) {
+  return new Promise((resolve, reject) => {
+    const loader = new THREE.TextureLoader();
+    // allow cross origin (useful if testing with external images)
+    if (loader.setCrossOrigin) loader.setCrossOrigin('anonymous');
+
+    loader.load(
+      url,
+      (texture) => {
+        // Ensure correct color space (supports older/newer three.js)
+        if ('colorSpace' in texture) texture.colorSpace = THREE.SRGBColorSpace;
+        else texture.encoding = THREE.sRGBEncoding;
+
+        // Use equirectangular mapping for backgrounds
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+
+        scene.background = texture;
+        console.log('Sky texture loaded and applied:', url, texture);
+        resolve(texture);
+      },
+      (xhr) => {
+        if (xhr && xhr.lengthComputable) {
+          console.log('Sky loading: ' + Math.round((xhr.loaded / xhr.total) * 100) + '%');
+        }
+      },
+      (err) => {
+        console.error('Error loading sky texture:', err);
+        reject(err);
+      }
+    );
+  });
+}
   window.Satellite3DObject = satellite;
 
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -160,11 +205,18 @@
   // zoom range
   controls.minDistance = 2;
   controls.maxDistance = 50;
+  setSkyFromJPEG(scene, 'Images/background.jpg')
+  .then(() => console.log('Background set successfully'))
+  .catch(err => {
+    console.warn('Background failed — see console/network tab', err);
+    document.getElementById('CornerLogo').src = 'Images/Logo-nobg.png';
+  });
 
   // Render loop
   function animate() {
-      requestAnimationFrame(animate);
-      // rotateCube(satellite,Math.PI/360);
+    requestAnimationFrame(animate);
+    // rotateCube(satellite,Math.PI/360);
+      controls.update();
       renderer.render(scene, camera);
   }
   function createXYZArrows(scene, length = 2) {
@@ -194,38 +246,47 @@
       0x0000ff
       );
 
-      scene.add(xArrow, yArrow, zArrow);
+    const group = new THREE.Group();
+    group.add(xArrow, yArrow, zArrow);
+    return group
   }
 
-  function createArrow(length = 2, color = 0xff0000) {
+  // Example lights
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // soft white light
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(5, 5, 5);
+scene.add(directionalLight);
+
+function createArrow(length = 2, color = 0xff0000) {
     const arrow = new THREE.Group();
 
-    // Shaft (cylinder)
     const shaftRadius = 0.05;
     const shaftLength = length * 0.8;
     const shaftGeometry = new THREE.CylinderGeometry(shaftRadius, shaftRadius, shaftLength, 8);
-    const shaftMaterial = new THREE.MeshStandardMaterial({ color });
+    const shaftMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(color) });
     const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
-    shaft.position.x = shaftLength / 2; // move along X
-    shaft.rotation.z = Math.PI / 2;    // cylinder default is Y-axis, rotate to X-axis
+    shaft.position.x = shaftLength / 2;
+    shaft.rotation.z = Math.PI / 2;
     arrow.add(shaft);
 
-    // Tip (cone)
     const coneRadius = 0.12;
     const coneLength = length * 0.2;
     const coneGeometry = new THREE.ConeGeometry(coneRadius, coneLength, 16);
-    const coneMaterial = new THREE.MeshStandardMaterial({ color });
+    const coneMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(color) });
     const cone = new THREE.Mesh(coneGeometry, coneMaterial);
-    cone.position.x = shaftLength + coneLength / 2; // tip at the end of shaft on X-axis
-    cone.rotation.z = -Math.PI / 2;                   // rotate tip to point along X
+    cone.position.x = shaftLength + coneLength / 2;
+    cone.rotation.z = -Math.PI / 2;
     arrow.add(cone);
 
     return arrow;
 }
 
+
   // Make arrow
-  const newerCalibrationArrow = createArrow(2, 0xff0000);
-  const olderCalibrationArrow = createArrow(1, 0x00ff00)
+  const newerCalibrationArrow = createArrow(2, "0xffffff");
+  const olderCalibrationArrow = createArrow(1, "0xffffff")
   window.Arrow3DObjectCalibration = newerCalibrationArrow;
   window.Arrow3DObjectCalibrationOlder = olderCalibrationArrow;
   scene.add(newerCalibrationArrow,olderCalibrationArrow);
@@ -252,10 +313,11 @@
 
   // Add labels a bit beyond the arrow tips
   const offset = 0.3;
-  scene.add(createLabel("X", new THREE.Vector3(length + offset, 0, 0), "#ff0000"));
-  scene.add(createLabel("Y", new THREE.Vector3(0, length + offset, 0), "#00ff00"));
-  scene.add(createLabel("Z", new THREE.Vector3(0, 0, length + offset), "#0000ff"));
-
+  const CordinateSystemLabels= new THREE.Group(); 
+  CordinateSystemLabels.add(createLabel("X", new THREE.Vector3(length + offset, 0, 0), "#ff0000"));
+  CordinateSystemLabels.add(createLabel("Y", new THREE.Vector3(0, length + offset, 0), "#00ff00"));
+  CordinateSystemLabels.add(createLabel("Z", new THREE.Vector3(0, 0, length + offset), "#0000ff"));
+  scene.add(CordinateSystemLabels);
   function AddOffsetInQuaternion(saveRotation, nextRotation){
 
   }
@@ -275,7 +337,8 @@
       const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
       cube.applyQuaternion(quaternion);
   }
-  createXYZArrows(scene,4);
+  const CordinateSystem = createXYZArrows(scene,4);
+  scene.add(CordinateSystem);
   animate();
   // scene.scale.z =-1;
   scene.rotation.x = -Math.PI / 2;
@@ -290,6 +353,47 @@
   //   camera.updateProjectionMatrix();
   //   renderer.setSize(window.innerWidth, window.innerHeight);
   // });
+
+
+    document.getElementById('display-cubeCheckBox').addEventListener('change', e => {
+      satellite.getObjectByName("Cube").visible = e.target.checked;
+      // satellite.visible = e.target.checked;
+      const vector = document.getElementById('display-cubeDirectionVector')
+      vector.checked = e.target.checked;
+      vector.dispatchEvent(new Event('change'))
+      
+
+    });
+    document.getElementById('display-cubeDirectionVector').addEventListener('change', e => {
+      arrowHelper.visible = e.target.checked;
+
+    });
+    document.getElementById('display-CordinateSystem').addEventListener('change', e => {
+      CordinateSystem.visible = e.target.checked;
+      CordinateSystemLabels.visible = e.target.checked;
+    });
+    document.getElementById('display-CalibrationVectors').addEventListener('change', e => {
+    
+    const newCalib = document.getElementById('display-newCalibrationVectors');
+    newCalib.checked = e.target.checked;
+    newCalib.dispatchEvent(new Event('change'))
+    
+    const oldCalib = document.getElementById('display-oldCalibrationVectors')
+    
+    oldCalib.checked = e.target.checked;
+
+    oldCalib.dispatchEvent(new Event('change'))
+    
+    });
+    document.getElementById('display-newCalibrationVectors').addEventListener('change', e => {
+      newerCalibrationArrow.visible = e.target.checked;
+    });
+    document.getElementById('display-oldCalibrationVectors').addEventListener('change', e => {
+      olderCalibrationArrow.visible = e.target.checked;
+    });
+
+    //olderCalibrationArrow
+    //newerCalibrationArrow
   </script>
   <script src="websocketConnection.js"></script>
   <script src="charts.js"></script>
