@@ -120,8 +120,6 @@ function prepareView() {
 
 // Main execution options:
 
-// Show current settings
-showCurrentSettings();
 
 // Prepare the view
 prepareView();
