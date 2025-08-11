@@ -13,8 +13,8 @@ image_processing_folder_path = os.path.abspath(
 sys.path.append(image_processing_folder_path)
 import image_processing_v6 as ip
 
-IMAGE_HEIGHT = 982  # 1964
-IMAGE_WIDTH = 1512  # 3024
+IMAGE_HEIGHT = 768  # 1964
+IMAGE_WIDTH = 1366  # 3024
 ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH
 FOV_Y = 53
 FOV_X = math.degrees(
@@ -24,12 +24,12 @@ CENTER_X = IMAGE_WIDTH / 2
 CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
-TOLERANCE = 3
-IMAGE_FILE = "./test_images/testing68.png"
+TOLERANCE = 0.5
+IMAGE_FILE = "./test_images/testing70.png"
 NUM_STARS = 15
 EPSILON = 1e-6
-MIN_SUPPORT = 5
-MIN_MATCHES = 5
+MIN_SUPPORT = 1
+MIN_MATCHES = 3
 
 
 def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
@@ -662,10 +662,13 @@ def lost_in_space():
     # new_q = compute_attitude_quaternion(img_matrix, cat_matrix, weights)
     # print(f"New quaternion: {new_q}")
 
-    ip.display_star_detections(IMAGE_FILE, star_coords)
+    # ip.display_star_detections(IMAGE_FILE, star_coords)
     return quaternion
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     q = lost_in_space()
+    end_time = time.time()
+    print(f"{end_time - start_time}")
     print(f"{q}")
