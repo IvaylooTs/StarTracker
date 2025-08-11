@@ -217,17 +217,17 @@ function sendCommand(cmd) {
 
         if(cmd === 'calibrate') {
             ws.send(JSON.stringify({ action: cmd }));
-            CLIDisplayInfo("# Sending calibrating IMU");
+            CLIDisplayInfo("Sending calibrating IMU");
         } else if(cmd === 'addOffset') {
             const w = parseFloat(document.getElementById("q_w").value);
             const x = parseFloat(document.getElementById("q_x").value);
             const y = parseFloat(document.getElementById("q_y").value);
             const z = parseFloat(document.getElementById("q_z").value);
 
-            CLIDisplayInfo("# Adding offset of "+w +" "+ x +" " +y + " " +z);
+            CLIDisplayInfo("Adding offset of "+w +" "+ x +" " +y + " " +z);
 
             if ([w, x, y, z].some(isNaN)) {
-                displayError("# Please enter all quaternion values (w, x, y, z).");
+                displayError("Please enter all quaternion values (w, x, y, z).");
                 return;
             }
             ws.send(JSON.stringify({ action: cmd, data: {w, x, y, z} }));
@@ -236,8 +236,8 @@ function sendCommand(cmd) {
 
         }
     } else {
-        CLIDisplayInfo("> " + cmd);
-        displayError("# WebSocket not connected");
+        // CLIDisplayInfo("> " + cmd);
+        displayError("WebSocket not connected");
     }
 
     

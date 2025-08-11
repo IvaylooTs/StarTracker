@@ -54,7 +54,7 @@ canvas { display: block; }
   width: 66.66vw;  /* Half width */
   height: 90vh; /* Half height */
   border:2px dotted grey;
-  background: white;
+  /* background: white; */
   overflow: hidden;
  } /*
 #websocket-communication-container {
@@ -87,7 +87,14 @@ canvas { display: block; }
   background-color: rgba(0, 0, 0, 0.8);
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
-
+#UI-visibility{
+  bottom:10%;
+  left:10%;
+  width:30vw;
+  height:30vh;
+  z-index:10;
+  position:absolute;
+}
 /* Make this match the actual ID */
 #cli-cmds-contained {
   flex: 1;                /* take all available space above input */
@@ -266,7 +273,7 @@ html, body {
 
 canvas {
   width: 100% !important;
-  height:75% !important;
+  height:100% !important;
   background: #2a2a2a;
   /* border-radius: 4px; */
 }
