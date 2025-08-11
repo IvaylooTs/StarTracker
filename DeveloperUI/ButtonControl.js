@@ -7,11 +7,7 @@ function displayWebCam() {
     let img = document.getElementById("stream")
     
     
-    // if (container.style.display === "none") {
-        // Disable → remove the image
-        // container.removeChild(img);
     if(!img){
-        // Enable → create and add the image
         img = document.createElement("img");
         img.id = "stream";
         img.src = "https://192.168.55.160:5000/video_feed";
