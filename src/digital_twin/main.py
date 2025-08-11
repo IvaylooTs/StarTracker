@@ -1,26 +1,26 @@
-import cv2
-import numpy as np
-import sqlite3
-import math
-from itertools import combinations
-from itertools import product
-from collections import defaultdict
-from scipy.spatial.transform import Rotation as rotate
 import sys
 import os
 import time
+import math
+import sqlite3
+from itertools import combinations
+from collections import defaultdict
+from scipy.spatial.transform import Rotation as rotate
+import numpy as np
+import image_processing_v6 as ip
 
 image_processing_folder_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "image_processing")
 )
 sys.path.append(image_processing_folder_path)
-import image_processing_v6 as ip
 
-IMAGE_HEIGHT = 982 #1964
-IMAGE_WIDTH = 1512 #3024
+IMAGE_HEIGHT = 982  # 1964
+IMAGE_WIDTH = 1512  # 3024
 ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH
 FOV_Y = 53
-FOV_X = math.degrees(2 * math.atan(math.tan(math.radians(FOV_Y / 2)) * (1 / ASPECT_RATIO)))
+FOV_X = math.degrees(
+    2 * math.atan(math.tan(math.radians(FOV_Y / 2)) * (1 / ASPECT_RATIO))
+)
 CENTER_X = IMAGE_WIDTH / 2
 CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
@@ -29,21 +29,23 @@ TOLERANCE = 3
 IMAGE_FILE = "./test_images/testing68.png"
 NUM_STARS = 15
 EPSILON = 1e-6
-MIN_SUPPORT = 2
+MIN_SUPPORT = 5
 MIN_MATCHES = 5
 
 
-# Unit vector function -> finds star unit vectros based on star pixel coordinates
-# using pinhole projection
-# We're only finding the direction where the 3D object lies since we don't know the actual depth.
-# Inputs:
-# - star_coords: array of tuples that holds (x, y) pixel coordinates of stars in the image
-# - center_coords: image center (principal point) coordinates in tuple form: (xc, yc)
-# - f_x: const. Describes the scaling factor by x
-# - f_y: const. Describes the scaling factor by y
-# Outputs:
-# - unit_vectors: array of np arrays holding (x, y, z) coordinates of each unit vector
 def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
+    """
+    Unit vector function -> finds star unit vectros based on star pixel coordinates
+    using pinhole projection
+    We're only finding the direction where the 3D object lies since we don't know the actual depth.
+    Inputs:
+    - star_coords: array of tuples that holds (x, y) pixel coordinates of stars in the image
+    - center_coords: image center (principal point) coordinates in tuple form: (xc, yc)
+    - f_x: const. Describes the scaling factor by x
+    - f_y: const. Describes the scaling factor by y
+    Outputs:
+    - unit_vectors: array of np arrays holding (x, y, z) coordinates of each unit vector
+    """
     # Unpack center_coords
     cx, cy = center_coords
     # Initialize empty unit vector array
@@ -71,12 +73,15 @@ def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
     return np.array(unit_vectors)
 
 
-# Angular distance between each unique pair of unit vectors
-# Inputs:
-# - unit_vectors: np array containing [x, y, z] coordinates of each unit vector
-# Outputs:
-# - angular_dists: dict where {(star_index1 [-], star_index2 [-]): angular_distance [deg]}
 def angular_dist_helper(unit_vectors):
+    """
+    Angular distance between each unique pair of unit vectors
+    Inputs:
+    - unit_vectors: np array containing [x, y, z] coordinates of each unit vector
+    Outputs:
+    - angular_dists: dict where {(star_index1 [-], star_index2 [-]): angular_distance [deg]}
+    """
+
     # Multiply unit vector matrix by it's transpose to find the dot products
     dot_products = unit_vectors @ unit_vectors.T
     # clip values to an interval of [-1.0, 1.0] (arccos allowed values) to account for float rounding error
@@ -120,10 +125,12 @@ def load_catalog_unit_vectors(db_path):
     return hip_to_vector
 
 
-# Function that loads a dict from the database where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
 def load_catalog_angular_distances(
     db_path="star_distances_sorted.db", table_name="AngularDistances"
 ):
+    """
+    Function that loads a dict from the database where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
+    """
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -136,12 +143,14 @@ def load_catalog_angular_distances(
     return {(row[0], row[1]): row[2] for row in rows}
 
 
-# Function that returns a dict where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
-# angular_distance ∈ [min_ang_dist, max_ang_dist]
-# Inputs:
-# - cat_ang_dists: dict where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
-# - bounds[2]: array where bounds[0] = min_ang_dist and bounds[1] = max_ang_dist
 def filter_catalog_angular_distances(cat_ang_dists, bounds):
+    """
+    Function that returns a dict where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
+    angular_distance ∈ [min_ang_dist, max_ang_dist]
+    Inputs:
+    - cat_ang_dists: dict where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
+    - bounds[2]: array where bounds[0] = min_ang_dist and bounds[1] = max_ang_dist
+    """
     min_ang_dist, max_ang_dist = bounds
     filtered = {
         pair: ang_dist
@@ -151,22 +160,26 @@ def filter_catalog_angular_distances(cat_ang_dists, bounds):
     return filtered
 
 
-# Function that returns an angular distance interval based on initial angular distance and a tolerance
-# Outputs:
-# - bounds: tuple where bounds[0] = min_ang_dist and bounds[1] = max_ang_dist
 def get_bounds(ang_dist, tolerance):
+    """
+    Function that returns an angular distance interval based on initial angular distance and a tolerance
+    Outputs:
+    - bounds: tuple where bounds[0] = min_ang_dist and bounds[1] = max_ang_dist
+    """
     return (ang_dist - tolerance, ang_dist + tolerance)
 
 
-# Function that loads candidate catalog HIP IDs for each image star
-# Inputs:
-# - num_stars: number of stars from the image
-# - angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
-# - all_cat_ang_dists: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
-# - tolerance: angular distance tolerance
-# Outputs:
-# - hypotheses_dict: {image star index: [HIP ID 1, ... HIP ID N]}
 def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
+    """
+    Function that loads candidate catalog HIP IDs for each image star
+    Inputs:
+    - num_stars: number of stars from the image
+    - angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
+    - all_cat_ang_dists: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
+    - tolerance: angular distance tolerance
+    Outputs:
+    - hypotheses_dict: {image star index: [HIP ID 1, ... HIP ID N]}
+    """
     matches_counter = defaultdict(int)
 
     for (s1, s2), ang_dist in angular_distances.items():
@@ -190,15 +203,6 @@ def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
     return hypotheses_dict
 
 
-# DFS to produce every possible mapping of image star to catalog star ID (even if not full mappings)
-# Inputs:
-# - assignment: a dict mapping stars in the image to candidate catalog stars (HIP IDs)
-# - image_stars: list of stars detected in the image
-# - candidate_hips: dict mapping each image star to a list of candidate catalog HIP IDs
-# - image_angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
-# - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
-# - tolerance: angular distance tolerance
-# - solutions: a list to collect valid assignments (solutions) - initially empty
 def DFS(
     assignment,
     image_stars,
@@ -207,7 +211,20 @@ def DFS(
     catalog_angular_distances,
     tolerance,
     solutions,
+    start_time,
+    max_time=5,
 ):
+    """
+    DFS to produce every possible mapping of image star to catalog star ID (even if not full mappings)
+    Inputs:
+    - assignment: a dict mapping stars in the image to candidate catalog stars (HIP IDs)
+    - image_stars: list of stars detected in the image
+    - candidate_hips: dict mapping each image star to a list of candidate catalog HIP IDs
+    - image_angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
+    - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
+    - tolerance: angular distance tolerance
+    - solutions: a list to collect valid assignments (solutions) - initially empty
+    """
 
     # Does current assignment qualify as a solution
     if len(assignment) >= MIN_MATCHES:
@@ -216,12 +233,13 @@ def DFS(
     # End of recursion condition if we've matched all stars
     if len(assignment) == len(image_stars):
         return
-    
+
+    if abs(start_time - time.time()) == max_time:
+        return
 
     # Selection of next star for assignment
     unassigned = [s for s in image_stars if s not in assignment]
     current_star = min(unassigned, key=lambda s: len(candidate_hips.get(s, [])))
-    
 
     # Main loop for trying candidates for current star
     for hip_candidate in candidate_hips.get(current_star, []):
@@ -248,21 +266,24 @@ def DFS(
                 catalog_angular_distances,
                 tolerance,
                 solutions,
+                start_time,
             )
 
         del assignment[current_star]
 
 
-# Bool function that checks if the current assignment is consistent with the angular distances from our image within a certain tolerance
-# Inputs:
-# - assignment: current assignment
-# - image_angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
-# - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
-# - tolerance: angular distance tolerance
-# - new_star: index of new image star being added to the assignment
 def is_consistent(
     assignment, image_angular_distances, catalog_angular_distances, tolerance, new_star
 ):
+    """
+    Bool function that checks if the current assignment is consistent with the angular distances from our image within a certain tolerance
+    Inputs:
+    - assignment: current assignment
+    - image_angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
+    - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
+    - tolerance: angular distance tolerance
+    - new_star: index of new image star being added to the assignment
+    """
 
     # Assignment doesn't have a pair of stars in it so is trivially consistent
     if len(assignment) < 2:
@@ -292,17 +313,20 @@ def is_consistent(
     return True
 
 
-# Function that scores a solution based on how well it describes observed angular distances in the image
-# Inputs:
-# - solution: dict where {star image ID: HIP ID}
-# - image_angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
-# - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
-# - tolerance: angular distance tolerance
-# Outputs:
-# - score: a float that describes the current solution's score. The perfect solution would have a score of 0
 def score_solution(
     solution, image_angular_distances, catalog_angular_distances, tolerance=TOLERANCE
 ):
+    """
+    Function that scores a solution based on how well it describes observed angular distances in the image
+    Inputs:
+    - solution: dict where {star image ID: HIP ID}
+    - image_angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
+    - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
+    - tolerance: angular distance tolerance
+    Outputs:
+    - score: a float that describes the current solution's score. The perfect solution would have a score of 0
+    """
+
     # Sum of total differences between image angular distance and catalog angular distance
     total_diff = 0
     # Count of stars that passed tolerance check
@@ -337,17 +361,19 @@ def score_solution(
     return score
 
 
-# Function that scores all solutions
-# Inputs:
-# - solutions: array of possible solution dicts
-# - image_angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
-# - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
-# Outputs:
-# - scored_solutions: array of tuples where the first element of each tuple is the solution
-# and the second is it's score
 def load_solution_scoring(
     solutions, image_angular_distances, catalog_angular_distances
 ):
+    """
+    Function that scores all solutions
+    Inputs:
+    - solutions: array of possible solution dicts
+    - image_angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
+    - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
+    Outputs:
+    - scored_solutions: array of tuples where the first element of each tuple is the solution
+    and the second is it's score
+    """
     return [
         (sol, score_solution(sol, image_angular_distances, catalog_angular_distances))
         for sol in solutions
@@ -360,7 +386,7 @@ def image_vector_matrix(image_unit_vectors):
 
 def catalog_vector_matrix(final_solution, catalog_unit_vectors):
     matrix = []
-    for star, hip in final_solution[0].items():
+    for _, hip in final_solution[0].items():
         cat_vector = catalog_unit_vectors.get(hip)
         if cat_vector is None:
             raise ValueError(f"Catalog vector for HIP {hip} not found.")
@@ -368,17 +394,19 @@ def catalog_vector_matrix(final_solution, catalog_unit_vectors):
     return np.array(matrix, dtype=np.float64)
 
 
-# Function that approximates the rotational relationship between the two sets of vectors (image and catalog)
-# in a matrix using the weighted sum of their outer products (You can represent any
-# full-rank matrix as a sum of outer products of vectors)
-# Inputs:
-# - image_vectors: np array of the unit vectors from the image.
-# - catalog_vectors: np array of the unit vectors from the catalog
-# - weights: array of floats. Represent how much we can trust each pair of image to catalog vectors
-# Outputs:
-# - attitude_profile_matrix: 3x3 matrix that is the sum of the outer product of each pair of vectors,
-# multiplied by the pair's weight (attitude profile matrix)
 def build_attitude_profile_matrix(image_vectors, catalog_vectors, weights=None):
+    """
+    Function that approximates the rotational relationship between the two sets of vectors (image and catalog)
+    in a matrix using the weighted sum of their outer products (You can represent any
+    full-rank matrix as a sum of outer products of vectors)
+    Inputs:
+    - image_vectors: np array of the unit vectors from the image.
+    - catalog_vectors: np array of the unit vectors from the catalog
+    - weights: array of floats. Represent how much we can trust each pair of image to catalog vectors
+    Outputs:
+    - attitude_profile_matrix: 3x3 matrix that is the sum of the outer product of each pair of vectors,
+    multiplied by the pair's weight (attitude profile matrix)
+    """
 
     assert (
         image_vectors.shape == catalog_vectors.shape
@@ -397,15 +425,17 @@ def build_attitude_profile_matrix(image_vectors, catalog_vectors, weights=None):
     return attitude_profile_matrix
 
 
-# Function that transforms Wahba's problem into quaternion form
-# I don't fully understand the math behind why this matrix is constructed exactly in this way,
-# but I got the end construction from the end of this lecture:
-# https://www.youtube.com/watch?v=BL4KLCEBUUs
-# Inputs:
-# - attitude_profile_matrix: 3x3 matrix
-# Outputs:
-# - quaternion_attitude_profile_matrix: 4x4 matrix
 def build_quaternion_attitude_profile_matrix(attitude_profile_matrix):
+    """
+    Function that transforms Wahba's problem into quaternion form
+    I don't fully understand the math behind why this matrix is constructed exactly in this way,
+    but I got the end construction from the end of this lecture:
+    https://www.youtube.com/watch?v=BL4KLCEBUUs
+    Inputs:
+    - attitude_profile_matrix: 3x3 matrix
+    Outputs:
+    - quaternion_attitude_profile_matrix: 4x4 matrix
+    """
     symmetric_part = attitude_profile_matrix + attitude_profile_matrix.T
     trace = np.trace(attitude_profile_matrix)
     antisymmetric_part = np.array(
@@ -424,16 +454,18 @@ def build_quaternion_attitude_profile_matrix(attitude_profile_matrix):
     return quaternion_attitude_profile_matrix
 
 
-# Wahba's problem can be rewritten as maximizing this form: q^TKq
-# where K is the quaternion_attitude_profile_matrix
-# We solve this by finding the eigenvector with the maximum
-# eigenvalue which then will correspond to the quaternion
-# that best aligns with our rotation
-# Inputs:
-# - quaternion_attitude_profile_matrix: 4x4 matrix
-# Outputs:
-# - optimal_quaternion: quaternion that corresponds to our rotation [qw, qx, qy, qz]
 def find_optimal_quaternion(quaternion_attitude_profile_matrix):
+    """
+    Wahba's problem can be rewritten as maximizing this form: q^TKq
+    where K is the quaternion_attitude_profile_matrix
+    We solve this by finding the eigenvector with the maximum
+    eigenvalue which then will correspond to the quaternion
+    that best aligns with our rotation
+    Inputs:
+    - quaternion_attitude_profile_matrix: 4x4 matrix
+    Outputs:
+    - optimal_quaternion: quaternion that corresponds to our rotation [qw, qx, qy, qz]
+    """
     eigenvalues, eigenvectors = np.linalg.eigh(quaternion_attitude_profile_matrix)
     max_index = np.argmax(eigenvalues)
     optimal_quaternion = eigenvectors[:, max_index]
@@ -453,30 +485,34 @@ def compute_attitude_quaternion(image_vectors, catalog_vectors, weights=None):
     return q
 
 
-# Function to apply inverse rotation of quaternion to our catalog vectors. We should
-# get vectors in our camera frame
-# Inputs:
-# - quaternion: rotation we got from find_optimal_quaternion()
-# - catalog_vectors: the unit vectors of the assigned HIP IDs stars
-# Output:
-# - camera_frame_vectors: vectors in camera frame
 def inverse_rotate_vectors(quaternion, catalog_vectors):
+    """
+    Function to apply inverse rotation of quaternion to our catalog vectors. We should
+    get vectors in our camera frame
+    Inputs:
+    - quaternion: rotation we got from find_optimal_quaternion()
+    - catalog_vectors: the unit vectors of the assigned HIP IDs stars
+    Output:
+    - camera_frame_vectors: vectors in camera frame
+    """
     rot_object = rotate.from_quat(quaternion)
     camera_frame_vectors = rot_object.inv().apply(catalog_vectors)
     return camera_frame_vectors
 
 
-# Function to project vectors in our camera frame to pixel coordinates in the
-# image plane
-# Inputs:
-# - vectors: array of vectors to project
-# - params: array of camera params:
-#   - params[0] = (f_x, f_y)
-#   - params[1] = (c_x, c_y)
-# Outputs:
-# - projected_coords: coordinates of each point. If point is behind camera
-# the element in the array is None
 def project_to_image_plane(vectors, params):
+    """
+    Function to project vectors in our camera frame to pixel coordinates in the
+    image plane
+    Inputs:
+    - vectors: array of vectors to project
+    - params: array of camera params:
+      - params[0] = (f_x, f_y)
+      - params[1] = (c_x, c_y)
+    Outputs:
+    - projected_coords: coordinates of each point. If point is behind camera
+    the element in the array is None
+    """
     f_x, f_y = params[0]
     c_x, c_y = params[1]
     projected_coords = []
@@ -492,16 +528,21 @@ def project_to_image_plane(vectors, params):
     return projected_coords
 
 
-# Function that reprojects the assigned catalog unit vectors back into
-# our image plane
 def reproject_vectors(quaternion, catalog_vectors, params):
+    """
+    Function that reprojects the assigned catalog unit vectors back into
+    our image plane
+    """
     camera_vectors = inverse_rotate_vectors(quaternion, catalog_vectors)
     projected_coords = project_to_image_plane(camera_vectors, params)
     return projected_coords
 
-# Function to calculate error (offset of image star coords to reprojected
-# star coords)
+
 def calculate_error(image_star_coords, reprojected_star_coords):
+    """
+    Function to calculate error (offset of image star coords to reprojected
+    star coords)
+    """
     error_rate = []
     for i in range(len(reprojected_star_coords)):
         x_i, y_i = image_star_coords[i]
@@ -542,9 +583,9 @@ def lost_in_space():
     ang_dists = get_angular_distances(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
-    print(f"Angular distances:")
+    print("Angular distances:")
     for (i, j), ang_dist in ang_dists.items():
-         print(f"{i}->{j}: {ang_dist}")
+        print(f"{i}->{j}: {ang_dist}")
 
     all_catalog_angular_distances = load_catalog_angular_distances()
     hypotheses = load_hypotheses(ang_dists, all_catalog_angular_distances, TOLERANCE)
@@ -569,7 +610,8 @@ def lost_in_space():
         ang_dists,
         all_catalog_angular_distances,
         TOLERANCE,
-        solutions
+        solutions,
+        time.time(),
     )
 
     scored_solutions = load_solution_scoring(
@@ -582,7 +624,7 @@ def lost_in_space():
     best_match = sorted_arr[0]
     best_match_solution = best_match[0]
 
-    print(f"Best match: ")
+    print("Best match: ")
     print(f"{best_match_solution}")
 
     cat_unit_vectors = load_catalog_unit_vectors("star_distances_sorted.db")
@@ -600,7 +642,7 @@ def lost_in_space():
     #     cat_matrix,
     #     [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
     # )
-    
+
     # print(f"Reprojected:")
     # for el in reprojected_coords:
     #     if el is None:
@@ -612,7 +654,7 @@ def lost_in_space():
     # print(f"Original:")
     # for x, y in star_coords:
     #     print(f"{x}, {y}")
-    
+
     # error_rates = calculate_error(star_coords, reprojected_coords)
     # for error in error_rates:
     #     print(f"{error}")
