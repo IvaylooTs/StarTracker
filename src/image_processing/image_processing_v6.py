@@ -506,6 +506,6 @@ def display_star_detections(
     cv2.imwrite(output_filename, img_color)
     print(f"\nVisual result saved to '{output_filename}'.")
 
-    cv2.imshow("Identified Stars", img_color)
-    cv2.waitKey(0)
+    # cv2.imshow("Identified Stars", img_color)
+    # cv2.waitKey(0)
     cv2.destroyAllWindows()

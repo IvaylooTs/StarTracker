@@ -13,23 +13,24 @@ image_processing_folder_path = os.path.abspath(
 sys.path.append(image_processing_folder_path)
 import image_processing_v6 as ip
 
-IMAGE_HEIGHT = 768  # 1964
-IMAGE_WIDTH = 1366  # 3024
-ASPECT_RATIO = IMAGE_HEIGHT / IMAGE_WIDTH
+IMAGE_HEIGHT = 1964 #768
+IMAGE_WIDTH =  3024 #1366
+ASPECT_RATIO = IMAGE_WIDTH / IMAGE_HEIGHT
 FOV_Y = 53
 FOV_X = math.degrees(
-    2 * math.atan(math.tan(math.radians(FOV_Y / 2)) * (1 / ASPECT_RATIO))
+    2 * math.atan(math.tan(math.radians(FOV_Y / 2)) * ASPECT_RATIO)
 )
 CENTER_X = IMAGE_WIDTH / 2
 CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
-TOLERANCE = 0.5
-IMAGE_FILE = "./test_images/testing70.png"
+TOLERANCE = 3
+IMAGE_FILE = "./test_images/testing74.png"
+IMAGE_FILE2 = "./test_images/testing74.png"
 NUM_STARS = 15
 EPSILON = 1e-6
-MIN_SUPPORT = 1
-MIN_MATCHES = 3
+MIN_SUPPORT = 5
+MIN_MATCHES = 5
 
 
 def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
@@ -489,12 +490,14 @@ def inverse_rotate_vectors(quaternion, catalog_vectors):
     Function to apply inverse rotation of quaternion to our catalog vectors. We should
     get vectors in our camera frame
     Inputs:
-    - quaternion: rotation we got from find_optimal_quaternion()
+    - quaternion: rotation we got from find_optimal_quaternion() in [w, x, y, z] format
     - catalog_vectors: the unit vectors of the assigned HIP IDs stars
     Output:
     - camera_frame_vectors: vectors in camera frame
     """
-    rot_object = rotate.from_quat(quaternion)
+    # Convert from [w, x, y, z] to [x, y, z, w] for scipy
+    q_scalar_last = np.roll(quaternion, -1)
+    rot_object = rotate.from_quat(q_scalar_last)
     camera_frame_vectors = rot_object.inv().apply(catalog_vectors)
     return camera_frame_vectors
 
@@ -662,13 +665,154 @@ def lost_in_space():
     # new_q = compute_attitude_quaternion(img_matrix, cat_matrix, weights)
     # print(f"New quaternion: {new_q}")
 
-    # ip.display_star_detections(IMAGE_FILE, star_coords)
-    return quaternion
+    ip.display_star_detections(IMAGE_FILE, star_coords)
+    return quaternion, cat_matrix
+
+
+def track(previous_quaternion, previous_catalog_unit_vectors, detected_star_coords, camera_params, distance_threshold=10.0):
+    """
+    Perform star tracking by matching predicted star positions to detected stars,
+    then update the attitude quaternion.
+    Inputs:
+    - previous_quaternion: Current attitude quaternion estimate in [w, x, y, z] format.
+    - previous_catalog_unit_vectors: Star unit vectors from catalog for previous frame.
+    - detected_star_coords: Detected star pixel coords in current image.
+    - camera_params: ((f_x, f_y), (c_x, c_y)) camera intrinsic parameters.
+    - distance_threshold: Pixel distance threshold for matching.
+    Outputs:
+    - updated_quaternion: New attitude quaternion.
+    - matches: List of matched star index pairs.
+    """
+    
+    predicted_positions = reproject_vectors(previous_quaternion, previous_catalog_unit_vectors, camera_params)
+    
+    print(f"Predicted positions: {len([p for p in predicted_positions if p is not None])} valid out of {len(predicted_positions)}")
+    print(f"Detected positions: {len(detected_star_coords)}")
+    
+    valid_predicted = [p for p in predicted_positions if p is not None]
+    if len(valid_predicted) > 0 and len(detected_star_coords) > 0:
+        print(f"Sample predicted: {valid_predicted[:3]}")
+        print(f"Sample detected: {detected_star_coords[:3]}")
+        
+        # Print all predicted positions for debugging
+        print("All predicted positions:")
+        for i, pos in enumerate(predicted_positions):
+            if pos is not None:
+                print(f"  {i}: {pos}")
+        
+        print("All detected positions:")
+        for i, pos in enumerate(detected_star_coords):
+            print(f"  {i}: {pos}")
+    
+    matches = match_stars(predicted_positions, detected_star_coords, distance_threshold)
+    
+    print(f"Found {len(matches)} matches with threshold {distance_threshold}")
+    
+    if len(matches) == 0:
+        print("No matches found! Cannot update attitude.")
+        return previous_quaternion, matches
+    
+    # Extract matched detected pixel coordinates
+    matched_detected_pixels = [detected_star_coords[det_idx] for _, det_idx in matches]
+    
+    # Convert matched detected pixels to unit vectors
+    image_vectors = star_coords_to_unit_vector(
+        matched_detected_pixels,
+        center_coords=camera_params[1],
+        f_x=camera_params[0][0],
+        f_y=camera_params[0][1]
+    )
+    
+    # Extract matched catalog unit vectors using the correct indexing
+    # The matches contain (predicted_idx, detected_idx), where predicted_idx
+    # corresponds to the index in previous_catalog_unit_vectors
+    catalog_vectors = np.array([previous_catalog_unit_vectors[pred_idx] for pred_idx, _ in matches])
+    
+    # Compute updated attitude quaternion from matched vectors
+    updated_quaternion = compute_attitude_quaternion(image_vectors, catalog_vectors)
+    
+    return updated_quaternion, matches
+
+
+def match_stars(predicted_positions, detected_positions, distance_threshold=10.0):
+    """
+    Match predicted star positions to detected star positions using Euclidean distance.
+    Inputs:
+    - predicted_positions (list of (x, y)): Projected star coords from previous attitude.
+    - detected_positions (list of (x, y)): Star coords detected in current image.
+    - distance_threshold (float): Max pixel distance for matching.
+    Outputs:
+    - matches: list of tuples (predicted_idx, detected_idx) of matched pairs.
+    """
+    matches = []
+    
+    valid_pred_indices = []
+    valid_predicted_coords = []
+    for i, p in enumerate(predicted_positions):
+        if p is not None and hasattr(p, '__len__') and len(p) == 2:
+            valid_pred_indices.append(i)
+            valid_predicted_coords.append(p)
+    
+    if len(valid_predicted_coords) == 0:
+        return matches
+        
+    filtered_predicted = np.array(valid_predicted_coords)
+    
+    valid_det_indices = []
+    valid_detected_coords = []
+    for i, d in enumerate(detected_positions):
+        if d is not None and hasattr(d, '__len__') and len(d) == 2:
+            valid_det_indices.append(i)
+            valid_detected_coords.append(d)
+    
+    if len(valid_detected_coords) == 0:
+        return matches
+        
+    filtered_detected = np.array(valid_detected_coords)
+    
+    print(f"Valid predicted: {len(valid_pred_indices)}, Valid detected: {len(valid_det_indices)}")
+    
+    if len(filtered_predicted) == 0 or len(filtered_detected) == 0:
+        return matches
+    
+    matched_detected_indices = set()
+    
+    for idx, pred_pos in enumerate(filtered_predicted):
+        diffs = filtered_detected - pred_pos
+        dists = np.linalg.norm(diffs, axis=1)
+        
+        candidates = [i for i in np.where(dists < distance_threshold)[0] if i not in matched_detected_indices]
+        
+        if not candidates:
+            continue
+        
+        best_idx = candidates[np.argmin(dists[candidates])]
+        
+        print(f"Match: pred[{valid_pred_indices[idx]}] at {pred_pos} -> det[{valid_det_indices[best_idx]}] at {filtered_detected[best_idx]}, dist: {dists[best_idx]:.2f}")
+        
+        matches.append((valid_pred_indices[idx], valid_det_indices[best_idx]))
+        matched_detected_indices.add(best_idx)
+    
+    return matches
 
 
 if __name__ == "__main__":
-    start_time = time.time()
-    q = lost_in_space()
-    end_time = time.time()
-    print(f"{end_time - start_time}")
-    print(f"{q}")
+    q, cat_matrix = lost_in_space()
+    print(f"Lost in space quaternion: {q}")
+    print(f"Catalog matrix shape: {cat_matrix.shape}")
+    
+    new_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE2, NUM_STARS)
+    
+    new_q, matches = track(q, cat_matrix, new_coords, 
+                          [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)], 
+                          distance_threshold=50.0)
+    
+    print(f"Tracking quaternion: {new_q}")
+    print(f"Matches: {matches}")
+    
+    if len(matches) == 0:
+        print("\nTrying with even larger threshold...")
+        new_q, matches = track(q, cat_matrix, new_coords, 
+                              [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)], 
+                              distance_threshold=100.0)
+        print(f"Matches with 100px threshold: {matches}")
