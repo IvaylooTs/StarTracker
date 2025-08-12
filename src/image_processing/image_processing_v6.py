@@ -11,9 +11,9 @@ from typing import Tuple, List, Optional
 
 # --- Default Parameters ---
 N_STARS_TO_DETECT = 30     # The maximum number of stars to find.
-BINARY_THRESHOLD = 87      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
+BINARY_THRESHOLD = 80      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
 MIN_STAR_AREA = 20         # The minimum number of pixels for an object to be considered a star.
-MAX_STAR_AREA = 500        # The maximum pixel area. Filters out very large/bright objects.
+MAX_STAR_AREA = 190        # The maximum pixel area. Filters out very large/bright objects.
 
 # --- Shape Filter Gauntlet ---
 MIN_CIRCULARITY = 0.70     # How close to a perfect circle (1.0). Good for filtering spiky noise.
@@ -23,6 +23,8 @@ MIN_SOLIDITY = 0.95        # How "solid" the shape is. 1.0 has no holes or dents
 # --- Peak Brightness Filter ---
 MIN_PEAK_RATIO = 0.9       # How much brighter the star's core must be than its immediate surroundings.
 
+# Reject any object where more than 25% of its pixels are saturated (value 255)
+MAX_SATURATION_PERCENTAGE = 0.75
 # --- Subpixel Parameters ---
 SUBPIXEL_WINDOW_SIZE = 15  # Size of window around each star for subpixel refinement (must be odd)
 
@@ -265,6 +267,23 @@ def find_stars_with_advanced_filters(
         area = cv2.contourArea(contour)
         if not (min_area < area < max_area):
             continue
+        
+        # Filter 2b: Saturation
+        # Create a mask to isolate the pixels for the current contour
+        mask = np.zeros(image.shape[:2], dtype=np.uint8)
+        cv2.drawContours(mask, [contour], -1, 255, -1)
+        
+        # Get the pixel brightness values from the original image that are inside the contour
+        pixels_in_contour = image[mask == 255]
+
+        # Calculate what percentage of these pixels are saturated (pure white)
+        if len(pixels_in_contour) > 0:
+            saturated_pixels = np.sum(pixels_in_contour == 255)
+            saturation_ratio = saturated_pixels / len(pixels_in_contour)
+            
+            # If the object is too saturated, REJECT IT and move to the next contour.
+            if saturation_ratio > MAX_SATURATION_PERCENTAGE:
+                continue
 
         # Filter 2b: Circularity
         perimeter = cv2.arcLength(contour, True)
@@ -460,8 +479,8 @@ def display_star_detections(
     image_path: str, star_coords: list, output_filename: str = "stars_identified.png"
 ):
     """
-    Display and save star detections with visual markers.
-    """
+    # Display and save star detections with visual markers.
+    # """
     img_color = cv2.imread(image_path)
     if img_color is None:
         print(f"Error: Cannot load image for display at '{image_path}'")
@@ -506,6 +525,6 @@ def display_star_detections(
     cv2.imwrite(output_filename, img_color)
     print(f"\nVisual result saved to '{output_filename}'.")
 
-    cv2.imshow("Identified Stars", img_color)
-    cv2.waitKey(0)
+    # cv2.imshow("Identified Stars", img_color)
+    # cv2.waitKey(0)
     cv2.destroyAllWindows()
