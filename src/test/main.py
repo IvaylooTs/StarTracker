@@ -25,8 +25,8 @@ CENTER_X = IMAGE_WIDTH / 2
 CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
-TOLERANCE = 1.5
-IMAGE_FILE = "src\digital_twin\\test_images\\saturn2.png"
+TOLERANCE = 1
+IMAGE_FILE = "src\image_processing/test_images\\t.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_SUPPORT = 1
@@ -115,7 +115,7 @@ def build_hypotheses_from_votes(raw_votes, min_votes=1):
     hypotheses = defaultdict(set)
     # To be more robust, let's only consider candidates with a reasonable number of votes.
     # This value might need tuning. If you get no solutions, try lowering it.
-    MIN_VOTES_THRESHOLD = 1
+    MIN_VOTES_THRESHOLD = 2
 
     for (star_idx, hip_id), count in raw_votes.items():
         if count >= MIN_VOTES_THRESHOLD:
@@ -713,7 +713,7 @@ def lost_in_space():
     solutions = []
 
     print("Starting DFS to find a consistent solution (max 10 seconds)...")
-    ip.display_star_detections(IMAGE_FILE, star_coords)
+    # ip.display_star_detections(IMAGE_FILE, star_coords)
     # Capture the start time right before the first call
     dfs_start_time = time.time()
     DFS(
@@ -751,11 +751,12 @@ def lost_in_space():
     img_matrix = image_vector_matrix(mapped_image_vectors)
     # This wrapper is no longer needed if you simplify catalog_vector_matrix
     cat_matrix = catalog_vector_matrix({'solution': final_solution}, cat_unit_vectors) 
-
+    
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
     print("Final Quaternion Calculated.")
     ip.display_star_detections(IMAGE_FILE, star_coords)
     return quaternion
+    
 
 if __name__ == "__main__":
     start_time = time.time()

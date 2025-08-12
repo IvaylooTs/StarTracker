@@ -2,7 +2,7 @@ import sqlite3
 import numpy as np
 
 # Path to your existing database
-DATABASE_FILENAME = 'digital_twin/star_distances_sorted.db'
+DATABASE_FILENAME = 'src/test/star_distances_sorted.db'
 
 # Convert RA from "hhmm" to decimal degrees
 def ra_to_deg(hours, minutes):

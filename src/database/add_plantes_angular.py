@@ -2,7 +2,7 @@ import sqlite3
 import math
 
 # Define the path to your database file
-DATABASE_FILENAME = 'digital_twin/star_distances_sorted.db'
+DATABASE_FILENAME = 'src/test/star_distances_sorted.db'
 
 def angular_distance_cartesian(x1, y1, z1, x2, y2, z2):
     """
