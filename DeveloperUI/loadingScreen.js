@@ -1,4 +1,32 @@
-const skipLogo = true
+
+const intervalTimer = 20 * 60
+
+
+// if(Math.floor((Date.now() - localStorage.firstTimeDate)/1000) > intervalTimer){
+//     localStorage.firstTime = '0';
+// }
+
+var firstTime = localStorage.firstTime != '1';
+localStorage.firstTime = '1';
+
+
+const diffSeconds = 900;
+let skipLogo = true
+
+if(firstTime){
+    localStorage.firstTimeDate = Date.now().toString();
+    skipLogo = false;
+}else{
+    let diff = Date.now()-localStorage.firstTimeDate;
+    if(diff > diffSeconds *1000){
+        skipLogo = false;
+        localStorage.firstTimeDate = Date.now().toString();
+    } else{
+        skipLogo = true;
+    }
+
+}
+
 
 window.onload = () => {
 
