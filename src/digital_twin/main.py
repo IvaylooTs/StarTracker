@@ -24,9 +24,9 @@ CENTER_X = IMAGE_WIDTH / 2
 CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
-TOLERANCE = 3
-IMAGE_FILE = "./test_images/testing74.png"
-IMAGE_FILE2 = "./test_images/testing74.png"
+TOLERANCE = 2
+IMAGE_FILE = "./test_images/testing78.png"
+IMAGE_FILE2 = "./test_images/testing79.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_SUPPORT = 5
@@ -686,33 +686,12 @@ def track(previous_quaternion, previous_catalog_unit_vectors, detected_star_coor
     
     predicted_positions = reproject_vectors(previous_quaternion, previous_catalog_unit_vectors, camera_params)
     
-    print(f"Predicted positions: {len([p for p in predicted_positions if p is not None])} valid out of {len(predicted_positions)}")
-    print(f"Detected positions: {len(detected_star_coords)}")
-    
-    valid_predicted = [p for p in predicted_positions if p is not None]
-    if len(valid_predicted) > 0 and len(detected_star_coords) > 0:
-        print(f"Sample predicted: {valid_predicted[:3]}")
-        print(f"Sample detected: {detected_star_coords[:3]}")
-        
-        # Print all predicted positions for debugging
-        print("All predicted positions:")
-        for i, pos in enumerate(predicted_positions):
-            if pos is not None:
-                print(f"  {i}: {pos}")
-        
-        print("All detected positions:")
-        for i, pos in enumerate(detected_star_coords):
-            print(f"  {i}: {pos}")
-    
     matches = match_stars(predicted_positions, detected_star_coords, distance_threshold)
-    
-    print(f"Found {len(matches)} matches with threshold {distance_threshold}")
     
     if len(matches) == 0:
         print("No matches found! Cannot update attitude.")
         return previous_quaternion, matches
     
-    # Extract matched detected pixel coordinates
     matched_detected_pixels = [detected_star_coords[det_idx] for _, det_idx in matches]
     
     # Convert matched detected pixels to unit vectors
@@ -728,7 +707,6 @@ def track(previous_quaternion, previous_catalog_unit_vectors, detected_star_coor
     # corresponds to the index in previous_catalog_unit_vectors
     catalog_vectors = np.array([previous_catalog_unit_vectors[pred_idx] for pred_idx, _ in matches])
     
-    # Compute updated attitude quaternion from matched vectors
     updated_quaternion = compute_attitude_quaternion(image_vectors, catalog_vectors)
     
     return updated_quaternion, matches
@@ -748,10 +726,10 @@ def match_stars(predicted_positions, detected_positions, distance_threshold=10.0
     
     valid_pred_indices = []
     valid_predicted_coords = []
-    for i, p in enumerate(predicted_positions):
-        if p is not None and hasattr(p, '__len__') and len(p) == 2:
-            valid_pred_indices.append(i)
-            valid_predicted_coords.append(p)
+    for index, coords in enumerate(predicted_positions):
+        if coords is not None and len(coords) == 2:
+            valid_pred_indices.append(index)
+            valid_predicted_coords.append(coords)
     
     if len(valid_predicted_coords) == 0:
         return matches
@@ -761,7 +739,7 @@ def match_stars(predicted_positions, detected_positions, distance_threshold=10.0
     valid_det_indices = []
     valid_detected_coords = []
     for i, d in enumerate(detected_positions):
-        if d is not None and hasattr(d, '__len__') and len(d) == 2:
+        if d is not None and len(d) == 2:
             valid_det_indices.append(i)
             valid_detected_coords.append(d)
     
@@ -769,8 +747,6 @@ def match_stars(predicted_positions, detected_positions, distance_threshold=10.0
         return matches
         
     filtered_detected = np.array(valid_detected_coords)
-    
-    print(f"Valid predicted: {len(valid_pred_indices)}, Valid detected: {len(valid_det_indices)}")
     
     if len(filtered_predicted) == 0 or len(filtered_detected) == 0:
         return matches
@@ -787,8 +763,6 @@ def match_stars(predicted_positions, detected_positions, distance_threshold=10.0
             continue
         
         best_idx = candidates[np.argmin(dists[candidates])]
-        
-        print(f"Match: pred[{valid_pred_indices[idx]}] at {pred_pos} -> det[{valid_det_indices[best_idx]}] at {filtered_detected[best_idx]}, dist: {dists[best_idx]:.2f}")
         
         matches.append((valid_pred_indices[idx], valid_det_indices[best_idx]))
         matched_detected_indices.add(best_idx)
