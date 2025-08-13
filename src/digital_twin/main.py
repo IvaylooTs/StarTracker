@@ -575,6 +575,19 @@ def calculate_weights(error_rates):
     return weights
 
 
+def refine_quaternion(quaternion, catalog_vector_matrix, image_star_coords, image_vector_matrix):
+    reprojected_coords = reproject_vectors(
+        quaternion,
+        catalog_vector_matrix,
+        [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
+    )
+    
+    error_rates = calculate_error(image_star_coords, reprojected_coords)
+    weights = calculate_weights(error_rates)
+    new_quaternion = compute_attitude_quaternion(image_vector_matrix, catalog_vector_matrix, weights)
+    return new_quaternion
+
+
 def lost_in_space():
 
     # star_coords = ip.find_brightest_stars(IMAGE_FILE, NUM_STARS)
@@ -638,35 +651,13 @@ def lost_in_space():
     cat_matrix = catalog_vector_matrix(best_match, cat_unit_vectors)
 
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
-    # q_scalar_last = np.roll(quaternion, -1)
-    # reprojected_coords = reproject_vectors(
-    #     q_scalar_last,
-    #     cat_matrix,
-    #     [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-    # )
-
-    # print(f"Reprojected:")
-    # for el in reprojected_coords:
-    #     if el is None:
-    #         print(f"aaa")
-    #     else:
-    #         x, y = el
-    #         print(f"{x}, {y}")
-
-    # print(f"Original:")
-    # for x, y in star_coords:
-    #     print(f"{x}, {y}")
-
-    # error_rates = calculate_error(star_coords, reprojected_coords)
-    # for error in error_rates:
-    #     print(f"{error}")
-
-    # weights = calculate_weights(error_rates)
-    # new_q = compute_attitude_quaternion(img_matrix, cat_matrix, weights)
-    # print(f"New quaternion: {new_q}")
+    new_quat = refine_quaternion(quaternion, cat_matrix, star_coords, img_matrix)
+    
+    for i in range(0, 5):
+        new_quat = refine_quaternion(new_quat, cat_matrix, star_coords, img_matrix)
 
     ip.display_star_detections(IMAGE_FILE, star_coords)
-    return quaternion, cat_matrix
+    return new_quat, cat_matrix
 
 
 def track(previous_quaternion, previous_catalog_unit_vectors, detected_star_coords, camera_params, distance_threshold=10.0):
