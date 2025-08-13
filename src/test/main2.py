@@ -26,7 +26,7 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 1
-IMAGE_FILE = "src\image_processing/test_images\\t17.png"
+IMAGE_FILE = "src\image_processing/test_images\\t5.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_SUPPORT = 1
@@ -683,98 +683,74 @@ def generate_raw_votes(angular_distances, catalog_hash, tolerance):
 
 
 def lost_in_space():
-    # --- SETUP ---
+    # --- SETUP (Same as before) ---
     print("Loading catalog data...")
     with open('catalog_hash.pkl', 'rb') as f: catalog_hash = pickle.load(f)
     all_catalog_angular_distances = load_catalog_angular_distances()
     print("Data loaded.")
 
-    # --- IMAGE PROCESSING ---
+    # --- IMAGE PROCESSING (Same as before) ---
     star_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE, NUM_STARS)
+
     img_unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     img_ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
 
     # --- STAGE 1: Generate Raw Votes ---
-    TOLERANCE_ACQUISITION = 1
+    TOLERANCE_ACQUISITION = 1.5
     raw_votes = generate_raw_votes(img_ang_dists, catalog_hash, TOLERANCE_ACQUISITION)
     if not raw_votes:
         print("!!! FAILED: No votes generated."); return None
     
-    # --- STAGE 2: Build Initial Hypothesis List ---
+    # --- STAGE 2: Build Hypothesis List from Votes ---
+    # This filters out the low-vote noise from the "vote hogs".
     hypotheses = build_hypotheses_from_votes(raw_votes)
     if not hypotheses:
         print("!!! FAILED: No hypotheses met the minimum vote threshold."); return None
-    print(f"Built initial hypotheses for {len(hypotheses)} stars from raw votes.")
+    print(f"Built hypotheses for {len(hypotheses)} stars from raw votes.")
 
-    # --- STAGE 3: Find a Consistent Solution with Iterative Outlier Removal ---
-    
-    # We start with the full hypothesis list, which may contain a planet ("poison pill")
-    current_hypotheses = hypotheses
+    # --- STAGE 3: Find a Consistent Solution (Single Attempt) ---
+    sorted_hypothesises = dict(sorted(hypotheses.items(), key=lambda item: len(item[1])))
+    image_stars = list(hypotheses.keys())
     solutions = []
-    
-    print("\n--- Starting Robust Search (Iterative Outlier Removal) ---")
-    
-    # We will try to solve the puzzle. If it fails, we remove the least likely star and try again.
-    # The loop continues as long as we have enough stars to potentially find a match.
-    while len(current_hypotheses) >= MIN_MATCHES:
-        
-        # Prepare the inputs for this iteration's DFS run
-        image_stars_to_try = list(current_hypotheses.keys())
-        sorted_hypothesises = dict(sorted(current_hypotheses.items(), key=lambda item: len(item[1])))
-        
-        print(f"  Attempting to solve with {len(image_stars_to_try)} stars...")
-        
-        iteration_solutions = [] # A temporary list for this specific attempt
-        dfs_start_time = time.time()
-        DFS(
-            {}, # Start with a fresh assignment
-            image_stars_to_try, 
-            sorted_hypothesises, 
-            img_ang_dists,
-            all_catalog_angular_distances, 
-            TOLERANCE_ACQUISITION,
-            iteration_solutions, # Use the temporary list
-            dfs_start_time, 
-            max_time=15 # Use a shorter timeout for each attempt
-        )
-        
-        # Check if this attempt was successful
-        if iteration_solutions:
-            print(f"  --> SUCCESS: Found a consistent group in {time.time() - dfs_start_time:.2f} seconds!")
-            solutions = iteration_solutions
-            break # Exit the while loop, we have our answer!
-        else:
-            print(f"  --> FAILED. Assuming an outlier is present in the current set.")
-            # Identify the least reliable star. A good heuristic is the one with the
-            # most candidate options, as it is the most ambiguous.
-            if not current_hypotheses: break
-            
-            star_to_remove = max(current_hypotheses.items(), key=lambda item: len(item[1]))[0]
-            print(f"Removing Star {star_to_remove} (most ambiguous) and trying again.")
-            
-            # Remove it from our dictionary for the next attempt
-            del current_hypotheses[star_to_remove]
-    
-    print("--- Robust Search Finished ---")
 
+    print("Starting DFS to find a consistent solution (max 10 seconds)...")
+    # ip.display_star_detections(IMAGE_FILE, star_coords)
+    # Capture the start time right before the first call
+    dfs_start_time = time.time()
+    DFS(
+        {}, # Start with empty assignment
+        image_stars,
+        sorted_hypothesises,
+        img_ang_dists,
+        all_catalog_angular_distances,
+        TOLERANCE_ACQUISITION,
+        solutions,
+        dfs_start_time, # Pass the start time
+        max_time=15   # Set the max duration
+    )
+
+    print(f"DFS finished in {time.time() - dfs_start_time:.2f} seconds.")
     # --- STAGE 4: Score Solutions and Calculate Attitude ---
     if not solutions:
-        print("\n!!! FAILED: Could not find any geometrically consistent solution even after removing outliers.")
+        print("!!! FAILED: DFS could not find any geometrically consistent solution.")
         return None
 
+    # Use your existing scoring and sorting logic
     scored_solutions = load_solution_scoring(solutions, img_ang_dists, all_catalog_angular_distances)
+    # Sort by number of stars in solution (descending), then score (ascending)
     sorted_arr = sorted(scored_solutions, key=lambda x: (-len(x[0]), x[1]))
     best_match = sorted_arr[0]
     final_solution = best_match[0]
     
-    print(f"\nSUCCESS: DFS found {len(solutions)} solution(s). Best one has {len(final_solution)} stars:", final_solution)
+    print(f"SUCCESS: DFS found {len(solutions)} solution(s). Best one has {len(final_solution)} stars:", final_solution)
     
-    # --- STAGE 5: Calculate Attitude ---
+    # --- STAGE 5: Calculate Attitude (Same as before) ---
     cat_unit_vectors = load_catalog_unit_vectors("src/test/star_distances_sorted.db")
     mapped_image_vectors = []
     for key in final_solution.keys():
         mapped_image_vectors.append(img_unit_vectors[key])
     img_matrix = image_vector_matrix(mapped_image_vectors)
+    # This wrapper is no longer needed if you simplify catalog_vector_matrix
     cat_matrix = catalog_vector_matrix({'solution': final_solution}, cat_unit_vectors) 
     
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)

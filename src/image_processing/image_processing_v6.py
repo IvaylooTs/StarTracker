@@ -12,7 +12,7 @@ from typing import Tuple, List, Optional
 # --- Default Parameters ---
 N_STARS_TO_DETECT = 30     # The maximum number of stars to find.
 BINARY_THRESHOLD = 87      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
-MIN_STAR_AREA = 20         # The minimum number of pixels for an object to be considered a star.
+MIN_STAR_AREA = 10         # The minimum number of pixels for an object to be considered a star.
 MAX_STAR_AREA = 190        # The maximum pixel area. Filters out very large/bright objects.
 
 # --- Shape Filter Gauntlet ---
@@ -22,9 +22,6 @@ MIN_SOLIDITY = 0.95        # How "solid" the shape is. 1.0 has no holes or dents
 
 # --- Peak Brightness Filter ---
 MIN_PEAK_RATIO = 0.9       # How much brighter the star's core must be than its immediate surroundings.
-
-# Reject any object where more than 25% of its pixels are saturated (value 255)
-MAX_SATURATION_PERCENTAGE = 0.75
 # --- Subpixel Parameters ---
 SUBPIXEL_WINDOW_SIZE = 15  # Size of window around each star for subpixel refinement (must be odd)
 
@@ -281,9 +278,7 @@ def find_stars_with_advanced_filters(
             saturated_pixels = np.sum(pixels_in_contour == 255)
             saturation_ratio = saturated_pixels / len(pixels_in_contour)
             
-            # If the object is too saturated, REJECT IT and move to the next contour.
-            if saturation_ratio > MAX_SATURATION_PERCENTAGE:
-                continue
+      
 
         # Filter 2b: Circularity
         perimeter = cv2.arcLength(contour, True)

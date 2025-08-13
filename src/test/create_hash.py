@@ -12,7 +12,7 @@ HASH_FILE_PATH = 'catalog_hash.pkl'
 
 # This is the "bin size" for our distances. It MUST match the tolerance
 # used in the main script's acquisition stage. We set it to 2.0.
-TOLERANCE = 1.5
+TOLERANCE = 1
 
 def load_all_catalog_distances(db_path):
     """Loads all pre-calculated angular distances from the SQLite database."""
