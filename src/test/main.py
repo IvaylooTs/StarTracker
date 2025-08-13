@@ -26,7 +26,7 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 1
-IMAGE_FILE = "src\image_processing/test_images\\t17.png"
+IMAGE_FILE = "src\image_processing/test_images\\capture22.jpg"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_SUPPORT = 1
@@ -693,6 +693,7 @@ def lost_in_space():
     star_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE, NUM_STARS)
     img_unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     img_ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
+    # ip.display_star_detections(IMAGE_FILE, star_coords)
 
     # --- STAGE 1: Generate Raw Votes ---
     TOLERANCE_ACQUISITION = 1
