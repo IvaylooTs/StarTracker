@@ -25,8 +25,8 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing78.png"
-IMAGE_FILE2 = "./test_images/testing79.png"
+IMAGE_FILE = "./test_images/testing81.png"
+IMAGE_FILE2 = "./test_images/testing82.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_SUPPORT = 5
@@ -588,10 +588,10 @@ def refine_quaternion(quaternion, catalog_vector_matrix, image_star_coords, imag
     return new_quaternion
 
 
-def lost_in_space():
+def lost_in_space(image_file):
 
     # star_coords = ip.find_brightest_stars(IMAGE_FILE, NUM_STARS)
-    star_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE, NUM_STARS)
+    star_coords = ip.find_stars_with_advanced_filters(image_file, NUM_STARS)
     img_unit_vectors = star_coords_to_unit_vector(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
@@ -761,8 +761,15 @@ def match_stars(predicted_positions, detected_positions, distance_threshold=10.0
     return matches
 
 
+def rotational_angle_between_quaternions(quaternion1, quaternion2):
+    dot_product = np.dot(quaternion1, quaternion2)
+    rotational_angle = 2 * np.arccos(dot_product)
+    rotational_angle_degrees = np.degrees(rotational_angle)
+    return rotational_angle_degrees
+    
+
 if __name__ == "__main__":
-    q, cat_matrix = lost_in_space()
+    q, cat_matrix = lost_in_space(IMAGE_FILE)
     print(f"Lost in space quaternion: {q}")
     print(f"Catalog matrix shape: {cat_matrix.shape}")
     
@@ -781,3 +788,6 @@ if __name__ == "__main__":
                               [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)], 
                               distance_threshold=100.0)
         print(f"Matches with 100px threshold: {matches}")
+    
+    rotational_angle = rotational_angle_between_quaternions(q, new_q)
+    print(f"{rotational_angle}")
