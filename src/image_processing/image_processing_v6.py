@@ -11,7 +11,7 @@ from typing import Tuple, List, Optional
 
 # --- Default Parameters ---
 N_STARS_TO_DETECT = 30     # The maximum number of stars to find.
-BINARY_THRESHOLD = 80      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
+BINARY_THRESHOLD = 87      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
 MIN_STAR_AREA = 20         # The minimum number of pixels for an object to be considered a star.
 MAX_STAR_AREA = 190        # The maximum pixel area. Filters out very large/bright objects.
 
@@ -435,7 +435,7 @@ def visualize_processing_steps(final_centroids, original_img=None, binary_img=No
     if binary_img is None:
         binary_img = output_images.get("binary")
     
-    fig, axes = plt.subplots(1, 3, figsize=(24, 8))
+    axes = plt.subplots(1, 3, figsize=(24, 8))
     
     axes[0].imshow(original_img, cmap='gray')
     axes[0].set_title('1. Original Image')
