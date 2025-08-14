@@ -23,9 +23,10 @@ CENTER_X = IMAGE_WIDTH / 2
 CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
-TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing81.png"
-IMAGE_FILE2 = "./test_images/testing81.png"
+TOLERANCE = 3
+IMAGE_FILE = "./test_images/testing89.png"
+IMAGE_FILE2 = "./test_images/testing90.png"
+TEST_IMAGE = "./test_images/testing90.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_SUPPORT = 5
@@ -626,7 +627,7 @@ def calculate_weights_radians(angular_errors):
             weights.append(0.0)
         else:
             weights.append(1.0 / (theta**2 + EPSILON))
-    
+
     return np.array(weights)
 
 
@@ -648,7 +649,7 @@ def refine_quaternion(
         catalog_vector_matrix,
         [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
     )
-
+    
     error_rates = calculate_error(image_star_coords, reprojected_coords)
     weights = calculate_weights(error_rates)
     refined_quaternion = compute_attitude_quaternion(
@@ -658,7 +659,9 @@ def refine_quaternion(
     return refined_quaternion
 
 
-def lost_in_space(image_file):
+def lost_in_space(image_file = None):
+    if image_file == None:
+        image_file = TEST_IMAGE
 
     # star_coords = ip.find_brightest_stars(IMAGE_FILE, NUM_STARS)
     star_coords = ip.find_stars_with_advanced_filters(image_file, NUM_STARS)
@@ -668,9 +671,9 @@ def lost_in_space(image_file):
     ang_dists = get_angular_distances(
         star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y
     )
-    print("Angular distances:")
-    for (i, j), ang_dist in ang_dists.items():
-        print(f"{i}->{j}: {ang_dist}")
+    # print("Angular distances:")
+    # for (i, j), ang_dist in ang_dists.items():
+    #     print(f"{i}->{j}: {ang_dist}")
 
     all_catalog_angular_distances = load_catalog_angular_distances()
     hypotheses = load_hypotheses(ang_dists, all_catalog_angular_distances, TOLERANCE)
@@ -702,8 +705,8 @@ def lost_in_space(image_file):
     scored_solutions = load_solution_scoring(
         solutions, ang_dists, all_catalog_angular_distances
     )
-    for sol in scored_solutions:
-        print(f"{sol}")
+    # for sol in scored_solutions:
+    #     print(f"{sol}")
 
     sorted_arr = sorted(scored_solutions, key=lambda x: x[1])
     best_match = sorted_arr[0]
@@ -756,9 +759,8 @@ def track(
     )
 
     matches = match_stars(predicted_positions, detected_star_coords, distance_threshold)
-
-    if len(matches) == 0:
-        print("No matches found! Cannot update attitude.")
+    if len(matches) < 3:
+        print("Not enough matches to track")
         return previous_quaternion, matches
 
     matched_detected_pixels = [detected_star_coords[det_idx] for _, det_idx in matches]
@@ -860,6 +862,7 @@ def rotational_angle_between_quaternions(quaternion1, quaternion2):
     rotational_angle_degrees = np.degrees(rotational_angle)
     return rotational_angle_degrees
 
+
 if __name__ == "__main__":
     q, cat_matrix = lost_in_space(IMAGE_FILE)
     print(f"Lost in space quaternion: {q}")
@@ -888,6 +891,7 @@ if __name__ == "__main__":
             distance_threshold=100.0,
         )
         print(f"Matches with 100px threshold: {matches}")
+    
 
     rotational_angle = rotational_angle_between_quaternions(q, new_q)
     print(f"{rotational_angle}")
