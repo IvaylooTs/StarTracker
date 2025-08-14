@@ -26,13 +26,12 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 1
-IMAGE_FILE = "src\image_processing/test_images\\capture22.jpg"
+IMAGE_FILE = "src\image_processing/test_images\\t17.png"
 NUM_STARS = 15
 EPSILON = 1e-6
 MIN_SUPPORT = 1
 MIN_MATCHES = 7
 
-# Place this function in main.py
 def get_initial_identities(all_votes):
     """
     Finds the best single HIP ID candidate for each image star based on raw vote counts.
@@ -56,7 +55,6 @@ def get_initial_identities(all_votes):
             
     return proposed_solution
 
-# Place this function in main.py
 def perform_validation_voting(proposed_solution, image_angular_distances, catalog_angular_distances, tolerance):
     """
     Performs the second, validation vote based on geometric consistency.
@@ -258,39 +256,41 @@ def get_bounds(ang_dist, tolerance):
     """
     return (ang_dist - tolerance, ang_dist + tolerance)
 
+# ==============================
+# NOT USED
+# ==============================
+# def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
+#     """
+#     Function that loads candidate catalog HIP IDs for each image star
+#     Inputs:
+#     - num_stars: number of stars from the image
+#     - angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
+#     - all_cat_ang_dists: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
+#     - tolerance: angular distance tolerance
+#     Outputs:
+#     - hypotheses_dict: {image star index: [HIP ID 1, ... HIP ID N]}
+#     """
+#     matches_counter = defaultdict(int)
 
-def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
-    """
-    Function that loads candidate catalog HIP IDs for each image star
-    Inputs:
-    - num_stars: number of stars from the image
-    - angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
-    - all_cat_ang_dists: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
-    - tolerance: angular distance tolerance
-    Outputs:
-    - hypotheses_dict: {image star index: [HIP ID 1, ... HIP ID N]}
-    """
-    matches_counter = defaultdict(int)
+#     for (s1, s2), ang_dist in angular_distances.items():
+#         if ang_dist is None:
+#             continue
 
-    for (s1, s2), ang_dist in angular_distances.items():
-        if ang_dist is None:
-            continue
+#         bounds = get_bounds(ang_dist, tolerance)
+#         cur_cat_dict = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
 
-        bounds = get_bounds(ang_dist, tolerance)
-        cur_cat_dict = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
+#         for (hip1, hip2), cat_ang_dist in cur_cat_dict.items():
+#             matches_counter[(s1, hip1)] += 1
+#             matches_counter[(s1, hip2)] += 1
+#             matches_counter[(s2, hip1)] += 1
+#             matches_counter[(s2, hip2)] += 1
 
-        for (hip1, hip2), cat_ang_dist in cur_cat_dict.items():
-            matches_counter[(s1, hip1)] += 1
-            matches_counter[(s1, hip2)] += 1
-            matches_counter[(s2, hip1)] += 1
-            matches_counter[(s2, hip2)] += 1
+#     hypotheses_dict = defaultdict(set)
+#     for (star_idx, hip_id), count in matches_counter.items():
+#         if count >= MIN_SUPPORT:
+#             hypotheses_dict[star_idx].add(hip_id)
 
-    hypotheses_dict = defaultdict(set)
-    for (star_idx, hip_id), count in matches_counter.items():
-        if count >= MIN_SUPPORT:
-            hypotheses_dict[star_idx].add(hip_id)
-
-    return hypotheses_dict
+#     return hypotheses_dict
 
 
 def DFS(
@@ -681,7 +681,6 @@ def generate_raw_votes(angular_distances, catalog_hash, tolerance):
             votes[(s2, hip2)] += 1
     return votes
 
-
 def lost_in_space():
     # --- SETUP ---
     print("Loading catalog data...")
@@ -709,13 +708,12 @@ def lost_in_space():
 
     # --- STAGE 3: Find a Consistent Solution with Iterative Outlier Removal ---
     
-    # We start with the full hypothesis list, which may contain a planet ("poison pill")
+    # We start with the full hypothesis list, which may contain a planet
     current_hypotheses = hypotheses
     solutions = []
     
     print("\n--- Starting Robust Search (Iterative Outlier Removal) ---")
     
-    # We will try to solve the puzzle. If it fails, we remove the least likely star and try again.
     # The loop continues as long as we have enough stars to potentially find a match.
     while len(current_hypotheses) >= MIN_MATCHES:
         
@@ -746,8 +744,8 @@ def lost_in_space():
             break # Exit the while loop, we have our answer!
         else:
             print(f"  --> FAILED. Assuming an outlier is present in the current set.")
-            # Identify the least reliable star. A good heuristic is the one with the
-            # most candidate options, as it is the most ambiguous.
+            # Identify the least reliable star. The stars with the most votes are usually the brightest ones. 
+            # So this starts deleting star 0,1,2.... Which might delete a real star, but it shouldnt be a problem
             if not current_hypotheses: break
             
             star_to_remove = max(current_hypotheses.items(), key=lambda item: len(item[1]))[0]
