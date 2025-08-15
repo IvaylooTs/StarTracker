@@ -8,6 +8,7 @@ from collections import defaultdict
 from scipy.spatial.transform import Rotation as rotate
 from scipy.spatial.distance import cdist
 import numpy as np
+import pickle
 
 image_processing_folder_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "image_processing")
@@ -25,13 +26,13 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 3
-IMAGE_FILE = "./test_images/testing91.png"
-IMAGE_FILE2 = "./test_images/testing92.png"
+IMAGE_FILE = "./test_images/testing95.png"
+IMAGE_FILE2 = "./test_images/testing96.png"
 TEST_IMAGE = "./test_images/testing90.png"
 NUM_STARS = 15
 EPSILON = 1e-3
-MIN_SUPPORT = 5
-MIN_MATCHES = 5
+MIN_SUPPORT = 1
+MIN_MATCHES = 7
 MIN_VOTES_THRESHOLD = 2
 MAX_REFINEMENT_ITERATIONS = 20
 QUATERNION_ANGLE_DIFFERENCE_THRESHOLD = 1e-3
@@ -209,7 +210,7 @@ def build_hypotheses_from_votes(raw_votes, min_votes=1):
     """
     hypotheses = defaultdict(set)
     for (star_idx, hip_id), vote_count in raw_votes.items():
-        if vote_count < min_votes:
+        if vote_count >= min_votes:
             hypotheses[star_idx].add(hip_id)
 
     return hypotheses
@@ -272,15 +273,15 @@ def DFS(
     - solutions: a list to collect valid assignments (solutions) - initially empty
     """
 
+    if time.time() - start_time == max_time:
+        return
+
     # Does current assignment qualify as a solution
     if len(assignment) >= MIN_MATCHES:
         solutions.append(dict(assignment))
 
     # End of recursion condition if we've matched all stars
     if len(assignment) == len(image_stars):
-        return
-
-    if abs(start_time - time.time()) == max_time:
         return
 
     # Selection of next star for assignment
@@ -313,6 +314,7 @@ def DFS(
                 tolerance,
                 solutions,
                 start_time,
+                max_time
             )
 
         del assignment[current_star]
@@ -704,6 +706,11 @@ def refine_quaternion(quaternion, catalog_vector_matrix, image_vector_matrix):
 
 
 def lost_in_space(image_file=None):
+    
+    with open('catalog_hash.pkl', 'rb') as f: catalog_hash = pickle.load(f)
+    all_catalog_angular_distances = load_catalog_angular_distances()
+    
+    
     if image_file == None:
         image_file = TEST_IMAGE
 
@@ -718,9 +725,21 @@ def lost_in_space(image_file=None):
     # print("Angular distances:")
     # for (i, j), ang_dist in ang_dists.items():
     #     print(f"{i}->{j}: {ang_dist}")
+    
 
-    all_catalog_angular_distances = load_catalog_angular_distances()
-    hypotheses = load_hypotheses(ang_dists, all_catalog_angular_distances, TOLERANCE)
+    # hypotheses = load_hypotheses(ang_dists, all_catalog_angular_distances, TOLERANCE)
+    raw_votes = generate_raw_votes(ang_dists, catalog_hash, TOLERANCE)
+    if not raw_votes:
+        print("No raw votes generated")
+        return None
+    
+    
+    hypotheses = build_hypotheses_from_votes(raw_votes, MIN_VOTES_THRESHOLD)
+    if not hypotheses:
+        print("No hypotheses generated")
+        return None
+    
+    
     sorted_hypothesises = dict(
         sorted(hypotheses.items(), key=lambda item: len(item[1]))
     )
@@ -780,8 +799,10 @@ def lost_in_space(image_file=None):
         final_quaternion = refined_quaternion
 
     ip.display_star_detections(image_file, star_coords)
-    return final_quaternion, cat_matrix, star_coords
-
+    used_coords = []
+    for key in best_match_solution.keys():
+        used_coords.append(star_coords[key])
+    return final_quaternion, cat_matrix, used_coords
 
 def match_stars(predicted_positions, detected_positions, distance_threshold=10.0):
     """
