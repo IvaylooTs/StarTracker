@@ -6,6 +6,8 @@ import sqlite3
 from itertools import combinations
 from collections import defaultdict
 from scipy.spatial.transform import Rotation as rotate
+from scipy.spatial import cKDTree
+from scipy.spatial.distance import cdist
 import numpy as np
 
 image_processing_folder_path = os.path.abspath(
@@ -49,30 +51,32 @@ def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
     - unit_vectors: array of np arrays holding (x, y, z) coordinates of each unit vector
     """
     # Unpack center_coords
-    cx, cy = center_coords
+    c_x, c_y = center_coords
+    
+    star_coords_matrix = np.array(star_coords)
     # Initialize empty unit vector array
     unit_vectors = []
-
+    
     # Reverse pinhole projection to get X, Y, Z coords of each star
-    for x, y in star_coords:
-        # Pick arbitrary depth for each 3D point
-        # (we don't know how far away they really are, we just want their direction)
-        z_p = 1
+    
+    # Convert pixel coordinates into normalized camera coordinates (back-projection step)
+    # These correspond to where the pixel projects onto the image plane at depth z_p
+    # Inversing pinhole projection formula for x (back-projecting). Formula: x = f_x * (x_p / z_p) + c_x
+    x_norm = (star_coords_matrix[:, 0] - c_x) / f_x
+    # Inversing pinhole projection formula for y (back-projecting). Formula: y = f_y * (x_p / z_p) + c_y
+    y_norm = (star_coords_matrix[:, 1] - c_y) / f_y
+    # Pick arbitrary depth for each 3D point
+    # (we don't know how far away they really are, we just want their direction)
+    z_coord = np.ones_like(x_norm)
+    
+    # array holding [X, Y, Z] coordinates of the direction vector
+    vectors = np.stack([x_norm, y_norm, z_coord], axis = 1)
+    
+    # Normalize vector to save on calculations later on
+    norms = np.linalg.norm(vectors, axis = 1, keepdims = True)
+    unit_vectors = vectors / norms
 
-        # Convert pixel coordinates into normalized camera coordinates (back-projection step)
-        # These correspond to where the pixel projects onto the image plane at depth z_p
-        # Inversing pinhole projection formula for x (back-projecting). Formula: x = f_x * (x_p / z_p) + c_x
-        x_p = (x - cx) / f_x
-        # Inversing pinhole projection formula for y (back-projecting). Formula: y = f_y * (x_p / z_p) + c_y
-        y_p = (y - cy) / f_y
-
-        # array holding [X, Y, Z] coordinates of the direction vector
-        direction_vector = np.array([x_p, y_p, z_p])
-        # Normalize vector to save on calculations later on
-        normalized_vector = direction_vector / np.linalg.norm(direction_vector)
-        unit_vectors.append(normalized_vector)
-
-    return np.array(unit_vectors)
+    return unit_vectors
 
 
 def angular_dist_helper(unit_vectors):
@@ -732,12 +736,13 @@ def lost_in_space(image_file = None):
         final_quaternion = refined_quaternion
 
     ip.display_star_detections(image_file, star_coords)
-    return final_quaternion, cat_matrix
+    return final_quaternion, cat_matrix, star_coords
 
 
 def track(
     previous_quaternion,
     previous_catalog_unit_vectors,
+    previous_star_coords,
     detected_star_coords,
     camera_params,
     distance_threshold=10.0,
@@ -756,11 +761,8 @@ def track(
     - matches: List of matched star index pairs.
     """
 
-    predicted_positions = reproject_vectors(
-        previous_quaternion, previous_catalog_unit_vectors, camera_params
-    )
 
-    matches = match_stars(predicted_positions, detected_star_coords, distance_threshold)
+    matches = match_stars(previous_star_coords, detected_star_coords, distance_threshold)
     if len(matches) < 3:
         print("Not enough matches to track")
         return previous_quaternion, matches
@@ -776,13 +778,22 @@ def track(
     )
 
     # Extract matched catalog unit vectors using the correct indexing
-    # The matches contain (predicted_idx, detected_idx), where predicted_idx
+    # The matches contain (previous_idx, detected_idx), where previous_idx
     # corresponds to the index in previous_catalog_unit_vectors
     catalog_vectors = np.array(
         [previous_catalog_unit_vectors[pred_idx] for pred_idx, _ in matches]
     )
 
     updated_quaternion = compute_attitude_quaternion(image_vectors, catalog_vectors)
+    final_quaternion = updated_quaternion
+
+    for _ in range(0, MAX_REFINEMENT_ITERATIONS):
+        refined_quaternion = refine_quaternion(final_quaternion, catalog_vectors, image_vectors)
+        delta_angle = rotational_angle_between_quaternions(final_quaternion, refined_quaternion)
+        if delta_angle <= QUATERNION_ANGLE_DIFFERENCE_THRESHOLD:
+            break
+        final_quaternion = refined_quaternion
+
 
     return updated_quaternion, matches
 
@@ -797,57 +808,31 @@ def match_stars(predicted_positions, detected_positions, distance_threshold=10.0
     Outputs:
     - matches: list of tuples (predicted_idx, detected_idx) of matched pairs.
     """
+    
+    valid_predicted = [(index, prev_coords) for index, prev_coords in enumerate(predicted_positions) 
+                        if prev_coords is not None and len(prev_coords) == 2]
+    valid_detected = [(index, detected_coords) for index, detected_coords in enumerate(detected_positions)
+                      if detected_coords is not None and len(detected_coords) == 2]
+    
+    predicted_indices, predicted_coords = zip(*valid_predicted)
+    detected_indices, detected_coords = zip(*valid_detected)
+    predicted_array = np.array(predicted_coords)
+    detected_array = np.array(detected_coords)
+    
+    distances_matrix = cdist(predicted_array, detected_array)
+    distances_matrix[distances_matrix > distance_threshold] = np.inf
+    
     matches = []
-
-    valid_pred_indices = []
-    valid_predicted_coords = []
-    for index, coords in enumerate(predicted_positions):
-        if coords is not None and len(coords) == 2:
-            valid_pred_indices.append(index)
-            valid_predicted_coords.append(coords)
-
-    if len(valid_predicted_coords) == 0:
-        return matches
-
-    filtered_predicted = np.array(valid_predicted_coords)
-
-    valid_det_indices = []
-    valid_detected_coords = []
-    for i, d in enumerate(detected_positions):
-        if d is not None and len(d) == 2:
-            valid_det_indices.append(i)
-            valid_detected_coords.append(d)
-
-    if len(valid_detected_coords) == 0:
-        return matches
-
-    filtered_detected = np.array(valid_detected_coords)
-
-    if len(filtered_predicted) == 0 or len(filtered_detected) == 0:
-        return matches
-
-    matched_detected_indices = set()
-
-    for idx, pred_pos in enumerate(filtered_predicted):
-        diffs = filtered_detected - pred_pos
-        dists = np.linalg.norm(diffs, axis=1)
-
-        candidates = [
-            i
-            for i in np.where(dists < distance_threshold)[0]
-            if i not in matched_detected_indices
-        ]
-
-        if not candidates:
-            continue
-
-        best_idx = candidates[np.argmin(dists[candidates])]
-
-        matches.append((valid_pred_indices[idx], valid_det_indices[best_idx]))
-        matched_detected_indices.add(best_idx)
-
+    used_detected = set()
+    
+    for i, row in enumerate(distances_matrix):
+        min_index = np.argmin(row)
+        if row[min_index] != np.inf and min_index not in used_detected:
+            matches.append((predicted_indices[i], detected_indices[min_index]))
+            used_detected.add(min_index)
+            
     return matches
-
+    
 
 def rotational_angle_between_quaternions(quaternion1, quaternion2):
     """
@@ -866,20 +851,27 @@ def rotational_angle_between_quaternions(quaternion1, quaternion2):
 
 
 if __name__ == "__main__":
-    q, cat_matrix = lost_in_space(IMAGE_FILE)
+    begin_time = time.time()
+    q, cat_matrix, coords = lost_in_space(IMAGE_FILE)
+    end_time = time.time()
     print(f"Lost in space quaternion: {q}")
+    print(f"Lost in space time: {end_time - begin_time}")
     print(f"Catalog matrix shape: {cat_matrix.shape}")
 
     new_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE2, NUM_STARS)
 
+    begin_time = time.time()
     new_q, matches = track(
         q,
         cat_matrix,
+        coords,
         new_coords,
         [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
         distance_threshold=50.0,
     )
+    end_time = time.time()
 
+    print(f"Tracking time {end_time - begin_time}")
     print(f"Tracking quaternion: {new_q}")
     print(f"Matches: {matches}")
 
@@ -894,6 +886,6 @@ if __name__ == "__main__":
         )
         print(f"Matches with 100px threshold: {matches}")
     
-    new_q, c = lost_in_space(IMAGE_FILE2)
+    # new_q, c, sc = lost_in_space(IMAGE_FILE2)
     rotational_angle = rotational_angle_between_quaternions(q, new_q)
     print(f"{rotational_angle}")
