@@ -5,7 +5,7 @@ import time
 
 # --- Configuration ---
 # The path to your star catalog database
-CATALOG_DB_PATH = 'src/test/star_distances_sorted.db' 
+CATALOG_DB_PATH = './star_distances_sorted.db' 
 
 # The name of the output file that will be created
 HASH_FILE_PATH = 'catalog_hash.pkl' 
