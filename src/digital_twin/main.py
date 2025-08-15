@@ -24,13 +24,15 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 3
-IMAGE_FILE = "./test_images/testing89.png"
-IMAGE_FILE2 = "./test_images/testing90.png"
+IMAGE_FILE = "./test_images/testing91.png"
+IMAGE_FILE2 = "./test_images/testing92.png"
 TEST_IMAGE = "./test_images/testing90.png"
 NUM_STARS = 15
-EPSILON = 1e-6
+EPSILON = 1e-3
 MIN_SUPPORT = 5
 MIN_MATCHES = 5
+MAX_REFINEMENT_ITERATIONS = 20
+QUATERNION_ANGLE_DIFFERENCE_THRESHOLD = 1e-3
 
 
 def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
@@ -632,7 +634,7 @@ def calculate_weights_radians(angular_errors):
 
 
 def refine_quaternion(
-    quaternion, catalog_vector_matrix, image_star_coords, image_vector_matrix
+    quaternion, catalog_vector_matrix, image_vector_matrix
 ):
     """
     Refine quaternion by running QUEST again with calculated weights
@@ -644,14 +646,10 @@ def refine_quaternion(
     Outputs:
     - refined_quaternion: corrected rotation in [w, x, y, z] format
     """
-    reprojected_coords = reproject_vectors(
-        quaternion,
-        catalog_vector_matrix,
-        [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-    )
     
-    error_rates = calculate_error(image_star_coords, reprojected_coords)
-    weights = calculate_weights(error_rates)
+    image_plane_catalog_vectors = inverse_rotate_vectors(quaternion, catalog_vector_matrix)
+    error_rates = calculate_error_radians(image_vector_matrix, image_plane_catalog_vectors)
+    weights = calculate_weights_radians(error_rates)
     refined_quaternion = compute_attitude_quaternion(
         image_vector_matrix, catalog_vector_matrix, weights
     )
@@ -724,13 +722,17 @@ def lost_in_space(image_file = None):
     cat_matrix = catalog_vector_matrix(best_match, cat_unit_vectors)
 
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
-    new_quat = refine_quaternion(quaternion, cat_matrix, star_coords, img_matrix)
+    final_quaternion = quaternion
 
-    for i in range(0, 5):
-        new_quat = refine_quaternion(new_quat, cat_matrix, star_coords, img_matrix)
+    for i in range(0, MAX_REFINEMENT_ITERATIONS):
+        refined_quaternion = refine_quaternion(final_quaternion, cat_matrix, img_matrix)
+        delta_angle = rotational_angle_between_quaternions(final_quaternion, refined_quaternion)
+        if delta_angle <= QUATERNION_ANGLE_DIFFERENCE_THRESHOLD:
+            break
+        final_quaternion = refined_quaternion
 
     ip.display_star_detections(image_file, star_coords)
-    return new_quat, cat_matrix
+    return final_quaternion, cat_matrix
 
 
 def track(
@@ -892,6 +894,6 @@ if __name__ == "__main__":
         )
         print(f"Matches with 100px threshold: {matches}")
     
-
+    new_q, c = lost_in_space(IMAGE_FILE2)
     rotational_angle = rotational_angle_between_quaternions(q, new_q)
     print(f"{rotational_angle}")
