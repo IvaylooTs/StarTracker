@@ -236,7 +236,7 @@ def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
         bounds = get_bounds(ang_dist, tolerance)
         cur_cat_dict = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
 
-        for (hip1, hip2), cat_ang_dist in cur_cat_dict.items():
+        for (hip1, hip2), _ in cur_cat_dict.items():
             matches_counter[(s1, hip1)] += 1
             matches_counter[(s1, hip2)] += 1
             matches_counter[(s2, hip1)] += 1
