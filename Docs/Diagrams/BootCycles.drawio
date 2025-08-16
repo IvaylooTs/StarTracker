@@ -1,0 +1,102 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0" version="28.0.7">
+  <diagram name="Page-1" id="lkX1kpdCfp2jTkbmeSSV">
+    <mxGraphModel dx="727" dy="403" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="3buet-8uOVUYseIPOSNw-7" value="" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;dashPattern=12 12;" vertex="1" parent="1">
+          <mxGeometry x="315" y="105" width="408" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-1" target="3buet-8uOVUYseIPOSNw-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-1" value="Boot" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="120" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-2" target="3buet-8uOVUYseIPOSNw-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-2" value="Kill every process that takes ports 5000 and 6789" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="405" y="122" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-40" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-4" target="3buet-8uOVUYseIPOSNw-39">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-4" value="Boot main python srcipt" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="584" y="122" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-9" value="Boot bash script" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="325" y="70" width="191" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-14" target="3buet-8uOVUYseIPOSNw-26">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="387" y="356" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-14" value="Exit code 2" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="419" y="286" width="120" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-22" target="3buet-8uOVUYseIPOSNw-29">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-22" value="&lt;div&gt;Exit code 3&lt;/div&gt;" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="584" y="333" width="120" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-23" target="3buet-8uOVUYseIPOSNw-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-23" value="&lt;div&gt;Exit code 23&lt;br&gt;or any other + program crashes&lt;/div&gt;" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="419" y="232" width="120" height="47" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-26" target="3buet-8uOVUYseIPOSNw-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="122" y="352" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-26" value="Reboot" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="166" y="343" width="120" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-29" value="Shutdown" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="584" y="435" width="120" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-39" target="3buet-8uOVUYseIPOSNw-23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-39" target="3buet-8uOVUYseIPOSNw-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-39" target="3buet-8uOVUYseIPOSNw-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-39" value="&lt;div&gt;exit&lt;/div&gt;&lt;div&gt;code&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="619" y="222" width="50" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-45" value="Service" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="173" y="120" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.446;entryY=1.011;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-48" target="3buet-8uOVUYseIPOSNw-45">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-47" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.446;entryY=1.011;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="3buet-8uOVUYseIPOSNw-7" target="3buet-8uOVUYseIPOSNw-48">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="315" y="245" as="sourcePoint" />
+            <mxPoint x="227" y="181" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="223" y="276" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-48" value="Bash program crash" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="196" y="218" width="60" height="43" as="geometry" />
+        </mxCell>
+        <mxCell id="3buet-8uOVUYseIPOSNw-50" value="Boot sequence" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="24" y="86" width="103" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

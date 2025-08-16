@@ -11,6 +11,24 @@
   <title>CASSI: Development UI</title>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
   <link href="style.css" rel="stylesheet">
+  <script>
+      // Get the full query string from the current URL
+      const queryString = window.location.search;
+
+      // Create a URLSearchParams object to easily work with the query parameters
+      const urlParams = new URLSearchParams(queryString);
+
+      // Get the value of the 'ip' parameter
+      let ipAddress = urlParams.get('ip');
+
+      // If the 'ip' parameter is not found or is empty, assign a default IP address
+      if (!ipAddress) {
+        ipAddress = '192.168.1.1'; // Your predetermined IP address
+      }
+      window.ip = ipAddress
+      // Log the IP address to the browser's console
+      console.log('The IP address is:', ipAddress);
+    </script>
 </head>
 <body>
 
@@ -69,7 +87,8 @@
     <div class="scrollable-content">
 
       <h2>Controls</h2>
-      <button class="btn" onclick="downloadPhotoCapture()">Capture & download</button>
+
+      <button class="btn" onclick="downloadPhotoCapture(`https:///${newIpAddress}:5000/capture_photo`)">Capture & download</button>
       <button class="btn" onclick="sendCommand('calibrate')">Calibrate IMU</button>
       <button class="btn" onclick="sendCommand('lostInSpaceTest')">Lost in space! test</button>
       <button class="btn" onclick="sendCommand('lostInSpaceCamera')">Lost in space! Camera</button>
