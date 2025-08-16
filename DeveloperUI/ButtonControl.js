@@ -10,7 +10,7 @@ function displayWebCam() {
     if(!img){
         img = document.createElement("img");
         img.id = "stream";
-        img.src = "https://192.168.55.160:5000/video_feed";
+        img.src = `https://${window.ip}:5000/video_feed`;
         img.alt = "Live Stream";
         img.style.width = "100%";
         container.appendChild(img);
