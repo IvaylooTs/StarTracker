@@ -89,7 +89,7 @@ function ConnectToWebSocket() {
                 ws.close();
                 TerminalDisplayInfo("Connection timed out.");
             }
-        }, 2500); // 5 sec timeout
+        }, 1000); // 5 sec timeout
 
         ws.onopen = () => {
             clearTimeout(timeout);
@@ -104,9 +104,9 @@ function ConnectToWebSocket() {
                 if (msg.quaternion) {
                     const { x, y, z, w } = msg.quaternion;
                     quaternionOutput.textContent = `w: ${w}\nx: ${x}\ny: ${y}\nz: ${z}\n`;
-                    systemStats.textContent = `CPU temp: ${msg.stats.CPU_temp}°C CPU Usage: ${msg.statsCPU_usage}%Ram usage: ${msg.stats.RAM_percent}%`;
+                    systemStats.textContent = `CPU temp: ${msg.stats.CPU_temp}°C\nCPU Usage: ${msg.stats.CPU_usage}%\nRam usage: ${msg.stats.RAM_percent}%`;
 
-                    // console.log({x, y, z, w});
+                    // console.log({x, y, z, w});aoksdzxc
                     window.Satellite3DObject.quaternion.set(x, y, z, w);
                     AddDataToChart({ w, x, y, z });
                 }
