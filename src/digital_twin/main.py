@@ -25,14 +25,14 @@ CENTER_X = IMAGE_WIDTH / 2
 CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
-TOLERANCE = 3
-IMAGE_FILE = "./test_images/testing95.png"
-IMAGE_FILE2 = "./test_images/testing96.png"
+TOLERANCE = 2
+IMAGE_FILE = "./test_images/testing97.png"
+IMAGE_FILE2 = "./test_images/testing98.png"
 TEST_IMAGE = "./test_images/testing90.png"
 NUM_STARS = 15
 EPSILON = 1e-3
-MIN_SUPPORT = 1
-MIN_MATCHES = 7
+MIN_SUPPORT = 5
+MIN_MATCHES = 10
 MIN_VOTES_THRESHOLD = 2
 MAX_REFINEMENT_ITERATIONS = 20
 QUATERNION_ANGLE_DIFFERENCE_THRESHOLD = 1e-3
@@ -259,7 +259,7 @@ def DFS(
     tolerance,
     solutions,
     start_time,
-    max_time=5,
+    max_time=15,
 ):
     """
     DFS to produce every possible mapping of image star to catalog star ID (even if not full mappings)
@@ -314,7 +314,7 @@ def DFS(
                 tolerance,
                 solutions,
                 start_time,
-                max_time
+                max_time,
             )
 
         del assignment[current_star]
@@ -706,11 +706,11 @@ def refine_quaternion(quaternion, catalog_vector_matrix, image_vector_matrix):
 
 
 def lost_in_space(image_file=None):
-    
-    with open('catalog_hash.pkl', 'rb') as f: catalog_hash = pickle.load(f)
+
+    with open("catalog_hash.pkl", "rb") as f:
+        catalog_hash = pickle.load(f)
     all_catalog_angular_distances = load_catalog_angular_distances()
-    
-    
+
     if image_file == None:
         image_file = TEST_IMAGE
 
@@ -725,51 +725,71 @@ def lost_in_space(image_file=None):
     # print("Angular distances:")
     # for (i, j), ang_dist in ang_dists.items():
     #     print(f"{i}->{j}: {ang_dist}")
-    
 
     # hypotheses = load_hypotheses(ang_dists, all_catalog_angular_distances, TOLERANCE)
     raw_votes = generate_raw_votes(ang_dists, catalog_hash, TOLERANCE)
     if not raw_votes:
         print("No raw votes generated")
         return None
-    
-    
+
     hypotheses = build_hypotheses_from_votes(raw_votes, MIN_VOTES_THRESHOLD)
     if not hypotheses:
         print("No hypotheses generated")
         return None
-    
-    
-    sorted_hypothesises = dict(
-        sorted(hypotheses.items(), key=lambda item: len(item[1]))
-    )
-    # for hypotheses in sorted_hypothesises.items():
-    #     print(f"{hypotheses}")
-    #     print("\n")
 
-    assignment = {}
-    image_stars = []
-
-    for i in range(0, NUM_STARS):
-        image_stars.append(i)
-
+    current_hypotheses = hypotheses
     solutions = []
-    DFS(
-        assignment,
-        image_stars,
-        sorted_hypothesises,
-        ang_dists,
-        all_catalog_angular_distances,
-        TOLERANCE,
-        solutions,
-        time.time(),
-    )
+
+    while len(current_hypotheses) >= MIN_MATCHES:
+        image_stars_to_try = list(current_hypotheses.keys())
+        sorted_hypotheses = dict(
+            sorted(current_hypotheses.items(), key=lambda item: len(item[1]))
+        )
+        print(f"  Attempting to solve with {len(image_stars_to_try)} stars...")
+        iteration_solutions = []
+        assignment = {}
+        dfs_start_time = time.time()
+
+        DFS(
+            assignment,
+            image_stars_to_try,
+            sorted_hypotheses,
+            ang_dists,
+            all_catalog_angular_distances,
+            TOLERANCE,
+            iteration_solutions,
+            dfs_start_time,
+            max_time=15,
+        )
+
+        if iteration_solutions:
+            print(
+                f"  --> SUCCESS: Found a consistent group in {time.time() - dfs_start_time:.2f} seconds!"
+            )
+            solutions = iteration_solutions
+            break
+        else:
+            print(f"  --> FAILED. Assuming an outlier is present in the current set.")
+            # Identify the least reliable star. The stars with the most votes are usually the brightest ones.
+            # So this starts deleting star 0,1,2.... Which might delete a real star, but it shouldnt be a problem
+            if not current_hypotheses:
+                break
+            star_to_remove = max(
+                current_hypotheses.items(), key=lambda item: len(item[1])
+            )[0]
+            print(f"Removing Star {star_to_remove} (most ambiguous) and trying again.")
+
+            del current_hypotheses[star_to_remove]
+
+    if not solutions:
+        print(
+            "\n!!! FAILED: Could not find any geometrically consistent solution even after removing outliers."
+        )
+        return None
 
     scored_solutions = load_solution_scoring(
         solutions, ang_dists, all_catalog_angular_distances
     )
-    # for sol in scored_solutions:
-    #     print(f"{sol}")
 
     sorted_arr = sorted(scored_solutions, key=lambda x: x[1])
     best_match = sorted_arr[0]
@@ -789,7 +809,7 @@ def lost_in_space(image_file=None):
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
     final_quaternion = quaternion
 
-    for i in range(0, MAX_REFINEMENT_ITERATIONS):
+    for _ in range(0, MAX_REFINEMENT_ITERATIONS):
         refined_quaternion = refine_quaternion(final_quaternion, cat_matrix, img_matrix)
         delta_angle = rotational_angle_between_quaternions(
             final_quaternion, refined_quaternion
@@ -803,6 +823,7 @@ def lost_in_space(image_file=None):
     for key in best_match_solution.keys():
         used_coords.append(star_coords[key])
     return final_quaternion, cat_matrix, used_coords
+
 
 def match_stars(predicted_positions, detected_positions, distance_threshold=10.0):
     """
@@ -955,6 +976,7 @@ if __name__ == "__main__":
         new_q, matches = track(
             q,
             cat_matrix,
+            coords,
             new_coords,
             [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
             distance_threshold=100.0,

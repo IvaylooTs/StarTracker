@@ -13,7 +13,7 @@ from typing import Tuple, List, Optional
 N_STARS_TO_DETECT = 30     # The maximum number of stars to find.
 BINARY_THRESHOLD = 87      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
 MIN_STAR_AREA = 10         # The minimum number of pixels for an object to be considered a star.
-MAX_STAR_AREA = 190        # The maximum pixel area. Filters out very large/bright objects.
+MAX_STAR_AREA = 250        # The maximum pixel area. Filters out very large/bright objects.
 
 # --- Shape Filter Gauntlet ---
 MIN_CIRCULARITY = 0.70     # How close to a perfect circle (1.0). Good for filtering spiky noise.

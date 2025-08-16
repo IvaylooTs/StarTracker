@@ -5,7 +5,7 @@ from collections import defaultdict
 DATABASE_PATH = "./star_distances_sorted.db"
 HASH_FILE_PATH = "catalog_hash.pkl"
 
-TOLERANCE = 3
+TOLERANCE = 2
 
 
 def load_all_catalog_distances(db_path):
