@@ -125,24 +125,33 @@ canvas { display: block; }
   border-color: transparent;
   z-index: 9998;
   width: 10vw;
-}
-#infoWindow {
+}#infoWindow {
   z-index: 2;
   position: fixed;
   width: 33.33vw;              /* 1/3 of viewport width */
-  height: 25vh;                /* 1/2 of viewport height */
+  height: 25vh;                /* 1/4 of viewport height */
   top: 50%;
   right: 0%;
   transform: translateY(-50%);
   background-color: rgba(0, 0, 0, 0.8);
-  padding:0px 0px 0px 10px;
+  padding: 10px;
   color: white;
-  /* padding: 1rem; */
+  font-family: monospace;       /* Keep numbers aligned */
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  overflow: hidden;
-  /* border-radius: 8px 8px 0 0; */
-
+  overflow-y: auto;             /* Scroll if content overflows */
 }
+
+#infoWindow h3 {
+  margin: 0.5em 0 0.25em 0;
+  font-size: 1.1em;
+}
+
+.output {
+  white-space: pre-wrap;        /* Preserve line breaks but wrap text */
+  word-wrap: break-word;        /* Break long numbers if needed */
+  margin: 0 0 1em 0;
+}
+
 .video-box {
     width: 33.33vw;  /* 1/3 of viewport width */
     height: 50vh;     /* 1/2 of viewport height */
