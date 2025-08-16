@@ -2,7 +2,7 @@ import sqlite3
 import pickle
 from collections import defaultdict
 
-DATABASE_PATH = "./star_distances_sorted.db"
+DATABASE_PATH = "../database/star_distances_sorted.db"
 HASH_FILE_PATH = "catalog_hash.pkl"
 
 TOLERANCE = 2

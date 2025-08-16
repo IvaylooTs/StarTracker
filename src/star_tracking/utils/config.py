@@ -2,9 +2,14 @@
 Configuration management for star tracking system.
 """
 
+import os
 import math
 from dataclasses import dataclass
 from typing import Optional, Tuple
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+CATALOG_FILE = os.path.join(PROJECT_ROOT, 'catalog', 'catalog_hash.pkl')
+DATABASE_FILE = os.path.join(PROJECT_ROOT, 'database', 'star_distances_sorted.db')
 
 @dataclass
 class CameraConfig:
@@ -46,5 +51,5 @@ class StarTrackingConfig:
     epsilon: float = 1e-3
     
     # File paths
-    catalog_db_path: str = "../database/star_distances_sorted.db"
-    catalog_hash_file: str = "../catalog/catalog_hash.pkl"
+    catalog_db_path: str = DATABASE_FILE
+    catalog_hash_file: str = CATALOG_FILE

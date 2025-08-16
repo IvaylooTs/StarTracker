@@ -14,7 +14,6 @@ from ..core import coordinates as coords
 from ..core.angular_distance import get_angular_distances
 from ..matching.hypothesis_generation import generate_raw_votes, build_hypotheses_from_votes
 from ..matching import geometric_matching as gm
-from ..matching.geometric_matching import find_geometric_solutions
 from ..algorithms.quest import compute_attitude_quaternion
 from ..algorithms.refinement import refine_quaternion
 from ..utils.scoring import load_solution_scoring
@@ -98,7 +97,7 @@ class StarTracker:
             else:
                 star_coords = star_detection_func(image_file, self.config.num_stars)
             
-            if not star_coords or len(star_coords) < self.config.min_matches:
+            if star_coords is None or len(star_coords) < self.config.min_matches:
                 result.error_message = f"Insufficient stars detected: {len(star_coords)}"
                 return result
             
@@ -190,10 +189,12 @@ class StarTracker:
             result.solution_mapping = best_solution
             result.processing_time = time.time() - start_time
             result.success = True
+            result.num_matched_stars = len(best_solution)
             
             self.last_quaternion = result.quaternion
             self.last_catalog_vectors = result.catalog_vectors
             self.last_star_coords = result.star_coordinates
+            ip.display_star_detections(image_file, star_coords)
             
         except Exception as e:
             result.error_message = f"Lost-in-space failed: {str(e)}"
@@ -215,7 +216,7 @@ class StarTracker:
         try:
             matched_image_vectors = []
             matched_coords = []
-            for star_idx in solution_mapping.key():
+            for star_idx in solution_mapping.keys():
                 matched_image_vectors.append(img_unit_vectors[star_idx])
                 matched_coords.append(star_coords[star_idx])
                 
