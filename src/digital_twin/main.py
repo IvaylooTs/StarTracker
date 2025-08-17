@@ -7,6 +7,7 @@ from itertools import combinations
 from collections import defaultdict
 from scipy.spatial.transform import Rotation as rotate
 from scipy.spatial.distance import cdist
+from scipy.optimize import linear_sum_assignment
 import numpy as np
 import pickle
 
@@ -26,14 +27,15 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing101.png"
-IMAGE_FILE2 = "./test_images/testing102.png"
+IMAGE_FILE = "./test_images/testing103.png"
+IMAGE_FILE2 = "./test_images/testing104.png"
 TEST_IMAGE = "./test_images/testing90.png"
 NUM_STARS = 15
 EPSILON = 1e-3
 MIN_SUPPORT = 5
 MIN_MATCHES = 10
 MIN_VOTES_THRESHOLD = 2
+MIN_MATCHES_TRACKING = 4
 MAX_REFINEMENT_ITERATIONS = 20
 QUATERNION_ANGLE_DIFFERENCE_THRESHOLD = 1e-3
 
@@ -867,12 +869,55 @@ def match_stars(predicted_positions, detected_positions, distance_threshold=10.0
     return matches
 
 
+def match_stars_hungarian(predicted_positions, detected_positions, distance_threshold=10.0):
+    
+    if (predicted_positions is None or len(predicted_positions) == 0 or 
+        detected_positions is None or len(detected_positions) == 0):
+        return []
+    
+    valid_predicted = [
+        (index, prev_coords)
+        for index, prev_coords in enumerate(predicted_positions)
+        if prev_coords is not None and len(prev_coords) == 2 and 
+           all(np.isfinite(coord) for coord in prev_coords)
+    ]
+    valid_detected = [
+        (index, detected_coords)
+        for index, detected_coords in enumerate(detected_positions)
+        if detected_coords is not None and len(detected_coords) == 2 and
+           all(np.isfinite(coord) for coord in detected_coords)
+    ]
+    
+    if not valid_predicted or not valid_detected:
+        return []
+    
+    predicted_indices, predicted_coords = zip(*valid_predicted)
+    detected_indices, detected_coords = zip(*valid_detected)
+    predicted_array = np.array(predicted_coords)
+    detected_array = np.array(detected_coords)
+    
+    distances_matrix = cdist(predicted_array, detected_array)
+    
+    cost_matrix = np.where(distances_matrix <= distance_threshold, 
+                          distances_matrix, 1e6)
+    
+    pred_indices, det_indices = linear_sum_assignment(cost_matrix)
+    
+    matches = []
+    for i, j in zip(pred_indices, det_indices):
+        if cost_matrix[i, j] < 1e6: 
+            matches.append((predicted_indices[i], detected_indices[j]))
+    
+    return matches
+
+
 def track(
     previous_quaternion,
     previous_catalog_unit_vectors,
     previous_star_coords,
     detected_star_coords,
     camera_params,
+    min_matches,
     distance_threshold=10.0,
 ):
     """
@@ -888,11 +933,13 @@ def track(
     - updated_quaternion: New attitude quaternion.
     - matches: List of matched star index pairs.
     """
-
-    matches = match_stars(
+    if previous_quaternion is None or len(detected_star_coords) < min_matches:
+        return previous_quaternion, []
+    
+    matches = match_stars_hungarian(
         previous_star_coords, detected_star_coords, distance_threshold
     )
-    if len(matches) < 3:
+    if len(matches) < min_matches:
         print("Not enough matches to track")
         return previous_quaternion, matches
 
@@ -927,7 +974,7 @@ def track(
             break
         final_quaternion = refined_quaternion
 
-    return updated_quaternion, matches
+    return final_quaternion, matches
 
 
 def rotational_angle_between_quaternions(quaternion1, quaternion2):
@@ -963,7 +1010,8 @@ if __name__ == "__main__":
         coords,
         new_coords,
         [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-        distance_threshold=50.0,
+        MIN_MATCHES_TRACKING,
+        distance_threshold=50.0
     )
     end_time = time.time()
 
@@ -979,7 +1027,8 @@ if __name__ == "__main__":
             coords,
             new_coords,
             [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-            distance_threshold=100.0,
+            MIN_MATCHES_TRACKING,
+            distance_threshold=100.0
         )
         print(f"Matches with 100px threshold: {matches}")
 
