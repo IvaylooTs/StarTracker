@@ -17,3 +17,7 @@ def lost_in_space(image_file: str, tracking_config: Optional[StarTrackingConfig]
     """
     tracker = StarTracker(tracking_config, camera_config)
     return tracker.lost_in_space(image_file, star_detection_func)
+ 
+def tracking_helper(image_file: str, tracking_config: Optional[StarTrackingConfig] = None, camera_config: Optional[CameraConfig] = None, star_detection_func = None) -> StarTrackingResult:
+    tracker = StarTracker(tracking_config, camera_config)
+    return tracker.track_frame(image_file, star_detection_func)

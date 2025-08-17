@@ -251,7 +251,7 @@ class StarTracker:
             print(f"Error computing attitude: {e}")
             return None
 
-    def track_frame(self, new_image_file: str, star_detection_func = None, distance_threshold: float = 10.0) -> StarTrackingResult:
+    def track_frame(self, new_image_file: str, star_detection_func = None, distance_threshold: float = 100.0) -> StarTrackingResult:
         """
         Track stars from previous frame to current frame
         Inputs:
@@ -269,21 +269,30 @@ class StarTracker:
         result = StarTrackingResult()
         
         try:
+            if star_detection_func is None:
+                from ..image_processing import image_processing as ip
+                star_coords = ip.find_stars_with_advanced_filters(new_image_file, self.config.num_stars)
+            else:
+                star_coords = star_detection_func(new_image_file, self.config.num_stars)
+            
+            if star_coords is None or len(star_coords) < self.config.min_matches:
+                result.error_message = f"Insufficient stars detected: {len(star_coords)}"
+                return result
+            
             updated_quaternion, matches = track(
                 self.last_quaternion,
                 self.last_catalog_vectors,
                 self.last_star_coords,
-                new_image_file,
-                self.camera,
-                distance_threshold,
-                star_detection_func
+                star_coords,
+                [(self.camera.focal_length_x, self.camera.focal_length_y), (self.camera.center_x, self.camera.center_y)],
+                distance_threshold
             )
             
             if updated_quaternion is not None and len(matches) >= self.config.min_matches:
                 result.quaternion = updated_quaternion
                 result.catalog_vectors = self.last_catalog_vectors
                 result.num_matched_stars = len(matches)
-                result.success = len(matches)
+                result.success = True
                 
                 self.last_quaternion = updated_quaternion
             else:
