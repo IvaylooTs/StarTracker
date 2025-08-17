@@ -12,8 +12,8 @@ from typing import Tuple, List, Optional
 # --- Default Parameters ---
 N_STARS_TO_DETECT = 30     # The maximum number of stars to find.
 BINARY_THRESHOLD = 87      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
-MIN_STAR_AREA = 10         # The minimum number of pixels for an object to be considered a star.
-MAX_STAR_AREA = 250        # The maximum pixel area. Filters out very large/bright objects.
+MIN_STAR_AREA = 20         # The minimum number of pixels for an object to be considered a star.
+MAX_STAR_AREA = 190        # The maximum pixel area. Filters out very large/bright objects.
 
 # --- Shape Filter Gauntlet ---
 MIN_CIRCULARITY = 0.70     # How close to a perfect circle (1.0). Good for filtering spiky noise.
@@ -32,23 +32,23 @@ output_images = {}
 # --- SUBPIXEL REFINEMENT FUNCTIONS ---
 # =============================================================================
 
-def weighted_centroid(image_patch: np.ndarray, initial_centroid: Tuple[float, float]) -> Tuple[float, float]:
-    """
-    Calculate subpixel centroid using intensity-weighted center of mass.
-    This is the fastest method and works well for symmetric stars.
-    """
-    h, w = image_patch.shape
-    y_indices, x_indices = np.ogrid[:h, :w]
+def is_sun_or_planet(image, cx, cy, radius=30):
+    """Quick check if detection is sun/planet by looking at larger area"""
+    h, w = image.shape
+    if cx < radius or cy < radius or cx > w-radius or cy > h-radius:
+        return False
     
-    # Use intensity as weights
-    total_intensity = np.sum(image_patch)
-    if total_intensity == 0:
-        return initial_centroid
+    # Check if large area around object is uniformly bright (sun/planet characteristic)
+    large_mask = np.zeros(image.shape, dtype=np.uint8)
+    cv2.circle(large_mask, (cx, cy), radius, 255, -1)
+    large_area_pixels = image[large_mask == 255]
     
-    cx = np.sum(x_indices * image_patch) / total_intensity
-    cy = np.sum(y_indices * image_patch) / total_intensity
+    if len(large_area_pixels) > 0:
+        avg_brightness = np.mean(large_area_pixels)
+        # If large area is very bright, it's likely sun/planet
+        return avg_brightness > 120  # Adjust this threshold as needed
     
-    return float(cx), float(cy)
+    return False
 
 def gaussian_2d_fit(image_patch: np.ndarray, initial_centroid: Tuple[float, float]) -> Tuple[float, float]:
     """
@@ -101,62 +101,6 @@ def gaussian_2d_fit(image_patch: np.ndarray, initial_centroid: Tuple[float, floa
     except:
         return initial_centroid
 
-def parabolic_fit(image_patch: np.ndarray, initial_centroid: Tuple[float, float]) -> Tuple[float, float]:
-    """
-    Fit parabolas in X and Y directions around the peak to find subpixel center.
-    Good compromise between speed and accuracy.
-    """
-    h, w = image_patch.shape
-    cx_int, cy_int = int(round(initial_centroid[0])), int(round(initial_centroid[1]))
-    
-    # Ensure we're within bounds
-    cx_int = max(1, min(w-2, cx_int))
-    cy_int = max(1, min(h-2, cy_int))
-    
-    try:
-        # Fit parabola in X direction
-        x_values = np.array([-1, 0, 1])
-        y_intensities = image_patch[cy_int, cx_int-1:cx_int+2]
-        if len(y_intensities) == 3:
-            # Fit parabola: y = ax² + bx + c
-            # Peak is at x = -b/(2a)
-            A = np.array([[1, -1, 1], [0, 0, 1], [1, 1, 1]])
-            coeffs_x = np.linalg.solve(A, y_intensities)
-            if coeffs_x[0] < 0:  # Parabola opens downward (peak)
-                dx = -coeffs_x[1] / (2 * coeffs_x[0])
-                dx = max(-0.5, min(0.5, dx))  # Limit to half-pixel
-            else:
-                dx = 0
-        else:
-            dx = 0
-            
-        # Fit parabola in Y direction
-        x_intensities = image_patch[cy_int-1:cy_int+2, cx_int]
-        if len(x_intensities) == 3:
-            coeffs_y = np.linalg.solve(A, x_intensities)
-            if coeffs_y[0] < 0:  # Parabola opens downward (peak)
-                dy = -coeffs_y[1] / (2 * coeffs_y[0])
-                dy = max(-0.5, min(0.5, dy))  # Limit to half-pixel
-            else:
-                dy = 0
-        else:
-            dy = 0
-            
-        return float(cx_int + dx), float(cy_int + dy)
-    except:
-        return initial_centroid
-
-def scipy_center_of_mass(image_patch: np.ndarray, initial_centroid: Tuple[float, float]) -> Tuple[float, float]:
-    """
-    Use SciPy's center_of_mass function for subpixel accuracy.
-    Fast and reliable for most cases.
-    """
-    try:
-        cy, cx = center_of_mass(image_patch)
-        return float(cx), float(cy)
-    except:
-        return initial_centroid
-
 def refine_centroid_subpixel(image: np.ndarray, pixel_centroid: Tuple[int, int], 
                            window_size: int, method: str = 'gaussian_fit') -> Tuple[float, float]:
     """
@@ -194,17 +138,7 @@ def refine_centroid_subpixel(image: np.ndarray, pixel_centroid: Tuple[int, int],
     patch_cx = cx - x_min
     patch_cy = cy - y_min
     
-    # Apply the selected refinement method
-    if method == 'weighted_centroid':
-        refined_cx, refined_cy = weighted_centroid(image_patch, (patch_cx, patch_cy))
-    elif method == 'gaussian_fit':
-        refined_cx, refined_cy = gaussian_2d_fit(image_patch, (patch_cx, patch_cy))
-    elif method == 'parabolic_fit':
-        refined_cx, refined_cy = parabolic_fit(image_patch, (patch_cx, patch_cy))
-    elif method == 'center_of_mass':
-        refined_cx, refined_cy = scipy_center_of_mass(image_patch, (patch_cx, patch_cy))
-    else:
-        refined_cx, refined_cy = patch_cx, patch_cy
+    refined_cx, refined_cy = gaussian_2d_fit(image_patch, (patch_cx, patch_cy))
     
     # Convert back to full image coordinates
     final_cx = refined_cx + x_min
@@ -264,21 +198,6 @@ def find_stars_with_advanced_filters(
         area = cv2.contourArea(contour)
         if not (min_area < area < max_area):
             continue
-        
-        # Filter 2b: Saturation
-        # Create a mask to isolate the pixels for the current contour
-        mask = np.zeros(image.shape[:2], dtype=np.uint8)
-        cv2.drawContours(mask, [contour], -1, 255, -1)
-        
-        # Get the pixel brightness values from the original image that are inside the contour
-        pixels_in_contour = image[mask == 255]
-
-        # Calculate what percentage of these pixels are saturated (pure white)
-        if len(pixels_in_contour) > 0:
-            saturated_pixels = np.sum(pixels_in_contour == 255)
-            saturation_ratio = saturated_pixels / len(pixels_in_contour)
-            
-      
 
         # Filter 2b: Circularity
         perimeter = cv2.arcLength(contour, True)
@@ -309,12 +228,21 @@ def find_stars_with_advanced_filters(
 
     valid_stars = []
 
-    # --- Step 3: Peak Brightness Filter ---
+    # --- Step 3: Peak Brightness Filter with Sun/Planet Rejection ---
     for contour in candidates_after_shape_filter:
         M = cv2.moments(contour)
         if M["m00"] == 0: continue
         cx = int(M["m10"] / M["m00"])
         cy = int(M["m01"] / M["m00"])
+
+        # NEW: Quick sun/planet check
+        if is_sun_or_planet(image, cx, cy):
+            continue
+
+        # NEW: Check original image brightness (reject false adaptive threshold detections)
+        original_pixel_value = image[cy, cx]
+        if original_pixel_value < 100:  # Raw pixel must be bright
+            continue
 
         inner_radius, outer_radius = 2, 5
 
@@ -326,6 +254,10 @@ def find_stars_with_advanced_filters(
         try:
             avg_inner_brightness = np.mean(image[inner_mask == 255])
             avg_outer_brightness = np.mean(image[donut_mask == 255])
+
+            # NEW: Reject very faint detections (fixes black spot issue)
+            if avg_inner_brightness < 50:  # Minimum brightness threshold
+                continue
 
             if avg_outer_brightness == 0:
                 if avg_inner_brightness > binary_threshold:
@@ -366,59 +298,6 @@ def find_stars_with_advanced_filters(
         centroids = np.array([star[0] for star in brightest_stars])
         return centroids
 
-def get_star_coords(image_path: str, n_stars: int, subpixel_method: str = None):
-    """
-    Simple wrapper function to get star coordinates.
-    
-    Args:
-        image_path: Path to the image file
-        n_stars: Number of stars to detect
-        subpixel_method: Optional subpixel refinement method
-                        ('weighted_centroid', 'gaussian_fit', 'parabolic_fit', 'center_of_mass')
-    
-    Returns:
-        numpy array of star coordinates
-    """
-    centroids = find_stars_with_advanced_filters(image_path, n_stars, subpixel_method=subpixel_method)
-    return centroids
-
-def find_brightest_stars(image_path: str, num_stars_to_find: int):
-    """
-    Alternative detection method using SimpleBlobDetector (kept for compatibility).
-    """
-    img = cv2.imread(image_path)
-    if img is None:
-        print(f"Error: Unable to load image at '{image_path}'")
-        return []
-
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    params = cv2.SimpleBlobDetector_Params()
-    params.filterByArea = True
-    params.minArea = 4
-    params.maxArea = 500
-
-    params.filterByCircularity = True
-    params.minCircularity = 0.5
-
-    params.filterByConvexity = True
-    params.minConvexity = 0.8
-
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.8
-
-    detector = cv2.SimpleBlobDetector_create(params)
-    keypoints = detector.detect(255 - img_gray)
-
-    if not keypoints:
-        print("Warning: No blobs passed the detector's filters.")
-        return []
-
-    keypoints = sorted(keypoints, key=lambda k: k.size, reverse=True)
-    brightest_stars_coords = [kp.pt for kp in keypoints[:num_stars_to_find]]
-
-    return brightest_stars_coords
-
 # =============================================================================
 # --- VISUALIZATION FUNCTIONS ---
 # =============================================================================
@@ -430,7 +309,7 @@ def visualize_processing_steps(final_centroids, original_img=None, binary_img=No
     if binary_img is None:
         binary_img = output_images.get("binary")
     
-    axes = plt.subplots(1, 3, figsize=(24, 8))
+    fig, axes = plt.subplots(1, 3, figsize=(24, 8))
     
     axes[0].imshow(original_img, cmap='gray')
     axes[0].set_title('1. Original Image')
@@ -449,15 +328,11 @@ def visualize_processing_steps(final_centroids, original_img=None, binary_img=No
         if is_subpixel:
             # Use + markers and show subpixel coordinates
             axes[2].scatter(final_centroids[:, 0], final_centroids[:, 1], 
-                           marker='+', s=200, c='cyan', linewidth=3)
+                           marker='+', s=200, c='cyan', linewidth=1)
             axes[2].scatter(final_centroids[:, 0], final_centroids[:, 1], 
-                           s=120, facecolors='none', edgecolors='red', linewidth=2)
+                           s=120, facecolors='none', edgecolors='red', linewidth=1)
             
-            for i, (x, y) in enumerate(final_centroids):
-                axes[2].text(x + 15, y + 15, 
-                            f"{i + 1}\n({x:.2f}, {y:.2f})", 
-                            color='magenta', fontsize=10, weight='bold',
-                            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
+            
         else:
             # Use original visualization for pixel coordinates
             axes[2].scatter(final_centroids[:, 0], final_centroids[:, 1], 
@@ -522,4 +397,4 @@ def display_star_detections(
 
     # cv2.imshow("Identified Stars", img_color)
     # cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
