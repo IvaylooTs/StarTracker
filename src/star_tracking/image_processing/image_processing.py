@@ -1,9 +1,13 @@
 import cv2
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 from scipy.ndimage import center_of_mass
 from typing import Tuple
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DEFAULT_OUTPUT_IMAGE_FILE = os.path.join(PROJECT_ROOT, 'image_processing', 'stars_identified.png')
 
 # =============================================================================
 # --- CONFIGURABLE PARAMETERS ---
@@ -548,7 +552,7 @@ def visualize_processing_steps(final_centroids, original_img=None, binary_img=No
 
 
 def display_star_detections(
-    image_path: str, star_coords: list, output_filename: str = "stars_identified.png"
+    image_path: str, star_coords: list, output_filename: str = DEFAULT_OUTPUT_IMAGE_FILE
 ):
     """
     # Display and save star detections with visual markers.
