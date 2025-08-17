@@ -82,7 +82,7 @@ function ConnectToWebSocket() {
     }
 
     try {
-        ws = new WebSocket('ws://192.168.55.160:6789');
+        ws = new WebSocket(`ws://${window.ip}:6789`);
 
         let timeout = setTimeout(() => {
             if (ws.readyState !== WebSocket.OPEN) {

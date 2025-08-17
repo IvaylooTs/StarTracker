@@ -3,13 +3,9 @@
 
 var coords = [
     { raDeg: 0.0, decDeg: 0.0 },
-    { raDeg: 45.0, decDeg: 0.0 },
     { raDeg: 90.0, decDeg: 0.0 },
-    { raDeg: 135.0, decDeg: 0.0 },
     { raDeg: 180.0, decDeg: 0.0 },
-    { raDeg: 225.0, decDeg: 0.0 },
-    { raDeg: 270.0, decDeg: 0.0 },
-    { raDeg: 315.0, decDeg: 0.0 }
+    { raDeg: 270.0, decDeg: 0.0 }
 ];
 
 var delayBeforeScreenshot = 2;

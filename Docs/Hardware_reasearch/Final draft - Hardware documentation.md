@@ -210,9 +210,27 @@ The shutdown time is around 3-4 seconds, which grants us around 15 second reboot
 
 The IMU has start-up time from off to configuration mode in 400 milliseconds typical time. and from reset to normal mode in 650 milliseconds mode.
 ###### System boot sequence
+![[BootCycle.drawio(2).png]]
 
-*put graph of boot sequence that you showed to Simo*
+After the system boots, linux service is started. The service is designed to reboot in case of crash of the program it represents - in this case a bash script that reloads the main program.
+The bash script is used to ensure that the main program can reboot and call different exit conditions from the developers. The service is to allow overview of the process and to ensure initialization of the boot script and its recovery.
 
+The main program kills every thread that uses port 5000 and 6789, to free slots for Flask server and Websocket. Then the main program runs. There are few cases to consider:
+- Exit code 2 - reboots the whole system
+- Exit code 3 - shutdowns the whole system
+- Any other exit code - reboot program. We use 23 to represent reboot called from the developer interface.
+- Crash of main program - reboot program
+- Crash of bash boot script - Service reloads
+
+#### Logger
+Small script is used to record data with custom commands. We save everything in `logs/` folder, where each file is timestamped.  Custom commands are made for displaying information in the terminal and the file.
+Format is "Time | Message type | Information"
+Message types are:
+- Info
+- Success
+- Warning
+- Error
+- Fatal error
 
 
 ## operation
@@ -411,6 +429,7 @@ Future upgrades:
 - more graphs and information
 
 
+
 ### On board CLI
 When you boot into the raspberry pi and run the script manually, you see this visualization 
 ![[Pasted image 20250816114728.png]]
@@ -419,6 +438,11 @@ This helps you display debugging information
 
 The problem is that you cannot write CLI commands while you are in this interface.
 For future development we can add this function.
+
+
+
+
+
 ### **Testing & Validation of hardware**
 
 - Factory Test Procedures

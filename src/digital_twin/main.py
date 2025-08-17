@@ -26,8 +26,8 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing97.png"
-IMAGE_FILE2 = "./test_images/testing98.png"
+IMAGE_FILE = "./test_images/testing101.png"
+IMAGE_FILE2 = "./test_images/testing102.png"
 TEST_IMAGE = "./test_images/testing90.png"
 NUM_STARS = 15
 EPSILON = 1e-3
@@ -236,7 +236,7 @@ def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
         bounds = get_bounds(ang_dist, tolerance)
         cur_cat_dict = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
 
-        for (hip1, hip2), cat_ang_dist in cur_cat_dict.items():
+        for (hip1, hip2), _ in cur_cat_dict.items():
             matches_counter[(s1, hip1)] += 1
             matches_counter[(s1, hip2)] += 1
             matches_counter[(s2, hip1)] += 1
