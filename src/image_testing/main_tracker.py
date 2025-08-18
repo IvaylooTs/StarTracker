@@ -30,7 +30,7 @@ TOLERANCE = 1
 NUM_STARS = 18
 EPSILON = 1e-6
 MIN_SUPPORT = 1
-MIN_MATCHES = 7
+MIN_MATCHES = 4
 
 def get_initial_identities(all_votes):
     """
