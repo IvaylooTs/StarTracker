@@ -26,13 +26,12 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 1
-IMAGE_FILE = "src\image_processing/test_images\\t5.png"
-NUM_STARS = 15
+# IMAGE_FILE = "src\image_processing/test_images\\t35.png"
+NUM_STARS = 18
 EPSILON = 1e-6
 MIN_SUPPORT = 1
 MIN_MATCHES = 7
 
-# Place this function in main.py
 def get_initial_identities(all_votes):
     """
     Finds the best single HIP ID candidate for each image star based on raw vote counts.
@@ -56,7 +55,6 @@ def get_initial_identities(all_votes):
             
     return proposed_solution
 
-# Place this function in main.py
 def perform_validation_voting(proposed_solution, image_angular_distances, catalog_angular_distances, tolerance):
     """
     Performs the second, validation vote based on geometric consistency.
@@ -258,39 +256,41 @@ def get_bounds(ang_dist, tolerance):
     """
     return (ang_dist - tolerance, ang_dist + tolerance)
 
+# ==============================
+# NOT USED
+# ==============================
+# def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
+#     """
+#     Function that loads candidate catalog HIP IDs for each image star
+#     Inputs:
+#     - num_stars: number of stars from the image
+#     - angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
+#     - all_cat_ang_dists: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
+#     - tolerance: angular distance tolerance
+#     Outputs:
+#     - hypotheses_dict: {image star index: [HIP ID 1, ... HIP ID N]}
+#     """
+#     matches_counter = defaultdict(int)
 
-def load_hypotheses(angular_distances, all_cat_ang_dists, tolerance):
-    """
-    Function that loads candidate catalog HIP IDs for each image star
-    Inputs:
-    - num_stars: number of stars from the image
-    - angular_distances: dict where {(image star index 1, image star index 2): image angular distance}
-    - all_cat_ang_dists: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
-    - tolerance: angular distance tolerance
-    Outputs:
-    - hypotheses_dict: {image star index: [HIP ID 1, ... HIP ID N]}
-    """
-    matches_counter = defaultdict(int)
+#     for (s1, s2), ang_dist in angular_distances.items():
+#         if ang_dist is None:
+#             continue
 
-    for (s1, s2), ang_dist in angular_distances.items():
-        if ang_dist is None:
-            continue
+#         bounds = get_bounds(ang_dist, tolerance)
+#         cur_cat_dict = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
 
-        bounds = get_bounds(ang_dist, tolerance)
-        cur_cat_dict = filter_catalog_angular_distances(all_cat_ang_dists, bounds)
+#         for (hip1, hip2), cat_ang_dist in cur_cat_dict.items():
+#             matches_counter[(s1, hip1)] += 1
+#             matches_counter[(s1, hip2)] += 1
+#             matches_counter[(s2, hip1)] += 1
+#             matches_counter[(s2, hip2)] += 1
 
-        for (hip1, hip2), cat_ang_dist in cur_cat_dict.items():
-            matches_counter[(s1, hip1)] += 1
-            matches_counter[(s1, hip2)] += 1
-            matches_counter[(s2, hip1)] += 1
-            matches_counter[(s2, hip2)] += 1
+#     hypotheses_dict = defaultdict(set)
+#     for (star_idx, hip_id), count in matches_counter.items():
+#         if count >= MIN_SUPPORT:
+#             hypotheses_dict[star_idx].add(hip_id)
 
-    hypotheses_dict = defaultdict(set)
-    for (star_idx, hip_id), count in matches_counter.items():
-        if count >= MIN_SUPPORT:
-            hypotheses_dict[star_idx].add(hip_id)
-
-    return hypotheses_dict
+#     return hypotheses_dict
 
 
 def DFS(
@@ -681,82 +681,105 @@ def generate_raw_votes(angular_distances, catalog_hash, tolerance):
             votes[(s2, hip2)] += 1
     return votes
 
-
-def lost_in_space():
-    # --- SETUP (Same as before) ---
+def lost_in_space(image_path, num):
+    # --- SETUP ---
     print("Loading catalog data...")
-    with open('catalog_hash.pkl', 'rb') as f: catalog_hash = pickle.load(f)
+    with open('src/image_testing/catalog_hash.pkl', 'rb') as f: catalog_hash = pickle.load(f)
     all_catalog_angular_distances = load_catalog_angular_distances()
     print("Data loaded.")
 
-    # --- IMAGE PROCESSING (Same as before) ---
-    star_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE, NUM_STARS)
-
+    # --- IMAGE PROCESSING ---
+    star_coords = ip.find_stars_with_advanced_filters(image_path, num)
     img_unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     img_ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
+    # ip.display_star_detections(IMAGE_FILE, star_coords)
 
     # --- STAGE 1: Generate Raw Votes ---
-    TOLERANCE_ACQUISITION = 1.5
+    TOLERANCE_ACQUISITION = 1
     raw_votes = generate_raw_votes(img_ang_dists, catalog_hash, TOLERANCE_ACQUISITION)
     if not raw_votes:
         print("!!! FAILED: No votes generated."); return None
     
-    # --- STAGE 2: Build Hypothesis List from Votes ---
-    # This filters out the low-vote noise from the "vote hogs".
+    # --- STAGE 2: Build Initial Hypothesis List ---
     hypotheses = build_hypotheses_from_votes(raw_votes)
     if not hypotheses:
         print("!!! FAILED: No hypotheses met the minimum vote threshold."); return None
-    print(f"Built hypotheses for {len(hypotheses)} stars from raw votes.")
+    print(f"Built initial hypotheses for {len(hypotheses)} stars from raw votes.")
 
-    # --- STAGE 3: Find a Consistent Solution (Single Attempt) ---
-    sorted_hypothesises = dict(sorted(hypotheses.items(), key=lambda item: len(item[1])))
-    image_stars = list(hypotheses.keys())
+    # --- STAGE 3: Find a Consistent Solution with Iterative Outlier Removal ---
+    
+    # We start with the full hypothesis list, which may contain a planet
+    current_hypotheses = hypotheses
     solutions = []
+    
+    print("\n--- Starting Robust Search (Iterative Outlier Removal) ---")
+    
+    # The loop continues as long as we have enough stars to potentially find a match.
+    while len(current_hypotheses) >= MIN_MATCHES:
+        
+        # Prepare the inputs for this iteration's DFS run
+        image_stars_to_try = list(current_hypotheses.keys())
+        sorted_hypothesises = dict(sorted(current_hypotheses.items(), key=lambda item: len(item[1])))
+        
+        print(f"  Attempting to solve with {len(image_stars_to_try)} stars...")
+        
+        iteration_solutions = [] # A temporary list for this specific attempt
+        dfs_start_time = time.time()
+        DFS(
+            {}, # Start with a fresh assignment
+            image_stars_to_try, 
+            sorted_hypothesises, 
+            img_ang_dists,
+            all_catalog_angular_distances, 
+            TOLERANCE_ACQUISITION,
+            iteration_solutions, # Use the temporary list
+            dfs_start_time, 
+            max_time=15 # Use a shorter timeout for each attempt
+        )
+        
+        # Check if this attempt was successful
+        if iteration_solutions:
+            print(f"  --> SUCCESS: Found a consistent group in {time.time() - dfs_start_time:.2f} seconds!")
+            solutions = iteration_solutions
+            break # Exit the while loop, we have our answer!
+        else:
+            print(f"  --> FAILED. Assuming an outlier is present in the current set.")
+            # Identify the least reliable star. The stars with the most votes are usually the brightest ones. 
+            # So this starts deleting star 0,1,2.... Which might delete a real star, but it shouldnt be a problem
+            if not current_hypotheses: break
+            
+            star_to_remove = max(current_hypotheses.items(), key=lambda item: len(item[1]))[0]
+            print(f"Removing Star {star_to_remove} (most ambiguous) and trying again.")
+            
+            # Remove it from our dictionary for the next attempt
+            del current_hypotheses[star_to_remove]
+    
+    print("--- Robust Search Finished ---")
 
-    print("Starting DFS to find a consistent solution (max 10 seconds)...")
-    # ip.display_star_detections(IMAGE_FILE, star_coords)
-    # Capture the start time right before the first call
-    dfs_start_time = time.time()
-    DFS(
-        {}, # Start with empty assignment
-        image_stars,
-        sorted_hypothesises,
-        img_ang_dists,
-        all_catalog_angular_distances,
-        TOLERANCE_ACQUISITION,
-        solutions,
-        dfs_start_time, # Pass the start time
-        max_time=15   # Set the max duration
-    )
-
-    print(f"DFS finished in {time.time() - dfs_start_time:.2f} seconds.")
     # --- STAGE 4: Score Solutions and Calculate Attitude ---
     if not solutions:
-        print("!!! FAILED: DFS could not find any geometrically consistent solution.")
+        print("\n!!! FAILED: Could not find any geometrically consistent solution even after removing outliers.")
         return None
 
-    # Use your existing scoring and sorting logic
     scored_solutions = load_solution_scoring(solutions, img_ang_dists, all_catalog_angular_distances)
-    # Sort by number of stars in solution (descending), then score (ascending)
     sorted_arr = sorted(scored_solutions, key=lambda x: (-len(x[0]), x[1]))
     best_match = sorted_arr[0]
     final_solution = best_match[0]
     
-    print(f"SUCCESS: DFS found {len(solutions)} solution(s). Best one has {len(final_solution)} stars:", final_solution)
+    print(f"\nSUCCESS: DFS found {len(solutions)} solution(s). Best one has {len(final_solution)} stars:", final_solution)
     
-    # --- STAGE 5: Calculate Attitude (Same as before) ---
+    # --- STAGE 5: Calculate Attitude ---
     cat_unit_vectors = load_catalog_unit_vectors("src/test/star_distances_sorted.db")
     mapped_image_vectors = []
     for key in final_solution.keys():
         mapped_image_vectors.append(img_unit_vectors[key])
     img_matrix = image_vector_matrix(mapped_image_vectors)
-    # This wrapper is no longer needed if you simplify catalog_vector_matrix
     cat_matrix = catalog_vector_matrix({'solution': final_solution}, cat_unit_vectors) 
     
     quaternion = compute_attitude_quaternion(img_matrix, cat_matrix)
     print("Final Quaternion Calculated.")
     print(quaternion)
-    ip.display_star_detections(IMAGE_FILE, star_coords)
+    # ip.display_star_detections(image_path, star_coords)
     return quaternion
     
 

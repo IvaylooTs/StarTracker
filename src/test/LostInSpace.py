@@ -26,11 +26,11 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 1
-IMAGE_FILE = "../../src/image_processing/test_images/t21.png"
-NUM_STARS = 15
+IMAGE_FILE = "src\image_processing\\test_images\Stellarium_test_image_255p00000_m30p00000.png001.png"
+NUM_STARS = 16
 EPSILON = 1e-6
 MIN_SUPPORT = 1
-MIN_MATCHES = 7
+MIN_MATCHES = 8
 
 def get_initial_identities(all_votes):
     """
@@ -214,7 +214,7 @@ def load_catalog_unit_vectors(db_path):
 
 
 def load_catalog_angular_distances(
-    db_path="star_distances_sorted.db", table_name="AngularDistances"
+    db_path="src/test/star_distances_sorted.db", table_name="AngularDistances"
 ):
     """
     Function that loads a dict from the database where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
@@ -302,7 +302,7 @@ def DFS(
     tolerance,
     solutions,
     start_time,
-    max_time=5,
+    max_time=10,
 ):
     """
     DFS to produce every possible mapping of image star to catalog star ID (even if not full mappings)
@@ -684,7 +684,7 @@ def generate_raw_votes(angular_distances, catalog_hash, tolerance):
 def lost_in_space():
     # --- SETUP ---
     print("Loading catalog data...")
-    with open('catalog_hash.pkl', 'rb') as f: catalog_hash = pickle.load(f)
+    with open('src/test/catalog_hash.pkl', 'rb') as f: catalog_hash = pickle.load(f)
     all_catalog_angular_distances = load_catalog_angular_distances()
     print("Data loaded.")
 
@@ -695,7 +695,7 @@ def lost_in_space():
     # ip.display_star_detections(IMAGE_FILE, star_coords)
 
     # --- STAGE 1: Generate Raw Votes ---
-    TOLERANCE_ACQUISITION = 1
+    TOLERANCE_ACQUISITION = 2
     raw_votes = generate_raw_votes(img_ang_dists, catalog_hash, TOLERANCE_ACQUISITION)
     if not raw_votes:
         print("!!! FAILED: No votes generated."); return None
@@ -769,7 +769,7 @@ def lost_in_space():
     print(f"\nSUCCESS: DFS found {len(solutions)} solution(s). Best one has {len(final_solution)} stars:", final_solution)
     
     # --- STAGE 5: Calculate Attitude ---
-    cat_unit_vectors = load_catalog_unit_vectors("star_distances_sorted.db")
+    cat_unit_vectors = load_catalog_unit_vectors("src/test/star_distances_sorted.db")
     mapped_image_vectors = []
     for key in final_solution.keys():
         mapped_image_vectors.append(img_unit_vectors[key])

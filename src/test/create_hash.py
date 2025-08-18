@@ -5,14 +5,14 @@ import time
 
 # --- Configuration ---
 # The path to your star catalog database
-CATALOG_DB_PATH = 'star_distances_sorted.db' 
+CATALOG_DB_PATH = 'src/test/star_distances_sorted.db' 
 
 # The name of the output file that will be created
 HASH_FILE_PATH = 'catalog_hash.pkl' 
 
 # This is the "bin size" for our distances. It MUST match the tolerance
 # used in the main script's acquisition stage. We set it to 2.0.
-TOLERANCE = 1
+TOLERANCE = 2
 
 def load_all_catalog_distances(db_path):
     """Loads all pre-calculated angular distances from the SQLite database."""
