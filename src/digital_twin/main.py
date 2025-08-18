@@ -5,6 +5,8 @@ import math
 import sqlite3
 from itertools import combinations
 from collections import defaultdict
+from numpy.typing import ArrayLike, NDArray
+from typing import Sequence, Tuple, Dict
 from scipy.spatial.transform import Rotation as rotate
 from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
@@ -27,8 +29,8 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing103.png"
-IMAGE_FILE2 = "./test_images/testing104.png"
+IMAGE_FILE = "./test_images/testing106.png"
+IMAGE_FILE2 = "./test_images/testing107.png"
 TEST_IMAGE = "./test_images/testing90.png"
 NUM_STARS = 15
 EPSILON = 1e-3
@@ -40,7 +42,12 @@ MAX_REFINEMENT_ITERATIONS = 20
 QUATERNION_ANGLE_DIFFERENCE_THRESHOLD = 1e-3
 
 
-def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
+def star_coords_to_unit_vector(
+    star_coords: Sequence[Tuple[float, float]],
+    center_coords: Tuple[float, float],
+    f_x: float,
+    f_y: float,
+) -> NDArray[np.float64]:
     """
     Unit vector function -> finds star unit vectros based on star pixel coordinates
     using pinhole projection
@@ -53,36 +60,45 @@ def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
     Outputs:
     - unit_vectors: array of np arrays holding (x, y, z) coordinates of each unit vector
     """
-    # Unpack center_coords
-    c_x, c_y = center_coords
+    if f_x == 0 or f_y == 0:
+        raise ValueError("f_x and f_y must be non-zero.")
 
-    star_coords_matrix = np.array(star_coords)
-    # Initialize empty unit vector array
+    if len(center_coords) != 2:
+        raise ValueError("center_coords must be a tuple of (xc, yc)")
+
+    star_coords_matrix = np.array(star_coords, dtype=float)
+
+    if star_coords_matrix.size == 0:
+        raise ValueError("star_coords must contain at least one (x, y) pair")
+
+    if star_coords_matrix.ndim != 2 or star_coords_matrix.shape[1] != 2:
+        raise ValueError("star_coords must be an array of (x, y) pairs")
+
+    c_x, c_y = center_coords
     unit_vectors = []
 
-    # Reverse pinhole projection to get X, Y, Z coords of each star
-
     # Convert pixel coordinates into normalized camera coordinates (back-projection step)
-    # These correspond to where the pixel projects onto the image plane at depth z_p
-    # Inversing pinhole projection formula for x (back-projecting). Formula: x = f_x * (x_p / z_p) + c_x
     x_norm = (star_coords_matrix[:, 0] - c_x) / f_x
-    # Inversing pinhole projection formula for y (back-projecting). Formula: y = f_y * (x_p / z_p) + c_y
     y_norm = (star_coords_matrix[:, 1] - c_y) / f_y
-    # Pick arbitrary depth for each 3D point
-    # (we don't know how far away they really are, we just want their direction)
     z_coord = np.ones_like(x_norm)
 
-    # array holding [X, Y, Z] coordinates of the direction vector
     vectors = np.stack([x_norm, y_norm, z_coord], axis=1)
 
-    # Normalize vector to save on calculations later on
     norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+    if np.any(norms == 0):
+        raise ValueError("Encountered zero-length direction vector")
+
     unit_vectors = vectors / norms
+
+    if not np.all(np.isfinite(unit_vectors)):
+        raise ValueError("Non-finite values found in unit vectors")
 
     return unit_vectors
 
 
-def angular_dist_helper(unit_vectors):
+def angular_dist_helper(
+    unit_vectors: NDArray[np.float64],
+) -> Dict[Tuple[int, int], float]:
     """
     Angular distance between each unique pair of unit vectors
     Inputs:
@@ -90,17 +106,21 @@ def angular_dist_helper(unit_vectors):
     Outputs:
     - angular_dists: dict where {(star_index1 [-], star_index2 [-]): angular_distance [deg]}
     """
+    uv = np.asarray(unit_vectors, dtype=float)
+    if uv.size == 0:
+        return {}
+    if uv.ndim != 2 or uv.shape[1] != 3:
+        raise ValueError("unit_vectors must have shape (N, 3)")
+    if not np.all(np.isfinite(uv)):
+        raise ValueError("Non-finite values in unit vectors")
 
     # Multiply unit vector matrix by it's transpose to find the dot products
-    dot_products = unit_vectors @ unit_vectors.T
-    # clip values to an interval of [-1.0, 1.0] (arccos allowed values) to account for float rounding error
+    dot_products = uv @ uv.T
     dot_products = np.clip(dot_products, -1.0, 1.0)
 
     angular_dist_matrix = np.degrees(np.arccos(dot_products))
-    # Create a dict with all unique combination from the angular distance matrix
     angular_dists = {
-        (i, j): angular_dist_matrix[i, j]
-        for i, j in combinations(range(len(unit_vectors)), 2)
+        (i, j): angular_dist_matrix[i, j] for i, j in combinations(range(len(uv)), 2)
     }
     return angular_dists
 
@@ -869,45 +889,54 @@ def match_stars(predicted_positions, detected_positions, distance_threshold=10.0
     return matches
 
 
-def match_stars_hungarian(predicted_positions, detected_positions, distance_threshold=10.0):
-    
-    if (predicted_positions is None or len(predicted_positions) == 0 or 
-        detected_positions is None or len(detected_positions) == 0):
+def match_stars_hungarian(
+    predicted_positions, detected_positions, distance_threshold=10.0
+):
+
+    if (
+        predicted_positions is None
+        or len(predicted_positions) == 0
+        or detected_positions is None
+        or len(detected_positions) == 0
+    ):
         return []
-    
+
     valid_predicted = [
         (index, prev_coords)
         for index, prev_coords in enumerate(predicted_positions)
-        if prev_coords is not None and len(prev_coords) == 2 and 
-           all(np.isfinite(coord) for coord in prev_coords)
+        if prev_coords is not None
+        and len(prev_coords) == 2
+        and all(np.isfinite(coord) for coord in prev_coords)
     ]
     valid_detected = [
         (index, detected_coords)
         for index, detected_coords in enumerate(detected_positions)
-        if detected_coords is not None and len(detected_coords) == 2 and
-           all(np.isfinite(coord) for coord in detected_coords)
+        if detected_coords is not None
+        and len(detected_coords) == 2
+        and all(np.isfinite(coord) for coord in detected_coords)
     ]
-    
+
     if not valid_predicted or not valid_detected:
         return []
-    
+
     predicted_indices, predicted_coords = zip(*valid_predicted)
     detected_indices, detected_coords = zip(*valid_detected)
     predicted_array = np.array(predicted_coords)
     detected_array = np.array(detected_coords)
-    
+
     distances_matrix = cdist(predicted_array, detected_array)
-    
-    cost_matrix = np.where(distances_matrix <= distance_threshold, 
-                          distances_matrix, 1e6)
-    
+
+    cost_matrix = np.where(
+        distances_matrix <= distance_threshold, distances_matrix, 1e6
+    )
+
     pred_indices, det_indices = linear_sum_assignment(cost_matrix)
-    
+
     matches = []
     for i, j in zip(pred_indices, det_indices):
-        if cost_matrix[i, j] < 1e6: 
+        if cost_matrix[i, j] < 1e6:
             matches.append((predicted_indices[i], detected_indices[j]))
-    
+
     return matches
 
 
@@ -935,7 +964,7 @@ def track(
     """
     if previous_quaternion is None or len(detected_star_coords) < min_matches:
         return previous_quaternion, []
-    
+
     matches = match_stars_hungarian(
         previous_star_coords, detected_star_coords, distance_threshold
     )
@@ -1011,7 +1040,7 @@ if __name__ == "__main__":
         new_coords,
         [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
         MIN_MATCHES_TRACKING,
-        distance_threshold=50.0
+        distance_threshold=50.0,
     )
     end_time = time.time()
 
@@ -1028,7 +1057,7 @@ if __name__ == "__main__":
             new_coords,
             [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
             MIN_MATCHES_TRACKING,
-            distance_threshold=100.0
+            distance_threshold=100.0,
         )
         print(f"Matches with 100px threshold: {matches}")
 
