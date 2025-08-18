@@ -26,11 +26,11 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 1
-IMAGE_FILE = "src\image_processing\\test_images\Stellarium_test_image_255p00000_m30p00000.png001.png"
-NUM_STARS = 16
+IMAGE_FILE = "src\image_processing\\test_images2\\t62.png"
+NUM_STARS = 15
 EPSILON = 1e-6
 MIN_SUPPORT = 1
-MIN_MATCHES = 8
+MIN_MATCHES = 5
 
 def get_initial_identities(all_votes):
     """
@@ -734,7 +734,7 @@ def lost_in_space():
             TOLERANCE_ACQUISITION,
             iteration_solutions, # Use the temporary list
             dfs_start_time, 
-            max_time=15 # Use a shorter timeout for each attempt
+            max_time=5 # Use a shorter timeout for each attempt
         )
         
         # Check if this attempt was successful

@@ -35,41 +35,42 @@ def run_batch_processing():
     total_execution_time = 0.0
     successful_runs = 0
     failed_runs = 0
-    num = 15
-    with open(OUTPUT_FILE, 'a') as f:
-        f.write("\n--- Batch Run Started ---\n")
-        f.write("ImageName;Quaternion(w;x;y;z);ExecutionTime_s\n")
+    num = 10
+    for i in range(9,10):
+        with open(OUTPUT_FILE, 'a') as f:
+            f.write("\n--- Batch Run Started ---\n")
+            f.write("ImageName;Quaternion(w;x;y;z);ExecutionTime_s\n")
 
-        for i, image_name in enumerate(image_files):
-            full_image_path = os.path.join(IMAGE_FOLDER, image_name)
-            print(f"\n--- Processing image {i+1}/{len(image_files)}: {image_name} ---")
+            for i, image_name in enumerate(image_files):
+                full_image_path = os.path.join(IMAGE_FOLDER, image_name)
+                print(f"\n--- Processing image {i+1}/{len(image_files)}: {image_name} ---")
 
-            start_time = time.time()
-            quaternion = main_tracker.lost_in_space(full_image_path, num)
-            end_time = time.time()
+                start_time = time.time()
+                quaternion = main_tracker.lost_in_space(full_image_path, num)
+                end_time = time.time()
+                        
+                execution_time = end_time - start_time
+                        
+                if quaternion is not None:
+                    q_w, q_x, q_y, q_z = quaternion[0], quaternion[1], quaternion[2], quaternion[3]
+                    formatted_q = f"quaternioncoord({q_w:.4f};{q_x:.4f};{q_y:.4f};{q_z:.4f})"
+                    status = "SUCCESS"
+                            # <<< --- NEW: Update success counters --- >>>
+                    successful_runs += 1
+                    total_execution_time += execution_time
+                else:
+                    formatted_q = "FAILED"
+                    status = "FAILED"
+                            # <<< --- NEW: Update failure counter --- >>>
+                    failed_runs += 1
+
+                output_line = f"{image_name};{formatted_q};{execution_time:.4f}\n"
+                f.write(output_line)
+                print(f"Result for {image_name}: {status} | Time: {execution_time:.2f}s")
                     
-            execution_time = end_time - start_time
-                    
-            if quaternion is not None:
-                q_w, q_x, q_y, q_z = quaternion[0], quaternion[1], quaternion[2], quaternion[3]
-                formatted_q = f"quaternioncoord({q_w:.4f};{q_x:.4f};{q_y:.4f};{q_z:.4f})"
-                status = "SUCCESS"
-                        # <<< --- NEW: Update success counters --- >>>
-                successful_runs += 1
-                total_execution_time += execution_time
-            else:
-                formatted_q = "FAILED"
-                status = "FAILED"
-                        # <<< --- NEW: Update failure counter --- >>>
-                failed_runs += 1
-
-            output_line = f"{image_name};{formatted_q};{execution_time:.4f}\n"
-            f.write(output_line)
-            print(f"Result for {image_name}: {status} | Time: {execution_time:.2f}s")
-                
-           
-        print(f"\nBatch processing complete. Results saved to '{OUTPUT_FILE}'.")
-    
+             
+            print(f"\nBatch processing complete. Results saved to '{OUTPUT_FILE}'.")
+        num+=1
     # ==============================================================================
     # <<< --- NEW: Final Summary Block --- >>>
     # ==============================================================================

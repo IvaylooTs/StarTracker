@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # ==============================================================================
 # --- CONFIGURATION ---
 # ==============================================================================
-RESULTS_FILE_PATH = "Testing/results2.txt"
+RESULTS_FILE_PATH = "Testing/results3.txt"
 BORESIGHT_BODY = np.array([0, 0, 1])
 # ==============================================================================
 
@@ -34,22 +34,29 @@ def parse_filename_for_truth_radec(filename: str) -> tuple:
         print(f"Warning: Could not parse RA/Dec from filename: '{filename}'")
         return None, None
 
-def read_results_file(filepath: str) -> list:
-    """Reads the results file, parsing the filename, quaternion, and execution time."""
-    valid_results = []
+def read_results_file_in_batches(filepath: str) -> list:
+    """Reads the results file, parsing the filename, quaternion, and execution time into batches."""
+    batches = []
+    current_batch = []
     print(f"Reading and parsing results from: {filepath}")
-    
+
     try:
         with open(filepath, 'r') as f:
             for line in f:
                 line = line.strip()
-                if (not line 
-                    or line.startswith('---') 
+
+                if line.startswith('---'):
+                    if current_batch:
+                        batches.append(current_batch)
+                        current_batch = []
+                    continue
+
+                if (not line
                     or line.startswith('ImageName')):
-                    continue  # skip headers and separators
-                
+                    continue  # skip headers and empty lines
+
                 parts = line.split(';')
-                
+
                 # Expected format: filename ; q1 ; q2 ; q3 ; q4 ; time
                 if len(parts) == 6:
                     filename = parts[0].strip()
@@ -66,7 +73,7 @@ def read_results_file(filepath: str) -> list:
                             float(parts[3].strip("()")),
                             float(parts[4].strip("()"))
                         ])
-                        
+
                         exec_time = float(parts[5].strip())
 
                         result = {
@@ -76,16 +83,19 @@ def read_results_file(filepath: str) -> list:
                             'quaternion': q,
                             'time': exec_time
                         }
-                        valid_results.append(result)
+                        current_batch.append(result)
 
                     except ValueError:
                         print(f"Skipping (parse error): {filename}")
                         continue
-                            
+            # Add the last batch if the file doesn't end with a separator
+            if current_batch:
+                batches.append(current_batch)
+
     except FileNotFoundError:
         print(f"!!! FATAL ERROR: The results file was not found at '{filepath}'")
-        
-    return valid_results
+
+    return batches
 
 
 def quat_to_rotation_matrix(q: np.ndarray) -> np.ndarray:
@@ -120,65 +130,95 @@ def calculate_angular_error(v1: np.ndarray, v2: np.ndarray) -> float:
 # --- Main script execution ---
 
 if __name__ == "__main__":
-    results_data = read_results_file(RESULTS_FILE_PATH)
-    
-    if not results_data:
+    results_batches = read_results_file_in_batches(RESULTS_FILE_PATH)
+
+    if not results_batches:
         print("No valid results found to analyze.")
     else:
-        print(f"\nFound {len(results_data)} successful runs to validate.")
-        
-        pointing_errors = []
-        execution_times = []
-        
-        print("\n--- Attitude Pointing Error Report ---")
-        print("-" * 60)
-        
-        for result in results_data:
-            v_truth = radec_to_unit_vector(result['true_ra_deg'], result['true_dec_deg'])
-            R = quat_to_rotation_matrix(result['quaternion'])
-            v_predicted = R @ BORESIGHT_BODY
-            error_deg = calculate_angular_error(v_truth, v_predicted)
-            
-            pointing_errors.append(error_deg)
-            execution_times.append(result['time'])
-            
-            print(f"Image: {result['filename']:<55} | Error: {error_deg:.4f} degrees")
-        
-        if pointing_errors:
-            # --- Print Summary Statistics ---
-            average_error = np.mean(pointing_errors)
-            max_error = np.max(pointing_errors)
-            std_dev_error = np.std(pointing_errors)
-            # <<< --- NEW: Calculate average time --- >>>
-            average_time = np.mean(execution_times)
-            
+        print(f"\nFound {len(results_batches)} batches of results to validate.")
+
+        all_pointing_errors = []
+        all_execution_times = []
+        all_batch_indices = []
+
+        for i, batch in enumerate(results_batches):
+            batch_num = i + 1
+            print(f"\n--- Processing Batch {batch_num} ---")
             print("-" * 60)
-            print("\n--- Validation Summary ---")
-            print("=" * 35)
-            print(f"Average Pointing Error: {average_error:.4f} degrees")
-            print(f"Maximum Pointing Error: {max_error:.4f} degrees")
-            print(f"Std. Deviation of Error: {std_dev_error:.4f} degrees")
-            # <<< --- NEW: Print average time --- >>>
-            print(f"Average Execution Time: {average_time:.4f} seconds")
-            print("=" * 35)
+
+            batch_pointing_errors = []
+            batch_execution_times = []
+
+            for result in batch:
+                v_truth = radec_to_unit_vector(result['true_ra_deg'], result['true_dec_deg'])
+                R = quat_to_rotation_matrix(result['quaternion'])
+                v_predicted = R @ BORESIGHT_BODY
+                error_deg = calculate_angular_error(v_truth, v_predicted)
+
+                batch_pointing_errors.append(error_deg)
+                batch_execution_times.append(result['time'])
+
+                print(f"Image: {result['filename']:<55} | Error: {error_deg:.4f} degrees")
+
+            if batch_pointing_errors:
+                # --- Print Summary Statistics for the current batch ---
+                average_error = np.mean(batch_pointing_errors)
+                max_error = np.max(batch_pointing_errors)
+                std_dev_error = np.std(batch_pointing_errors)
+                average_time = np.mean(batch_execution_times)
+
+                print("-" * 60)
+                print(f"--- Batch {batch_num} Summary ---")
+                print("=" * 35)
+                print(f"Average Pointing Error: {average_error:.4f} degrees")
+                print(f"Maximum Pointing Error: {max_error:.4f} degrees")
+                print(f"Std. Deviation of Error: {std_dev_error:.4f} degrees")
+                print(f"Average Execution Time: {average_time:.4f} seconds")
+                print("=" * 35)
+
+                # Append batch data to the overall lists for the final plot
+                all_pointing_errors.extend(batch_pointing_errors)
+                all_execution_times.extend(batch_execution_times)
+                all_batch_indices.extend([batch_num] * len(batch_pointing_errors))
+
+        if all_pointing_errors:
+            # --- Print Overall Summary Statistics ---
+            overall_average_error = np.mean(all_pointing_errors)
+            overall_max_error = np.max(all_pointing_errors)
+            overall_std_dev_error = np.std(all_pointing_errors)
+            overall_average_time = np.mean(all_execution_times)
             
+            print("\n--- Overall Validation Summary ---")
+            print("=" * 35)
+            print(f"Average Pointing Error: {overall_average_error:.4f} degrees")
+            print(f"Maximum Pointing Error: {overall_max_error:.4f} degrees")
+            print(f"Std. Deviation of Error: {overall_std_dev_error:.4f} degrees")
+            print(f"Average Execution Time: {overall_average_time:.4f} seconds")
+            print("=" * 35)
+
             # --- Plotting Block ---
-            print("\nGenerating performance plot...")
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            ax.scatter(execution_times, pointing_errors, alpha=0.7, edgecolors='r', c='red', marker='o', s=11)
-            
-            ax.set_title('Performance: Pointing Error vs. Execution Time')
+            print("\nGenerating performance plot for all batches...")
+            fig, ax = plt.subplots(figsize=(12, 7))
+
+            # Use a colormap to automatically assign different colors to each batch
+            scatter = ax.scatter(all_execution_times, all_pointing_errors, c=all_batch_indices,
+                                 alpha=0.7, marker='o', s=15, cmap='viridis')
+
+            ax.set_title('Performance: Pointing Error vs. Execution Time (All Batches)')
             ax.set_xlabel('Execution Time (seconds)')
             ax.set_ylabel('Pointing Error (degrees)')
             ax.grid(True)
-            
-            # Add a horizontal line for the average error
-            ax.axhline(y=average_error, color='b', linestyle='--', label=f'Average Error: {average_error:.4f}°')
-            
-            # <<< --- NEW: Add a vertical line for the average time --- >>>
-            ax.axvline(x=average_time, color='g', linestyle='--', label=f'Average Time: {average_time:.4f}s')
 
-            ax.legend()
+            # Add a horizontal line for the overall average error
+            ax.axhline(y=overall_average_error, color='b', linestyle='--', label=f'Overall Avg. Error: {overall_average_error:.4f}°')
+
+            # Add a vertical line for the overall average time
+            ax.axvline(x=overall_average_time, color='g', linestyle='--', label=f'Overall Avg. Time: {overall_average_time:.4f}s')
+
+            # Create a legend for the scatter plot batches
+            legend1 = ax.legend(*scatter.legend_elements(), title="Batches")
+            ax.add_artist(legend1)
             
+            ax.legend(loc='upper right')
+
             plt.show()
