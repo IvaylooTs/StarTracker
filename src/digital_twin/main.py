@@ -29,8 +29,8 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing106.png"
-IMAGE_FILE2 = "./test_images/testing107.png"
+IMAGE_FILE = "./test_images/testing116.png"
+IMAGE_FILE2 = "./test_images/testing117.png"
 TEST_IMAGE = "./test_images/testing90.png"
 NUM_STARS = 15
 EPSILON = 1e-3
@@ -311,6 +311,7 @@ def DFS(
     catalog_angular_distances,
     tolerance,
     solutions,
+    min_matches,
     start_time,
     max_time=15,
 ):
@@ -324,33 +325,33 @@ def DFS(
     - catalog_angular_distances: dict where {(HIP ID 1, HIP ID 2): catalog angular distance}
     - tolerance: angular distance tolerance
     - solutions: a list to collect valid assignments (solutions) - initially empty
+    - min_matches: minimum required matches to be constituted as an assignment
+    - start_time: time of start of execution
     """
 
-    if time.time() - start_time == max_time:
+    if time.time() - start_time >= max_time:
         return
 
-    # Does current assignment qualify as a solution
-    if len(assignment) >= MIN_MATCHES:
+    if len(assignment) >= min_matches:
         solutions.append(dict(assignment))
 
-    # End of recursion condition if we've matched all stars
     if len(assignment) == len(image_stars):
         return
 
-    # Selection of next star for assignment
     unassigned = [s for s in image_stars if s not in assignment]
+    
+    if unassigned is None:
+        return
+    
     current_star = min(unassigned, key=lambda s: len(candidate_hips.get(s, [])))
 
-    # Main loop for trying candidates for current star
     for hip_candidate in candidate_hips.get(current_star, []):
 
-        # We don't want to assign the same HIP ID twice
         if hip_candidate in assignment.values():
             continue
 
         assignment[current_star] = hip_candidate
 
-        # Check if the assignment is consistent and recurse to assign next star if so
         if is_consistent(
             assignment,
             image_angular_distances,
@@ -366,6 +367,7 @@ def DFS(
                 catalog_angular_distances,
                 tolerance,
                 solutions,
+                min_matches,
                 start_time,
                 max_time,
             )
@@ -386,26 +388,22 @@ def is_consistent(
     - new_star: index of new image star being added to the assignment
     """
 
-    # Assignment doesn't have a pair of stars in it so is trivially consistent
     if len(assignment) < 2:
         return True
 
-    # Iterate through all pairs of stars and their angular distances
     for (i1, i2), img_angle in image_angular_distances.items():
 
-        # If the pair doesn't contain the star we're adding to the assignment we don't need to check it
         if new_star not in (i1, i2):
             continue
 
-        # Check if pair is assigned HIP IDs
         if i1 in assignment and i2 in assignment:
             hip1 = assignment[i1]
             hip2 = assignment[i2]
 
-            catalog_angle = catalog_angular_distances.get(
-                (hip1, hip2)
-            ) or catalog_angular_distances.get((hip2, hip1))
-
+            catalog_angle = catalog_angular_distances.get((hip1, hip2))
+            if catalog_angle is None:
+                catalog_angle = catalog_angular_distances.get((hip2, hip1))
+                
             if catalog_angle is None:
                 return False
 
@@ -778,6 +776,8 @@ def lost_in_space(image_file=None):
     # print("Angular distances:")
     # for (i, j), ang_dist in ang_dists.items():
     #     print(f"{i}->{j}: {ang_dist}")
+    
+    ip.display_star_detections(image_file, star_coords)
 
     # hypotheses = load_hypotheses(ang_dists, all_catalog_angular_distances, TOLERANCE)
     raw_votes = generate_raw_votes(ang_dists, catalog_hash, TOLERANCE)
@@ -811,6 +811,7 @@ def lost_in_space(image_file=None):
             all_catalog_angular_distances,
             TOLERANCE,
             iteration_solutions,
+            MIN_MATCHES,
             dfs_start_time,
             max_time=15,
         )
@@ -870,12 +871,11 @@ def lost_in_space(image_file=None):
         if delta_angle <= QUATERNION_ANGLE_DIFFERENCE_THRESHOLD:
             break
         final_quaternion = refined_quaternion
-
-    ip.display_star_detections(image_file, star_coords)
+        
     used_coords = []
     for key in best_match_solution.keys():
         used_coords.append(star_coords[key])
-    return final_quaternion, cat_matrix, used_coords
+    return final_quaternion, cat_matrix, used_coords, best_match_solution
 
 
 def match_stars(predicted_positions, detected_positions, distance_threshold=10.0):
@@ -932,20 +932,20 @@ def match_stars_hungarian(
     ):
         return []
 
-    valid_predicted = [
-        (index, prev_coords)
-        for index, prev_coords in enumerate(predicted_positions)
-        if prev_coords is not None
-        and len(prev_coords) == 2
-        and all(np.isfinite(coord) for coord in prev_coords)
-    ]
-    valid_detected = [
-        (index, detected_coords)
-        for index, detected_coords in enumerate(detected_positions)
-        if detected_coords is not None
-        and len(detected_coords) == 2
-        and all(np.isfinite(coord) for coord in detected_coords)
-    ]
+    valid_predicted = []
+    valid_detected = []
+    
+    for index, prev_coords in enumerate(predicted_positions):
+        if (prev_coords is not None and 
+            len(prev_coords) == 2 and 
+            all(np.isfinite(coord) for coord in prev_coords)):
+            valid_predicted.append((index, prev_coords))
+    
+    for index, detected_coords in enumerate(detected_positions):
+        if (detected_coords is not None and 
+            len(detected_coords) == 2 and 
+            all(np.isfinite(coord) for coord in detected_coords)):
+            valid_detected.append((index, detected_coords))
 
     if not valid_predicted or not valid_detected:
         return []
@@ -956,17 +956,19 @@ def match_stars_hungarian(
     detected_array = np.array(detected_coords)
 
     distances_matrix = cdist(predicted_array, detected_array)
-
+    
     cost_matrix = np.where(
         distances_matrix <= distance_threshold, distances_matrix, 1e6
     )
 
-    pred_indices, det_indices = linear_sum_assignment(cost_matrix)
-
+    hungarian_pred_indices, hungarian_det_indices = linear_sum_assignment(cost_matrix)
+    
     matches = []
-    for i, j in zip(pred_indices, det_indices):
-        if cost_matrix[i, j] < 1e6:
-            matches.append((predicted_indices[i], detected_indices[j]))
+    for filtered_pred_idx, filtered_det_idx in zip(hungarian_pred_indices, hungarian_det_indices):
+        if cost_matrix[filtered_pred_idx, filtered_det_idx] < 1e6:
+            original_pred_idx = predicted_indices[filtered_pred_idx]
+            original_det_idx = detected_indices[filtered_det_idx]
+            matches.append((original_pred_idx, original_det_idx))
 
     return matches
 
@@ -975,37 +977,30 @@ def track(
     previous_quaternion,
     previous_catalog_unit_vectors,
     previous_star_coords,
+    previous_mapping,
     detected_star_coords,
     camera_params,
     min_matches,
-    distance_threshold=10.0,
+    distance_threshold=10.0
 ):
-    """
-    Perform star tracking by matching predicted star positions to detected stars,
-    then update the attitude quaternion.
-    Inputs:
-    - previous_quaternion: Current attitude quaternion estimate in [w, x, y, z] format.
-    - previous_catalog_unit_vectors: Star unit vectors from catalog for previous frame.
-    - detected_star_coords: Detected star pixel coords in current image.
-    - camera_params: ((f_x, f_y), (c_x, c_y)) camera intrinsic parameters.
-    - distance_threshold: Pixel distance threshold for matching.
-    Outputs:
-    - updated_quaternion: New attitude quaternion.
-    - matches: List of matched star index pairs.
-    """
     if previous_quaternion is None or len(detected_star_coords) < min_matches:
-        return previous_quaternion, []
+        return previous_quaternion, [], [], [], {}
+
+    original_star_indices = list(previous_mapping.keys())
+    original_star_indices.sort()
+    
+    sequential_to_original = {i: original_star_indices[i] for i in range(len(original_star_indices))}
 
     matches = match_stars_hungarian(
         previous_star_coords, detected_star_coords, distance_threshold
     )
+    
     if len(matches) < min_matches:
         print("Not enough matches to track")
-        return previous_quaternion, matches
+        return previous_quaternion, matches, [], [], {}
 
     matched_detected_pixels = [detected_star_coords[det_idx] for _, det_idx in matches]
-
-    # Convert matched detected pixels to unit vectors
+    
     image_vectors = star_coords_to_unit_vector(
         matched_detected_pixels,
         center_coords=camera_params[1],
@@ -1013,13 +1008,7 @@ def track(
         f_y=camera_params[0][1],
     )
 
-    # Extract matched catalog unit vectors using the correct indexing
-    # The matches contain (previous_idx, detected_idx), where previous_idx
-    # corresponds to the index in previous_catalog_unit_vectors
-    catalog_vectors = np.array(
-        [previous_catalog_unit_vectors[pred_idx] for pred_idx, _ in matches]
-    )
-
+    catalog_vectors = np.array([previous_catalog_unit_vectors[pred_idx] for pred_idx, _ in matches])
     updated_quaternion = compute_attitude_quaternion(image_vectors, catalog_vectors)
     final_quaternion = updated_quaternion
 
@@ -1033,8 +1022,18 @@ def track(
         if delta_angle <= QUATERNION_ANGLE_DIFFERENCE_THRESHOLD:
             break
         final_quaternion = refined_quaternion
-
-    return final_quaternion, matches
+    
+    used_catalog_vectors = [previous_catalog_unit_vectors[pred_idx] for pred_idx, _ in matches]
+    used_star_coords = [detected_star_coords[det_idx] for _, det_idx in matches]
+    
+    tracking_solution = {}
+    for pred_idx, det_idx in matches:
+        if pred_idx in sequential_to_original:
+            original_star_idx = sequential_to_original[pred_idx]
+            star_id = previous_mapping[original_star_idx]
+            tracking_solution[det_idx] = star_id
+            
+    return final_quaternion, matches, used_catalog_vectors, used_star_coords, tracking_solution
 
 
 def rotational_angle_between_quaternions(quaternion1, quaternion2):
@@ -1055,36 +1054,40 @@ def rotational_angle_between_quaternions(quaternion1, quaternion2):
 
 if __name__ == "__main__":
     begin_time = time.time()
-    q, cat_matrix, coords = lost_in_space(IMAGE_FILE)
+    q, cat_matrix, coords, best_solution = lost_in_space(IMAGE_FILE)
     end_time = time.time()
     print(f"Lost in space quaternion: {q}")
     print(f"Lost in space time: {end_time - begin_time}")
     print(f"Catalog matrix shape: {cat_matrix.shape}")
 
     new_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE2, NUM_STARS)
+    ip.display_star_detections(IMAGE_FILE2, new_coords, "stars_identified2.png")
 
     begin_time = time.time()
-    new_q, matches = track(
+    new_q, matches, t_cat_v, t_s_c, t_sol = track(
         q,
         cat_matrix,
         coords,
+        best_solution,
         new_coords,
         [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
         MIN_MATCHES_TRACKING,
-        distance_threshold=20.0,
+        distance_threshold=200.0,
     )
     end_time = time.time()
 
     print(f"Tracking time {end_time - begin_time}")
     print(f"Tracking quaternion: {new_q}")
+    print(f"Tracking solution: {t_sol}")
     print(f"Matches: {matches}")
 
     if len(matches) == 0:
         print("\nTrying with even larger threshold...")
-        new_q, matches = track(
+        new_q, matches, t_cat_v, t_s_c, t_sol = track(
             q,
             cat_matrix,
             coords,
+            best_solution,
             new_coords,
             [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
             MIN_MATCHES_TRACKING,
@@ -1092,6 +1095,5 @@ if __name__ == "__main__":
         )
         print(f"Matches with 100px threshold: {matches}")
 
-    # new_q, c, sc = lost_in_space(IMAGE_FILE2)
     rotational_angle = rotational_angle_between_quaternions(q, new_q)
     print(f"{rotational_angle}")
