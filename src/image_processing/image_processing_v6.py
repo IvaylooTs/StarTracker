@@ -12,8 +12,8 @@ from typing import Tuple, List, Optional
 # --- Default Parameters ---
 N_STARS_TO_DETECT = 30     # The maximum number of stars to find.
 BINARY_THRESHOLD = 87      # Pixel brightness cutoff (0-255). Keep this high to isolate bright objects.
-MIN_STAR_AREA = 20         # The minimum number of pixels for an object to be considered a star.
-MAX_STAR_AREA = 190        # The maximum pixel area. Filters out very large/bright objects.
+MIN_STAR_AREA = 15         # The minimum number of pixels for an object to be considered a star.
+MAX_STAR_AREA = 200        # The maximum pixel area. Filters out very large/bright objects.
 
 # --- Shape Filter Gauntlet ---
 MIN_CIRCULARITY = 0.70     # How close to a perfect circle (1.0). Good for filtering spiky noise.
@@ -50,97 +50,92 @@ def is_sun_or_planet(image, cx, cy, radius=30):
     
     return False
 
-def gaussian_2d_fit(image_patch: np.ndarray, initial_centroid: Tuple[float, float]) -> Tuple[float, float]:
+def weighted_centroid(image_patch: np.ndarray, initial_centroid: Tuple[float, float]) -> Tuple[float, float]:
     """
-    Fit a 2D Gaussian to the star and return the center with subpixel accuracy.
-    Most accurate for well-behaved stellar PSFs but computationally intensive.
+    Calculates the intensity-weighted centroid (center of mass) of an image patch.
+    Highly robust against saturated pixels.
     """
-    h, w = image_patch.shape
-    y_indices, x_indices = np.meshgrid(np.arange(h), np.arange(w), indexing='ij')
+    cy, cx = center_of_mass(image_patch)
+    return float(cx), float(cy) 
+
+# def gaussian_2d_fit(image_patch: np.ndarray, initial_centroid: Tuple[float, float]) -> Tuple[float, float]:
+#     """
+#     Fit a 2D Gaussian to the star and return the center with subpixel accuracy.
+#     Most accurate for well-behaved stellar PSFs but computationally intensive.
+#     """
+#     h, w = image_patch.shape
+#     y_indices, x_indices = np.meshgrid(np.arange(h), np.arange(w), indexing='ij')
     
-    # Initial guess parameters: [amplitude, x_center, y_center, sigma_x, sigma_y, background]
-    amplitude_guess = np.max(image_patch) - np.min(image_patch)
-    background_guess = np.min(image_patch)
-    sigma_guess = 2.0
+#     # Initial guess parameters: [amplitude, x_center, y_center, sigma_x, sigma_y, background]
+#     amplitude_guess = np.max(image_patch) - np.min(image_patch)
+#     background_guess = np.min(image_patch)
+#     sigma_guess = 2.0
     
-    initial_params = [
-        amplitude_guess,
-        initial_centroid[0],  # x center
-        initial_centroid[1],  # y center
-        sigma_guess,          # sigma_x
-        sigma_guess,          # sigma_y
-        background_guess      # background
-    ]
+#     initial_params = [
+#         amplitude_guess,
+#         initial_centroid[0],  # x center
+#         initial_centroid[1],  # y center
+#         sigma_guess,          # sigma_x
+#         sigma_guess,          # sigma_y
+#         background_guess      # background
+#     ]
     
-    def gaussian_2d(params):
-        amp, xc, yc, sigma_x, sigma_y, bg = params
-        model = bg + amp * np.exp(-((x_indices - xc)**2 / (2*sigma_x**2) + (y_indices - yc)**2 / (2*sigma_y**2)))
-        return model
+#     def gaussian_2d(params):
+#         amp, xc, yc, sigma_x, sigma_y, bg = params
+#         model = bg + amp * np.exp(-((x_indices - xc)**2 / (2*sigma_x**2) + (y_indices - yc)**2 / (2*sigma_y**2)))
+#         return model
     
-    def objective(params):
-        model = gaussian_2d(params)
-        return np.sum((image_patch - model)**2)
+#     def objective(params):
+#         model = gaussian_2d(params)
+#         return np.sum((image_patch - model)**2)
     
-    try:
-        # Set bounds to keep parameters reasonable
-        bounds = [
-            (0, np.max(image_patch) * 2),      # amplitude
-            (0, w-1),                           # x_center
-            (0, h-1),                           # y_center
-            (0.5, min(w, h)),                   # sigma_x
-            (0.5, min(w, h)),                   # sigma_y
-            (0, np.max(image_patch))            # background
-        ]
+#     try:
+#         # Set bounds to keep parameters reasonable
+#         bounds = [
+#             (0, np.max(image_patch) * 2),      # amplitude
+#             (0, w-1),                           # x_center
+#             (0, h-1),                           # y_center
+#             (0.5, min(w, h)),                   # sigma_x
+#             (0.5, min(w, h)),                   # sigma_y
+#             (0, np.max(image_patch))            # background
+#         ]
         
-        result = minimize(objective, initial_params, bounds=bounds, method='L-BFGS-B')
+#         result = minimize(objective, initial_params, bounds=bounds, method='L-BFGS-B')
         
-        if result.success:
-            return float(result.x[1]), float(result.x[2])  # x_center, y_center
-        else:
-            return initial_centroid
-    except:
-        return initial_centroid
+#         if result.success:
+#             return float(result.x[1]), float(result.x[2])  # x_center, y_center
+#         else:
+#             return initial_centroid
+#     except:
+#         return initial_centroid
 
 def refine_centroid_subpixel(image: np.ndarray, pixel_centroid: Tuple[int, int], 
-                           window_size: int, method: str = 'gaussian_fit') -> Tuple[float, float]:
+                           window_size: int, method: str = 'weighted_centroid') -> Tuple[float, float]:
     """
     Refine a pixel-level centroid to subpixel accuracy using the specified method.
-    
-    Args:
-        image: The full grayscale image
-        pixel_centroid: Initial (x, y) centroid at pixel level
-        window_size: Size of the square window around the centroid (must be odd)
-        method: Refinement method ('weighted_centroid', 'gaussian_fit', 'parabolic_fit', 'center_of_mass')
-    
-    Returns:
-        Refined (x, y) centroid with subpixel accuracy
     """
     if window_size % 2 == 0:
-        window_size += 1  # Ensure odd window size
+        window_size += 1
         
     half_window = window_size // 2
     cx, cy = pixel_centroid
     h, w = image.shape
     
-    # Define extraction bounds
     x_min = max(0, cx - half_window)
     x_max = min(w, cx + half_window + 1)
     y_min = max(0, cy - half_window)
     y_max = min(h, cy + half_window + 1)
     
-    # Extract image patch
     image_patch = image[y_min:y_max, x_min:x_max].astype(np.float64)
     
     if image_patch.size == 0:
         return float(cx), float(cy)
     
-    # Calculate initial centroid within the patch
     patch_cx = cx - x_min
     patch_cy = cy - y_min
     
-    refined_cx, refined_cy = gaussian_2d_fit(image_patch, (patch_cx, patch_cy))
-    
-    # Convert back to full image coordinates
+    refined_cx, refined_cy = weighted_centroid(image_patch, (patch_cx, patch_cy))
+
     final_cx = refined_cx + x_min
     final_cy = refined_cy + y_min
     
@@ -160,7 +155,7 @@ def find_stars_with_advanced_filters(
     max_eccentricity: float = MAX_ECCENTRICITY, 
     min_solidity: float = MIN_SOLIDITY, 
     min_peak_ratio: float = MIN_PEAK_RATIO,
-    subpixel_method: str = 'gaussian_fit',
+    subpixel_method: str = 'weighted_centroid',
     subpixel_window_size: int = SUBPIXEL_WINDOW_SIZE
     ):
     """
@@ -309,7 +304,7 @@ def visualize_processing_steps(final_centroids, original_img=None, binary_img=No
     if binary_img is None:
         binary_img = output_images.get("binary")
     
-    fig, axes = plt.subplots(1, 3, figsize=(24, 8))
+    axes = plt.subplots(1, 3, figsize=(24, 8))
     
     axes[0].imshow(original_img, cmap='gray')
     axes[0].set_title('1. Original Image')
