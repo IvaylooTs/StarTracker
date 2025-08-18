@@ -43,8 +43,8 @@ QUATERNION_ANGLE_DIFFERENCE_THRESHOLD = 1e-3
 
 
 def star_coords_to_unit_vector(
-    star_coords: Sequence[Tuple[float, float]],
-    center_coords: Tuple[float, float],
+    star_coords: list[tuple[float, float]],
+    center_coords: tuple[float, float],
     f_x: float,
     f_y: float,
 ) -> NDArray[np.float64]:
@@ -98,7 +98,7 @@ def star_coords_to_unit_vector(
 
 def angular_dist_helper(
     unit_vectors: NDArray[np.float64],
-) -> Dict[Tuple[int, int], float]:
+) -> dict[tuple[int, int], float]:
     """
     Angular distance between each unique pair of unit vectors
     Inputs:
@@ -125,7 +125,12 @@ def angular_dist_helper(
     return angular_dists
 
 
-def get_angular_distances(star_coords, center_coords, f_x, f_y):
+def get_angular_distances(
+    star_coords: Sequence[tuple[float, float]],
+    center_coords: tuple[float, float],
+    f_x: float,
+    f_y: float,
+) -> dict[tuple[int, int], float]:
     unit_vectors = star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y)
     return angular_dist_helper(unit_vectors)
 
@@ -160,6 +165,7 @@ def load_catalog_angular_distances(
     """
     Function that loads a dict from the database where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
     """
+    conn = None
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -172,7 +178,9 @@ def load_catalog_angular_distances(
     return {(row[0], row[1]): row[2] for row in rows}
 
 
-def filter_catalog_angular_distances(cat_ang_dists, bounds):
+def filter_catalog_angular_distances(
+    cat_ang_dists: dict[tuple[int, int], float], bounds: tuple[float, float]
+) -> dict[tuple[int, int], float]:
     """
     Function that returns a dict where {(HIP ID 1 [-], HIP ID 2 [-]): angular_distance [deg]}
     angular_distance ∈ [min_ang_dist, max_ang_dist]
@@ -189,7 +197,11 @@ def filter_catalog_angular_distances(cat_ang_dists, bounds):
     return filtered
 
 
-def generate_raw_votes(angular_distances, catalog_hash, tolerance):
+def generate_raw_votes(
+    angular_distances: dict[tuple[int, int], float],
+    catalog_hash: Dict[int, list[Tuple[int, int]]],
+    tolerance: float,
+) -> defaultdict[Tuple[int, int], int]:
     """
     Function that returns initial votes for each star index - hip id
     mapping based on the catalog hash pairs for our current bin
@@ -200,6 +212,9 @@ def generate_raw_votes(angular_distances, catalog_hash, tolerance):
     Outputs:
     - votes: dict {(image star index, HIP ID): number of votes}
     """
+
+    if tolerance <= 0:
+        raise ValueError("tolerance must be positive")
 
     votes = defaultdict(int)
 
@@ -217,7 +232,7 @@ def generate_raw_votes(angular_distances, catalog_hash, tolerance):
     return votes
 
 
-def get_bounds(ang_dist, tolerance):
+def get_bounds(ang_dist: float, tolerance: float) -> tuple[float, float]:
     """
     Function that returns an angular distance interval based on initial angular distance and a tolerance
     Outputs:
@@ -226,12 +241,28 @@ def get_bounds(ang_dist, tolerance):
     return (ang_dist - tolerance, ang_dist + tolerance)
 
 
-def build_hypotheses_from_votes(raw_votes, min_votes=1):
+def build_hypotheses_from_votes(
+    raw_votes: dict[Tuple[int, int], int], min_votes=1
+) -> dict[int, list[int]]:
     """
     Build hypotheses dict for DFS based on raw votes from generate_raw_votes function
     """
+    if not isinstance(raw_votes, dict):
+        raise TypeError("raw_votes must be a dictionary")
+
+    if not isinstance(min_votes, int):
+        raise TypeError("min_votes must be an integer")
+
     hypotheses = defaultdict(set)
-    for (star_idx, hip_id), vote_count in raw_votes.items():
+    for key, vote_count in raw_votes.items():
+        if not isinstance(key, tuple) or len(key) != 2:
+            raise ValueError(
+                f"raw_votes key must be a tuple of (star_idx, hip_id), got {key}"
+            )
+        if not isinstance(vote_count, int):
+            raise ValueError(f"vote count must be an integer, got {vote_count}")
+
+        star_idx, hip_id = key
         if vote_count >= min_votes:
             hypotheses[star_idx].add(hip_id)
 
@@ -1040,7 +1071,7 @@ if __name__ == "__main__":
         new_coords,
         [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
         MIN_MATCHES_TRACKING,
-        distance_threshold=50.0,
+        distance_threshold=20.0,
     )
     end_time = time.time()
 
