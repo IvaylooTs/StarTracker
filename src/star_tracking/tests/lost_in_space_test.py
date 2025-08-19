@@ -2,12 +2,17 @@ import os
 from ..algorithms.lost_in_space import lost_in_space, tracking_helper
 from ..core.attitude import rotational_angle_between_quaternions
 from ..core.star_tracker import StarTracker
+import cProfile
+import pstats
 
 TEST_DIR = os.path.dirname(__file__)
 IMAGE_FILE = os.path.join(TEST_DIR, "test_images", "testing6.png")
 IMAGE_FILE_2 = os.path.join(TEST_DIR, "test_images", "testing7.png")
+OUT_FILE = os.path.join(TEST_DIR, "out.prof")
 
 if __name__ == "__main__":
+    profiler = cProfile.Profile()
+    profiler.enable()
     tracker = StarTracker(None, None)
     result = tracker.lost_in_space(IMAGE_FILE)
     
@@ -31,3 +36,7 @@ if __name__ == "__main__":
             print(f"Tracking failed: {tracking_result.error_message}")
     else:
         print(f"Lost-in-space failed: {result.error_message}")
+    profiler.disable()
+    profiler.dump_stats(OUT_FILE)
+    stats = pstats.Stats(OUT_FILE).strip_dirs().sort_stats("cumulative")
+stats.print_stats(5)

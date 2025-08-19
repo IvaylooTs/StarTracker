@@ -1061,7 +1061,7 @@ if __name__ == "__main__":
     coords = None
     best_solution = None
 
-    image_files = [IMAGE_FILE, IMAGE_FILE2, IMAGE_FILE3, "./test_images/testing122.png", "./test_images/testing123.png", "./test_images/testing124.png", "./test_images/testing125.png", "./test_images/testing126.png"]
+    image_files = ["./test_images/testing127.png", "./test_images/testing128.png", "./test_images/testing129.png", "./test_images/testing130.png", "./test_images/testing131.png", "./test_images/testing132.png", "./test_images/testing133.png", "./test_images/testing134.png",  "./test_images/testing135.png",  "./test_images/testing136.png", "./test_images/testing137.png", "./test_images/testing138.png", "./test_images/testing139.png", "./test_images/testing140.png"]
 
     for idx, img in enumerate(image_files):
         print(f"\n--- Processing image {idx+1} ---")

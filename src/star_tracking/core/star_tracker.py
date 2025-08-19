@@ -19,6 +19,7 @@ from ..algorithms.refinement import refine_quaternion
 from ..utils.scoring import load_solution_scoring
 from ..core.attitude import rotational_angle_between_quaternions
 from ..matching.tracking_matcher import track
+from ..image_processing.image_processing import find_stars_with_advanced_filters, display_star_detections
 
 @dataclass
 class StarTrackingResult:
@@ -92,8 +93,7 @@ class StarTracker:
             self._ensure_catalog_loaded()
             
             if star_detection_func is None:
-                from ..image_processing import image_processing as ip
-                star_coords = ip.find_stars_with_advanced_filters(image_file, self.config.num_stars)
+                star_coords = find_stars_with_advanced_filters(image_file, self.config.num_stars)
             else:
                 star_coords = star_detection_func(image_file, self.config.num_stars)
             
@@ -194,7 +194,7 @@ class StarTracker:
             self.last_quaternion = result.quaternion
             self.last_catalog_vectors = result.catalog_vectors
             self.last_star_coords = result.star_coordinates
-            ip.display_star_detections(image_file, star_coords)
+            display_star_detections(image_file, star_coords)
             
         except Exception as e:
             result.error_message = f"Lost-in-space failed: {str(e)}"
@@ -270,8 +270,7 @@ class StarTracker:
         
         try:
             if star_detection_func is None:
-                from ..image_processing import image_processing as ip
-                star_coords = ip.find_stars_with_advanced_filters(new_image_file, self.config.num_stars)
+                star_coords = find_stars_with_advanced_filters(new_image_file, self.config.num_stars)
             else:
                 star_coords = star_detection_func(new_image_file, self.config.num_stars)
             
