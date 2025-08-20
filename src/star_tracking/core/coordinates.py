@@ -1,8 +1,14 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as rotate
+from numpy.typing import NDArray
 
 
-def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
+def star_coords_to_unit_vector(
+    star_coords: list[tuple[float, float]],
+    center_coords: tuple[float, float],
+    f_x: float,
+    f_y: float,
+) -> NDArray[np.float64]:
     """
     Unit vector function -> finds star unit vectros based on star pixel coordinates
     using pinhole projection
@@ -15,31 +21,38 @@ def star_coords_to_unit_vector(star_coords, center_coords, f_x, f_y):
     Outputs:
     - unit_vectors: array of np arrays holding (x, y, z) coordinates of each unit vector
     """
-    # Unpack center_coords
-    c_x, c_y = center_coords
+    if f_x == 0 or f_y == 0:
+        raise ValueError("f_x and f_y must be non-zero.")
 
-    star_coords_matrix = np.array(star_coords)
-    # Initialize empty unit vector array
+    if len(center_coords) != 2:
+        raise ValueError("center_coords must be a tuple of (xc, yc)")
+
+    star_coords_matrix = np.array(star_coords, dtype=float)
+
+    if star_coords_matrix.size == 0:
+        raise ValueError("star_coords must contain at least one (x, y) pair")
+
+    if star_coords_matrix.ndim != 2 or star_coords_matrix.shape[1] != 2:
+        raise ValueError("star_coords must be an array of (x, y) pairs")
+
+    c_x, c_y = center_coords
     unit_vectors = []
 
-    # Reverse pinhole projection to get X, Y, Z coords of each star
-
     # Convert pixel coordinates into normalized camera coordinates (back-projection step)
-    # These correspond to where the pixel projects onto the image plane at depth z_p
-    # Inversing pinhole projection formula for x (back-projecting). Formula: x = f_x * (x_p / z_p) + c_x
     x_norm = (star_coords_matrix[:, 0] - c_x) / f_x
-    # Inversing pinhole projection formula for y (back-projecting). Formula: y = f_y * (x_p / z_p) + c_y
     y_norm = (star_coords_matrix[:, 1] - c_y) / f_y
-    # Pick arbitrary depth for each 3D point
-    # (we don't know how far away they really are, we just want their direction)
     z_coord = np.ones_like(x_norm)
 
-    # array holding [X, Y, Z] coordinates of the direction vector
     vectors = np.stack([x_norm, y_norm, z_coord], axis=1)
 
-    # Normalize vector to save on calculations later on
     norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+    if np.any(norms == 0):
+        raise ValueError("Encountered zero-length direction vector")
+
     unit_vectors = vectors / norms
+
+    if not np.all(np.isfinite(unit_vectors)):
+        raise ValueError("Non-finite values found in unit vectors")
 
     return unit_vectors
 
@@ -68,7 +81,6 @@ def inverse_rotate_vectors(quaternion, catalog_vectors):
     Output:
     - camera_frame_vectors: vectors in camera frame
     """
-    # Convert from [w, x, y, z] to [x, y, z, w] for scipy
     q_scalar_last = np.roll(quaternion, -1)
     rot_object = rotate.from_quat(q_scalar_last)
     camera_frame_vectors = rot_object.inv().apply(catalog_vectors)

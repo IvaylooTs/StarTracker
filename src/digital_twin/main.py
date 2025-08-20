@@ -12,6 +12,8 @@ from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
 import numpy as np
 import pickle
+import cProfile
+import pstats
 
 image_processing_folder_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "image_processing")
@@ -19,8 +21,8 @@ image_processing_folder_path = os.path.abspath(
 sys.path.append(image_processing_folder_path)
 import image_processing_v6 as ip
 
-IMAGE_HEIGHT = 1964  # 768
-IMAGE_WIDTH = 3024  # 1366
+IMAGE_HEIGHT = 1079  # 768
+IMAGE_WIDTH = 1919  # 1366
 ASPECT_RATIO = IMAGE_WIDTH / IMAGE_HEIGHT
 FOV_Y = 53
 FOV_X = math.degrees(2 * math.atan(math.tan(math.radians(FOV_Y / 2)) * ASPECT_RATIO))
@@ -33,6 +35,7 @@ IMAGE_FILE = "./test_images/testing119.png"
 IMAGE_FILE2 = "./test_images/testing120.png"
 IMAGE_FILE3 = "./test_images/testing121.png"
 TEST_IMAGE = "./test_images/testing90.png"
+OUT_FILE = "./out.prof"
 NUM_STARS = 15
 EPSILON = 1e-3
 MIN_SUPPORT = 5
@@ -604,7 +607,6 @@ def inverse_rotate_vectors(quaternion, catalog_vectors):
     Output:
     - camera_frame_vectors: vectors in camera frame
     """
-    # Convert from [w, x, y, z] to [x, y, z, w] for scipy
     q_scalar_last = np.roll(quaternion, -1)
     rot_object = rotate.from_quat(q_scalar_last)
     camera_frame_vectors = rot_object.inv().apply(catalog_vectors)
@@ -846,7 +848,7 @@ def lost_in_space(image_file=None):
         solutions, ang_dists, all_catalog_angular_distances
     )
 
-    sorted_arr = sorted(scored_solutions, key=lambda x: x[1])
+    sorted_arr = sorted(scored_solutions, key=lambda x: (-len(x[0]), x[1]))
     best_match = sorted_arr[0]
     best_match_solution = best_match[0]
 
@@ -1054,6 +1056,8 @@ def rotational_angle_between_quaternions(quaternion1, quaternion2):
 
 
 if __name__ == "__main__":
+    profiler = cProfile.Profile()
+    profiler.enable()
     
     mode = "LIS"
     quaternion = None
@@ -1061,7 +1065,7 @@ if __name__ == "__main__":
     coords = None
     best_solution = None
 
-    image_files = ["./test_images/testing127.png", "./test_images/testing128.png", "./test_images/testing129.png", "./test_images/testing130.png", "./test_images/testing131.png", "./test_images/testing132.png", "./test_images/testing133.png", "./test_images/testing134.png",  "./test_images/testing135.png",  "./test_images/testing136.png", "./test_images/testing137.png", "./test_images/testing138.png", "./test_images/testing139.png", "./test_images/testing140.png"]
+    image_files = ["./test_images/testing142.png"]
 
     for idx, img in enumerate(image_files):
         print(f"\n--- Processing image {idx+1} ---")
@@ -1115,58 +1119,7 @@ if __name__ == "__main__":
                 catalog_matrix = np.array(tracking_catalog_vectors)
                 coords = tracking_star_coords
                 best_solution = tracking_solution
-
-    # begin_time = time.time()
-    # q, cat_matrix, coords, best_solution = lost_in_space(IMAGE_FILE)
-    # end_time = time.time()
-    # print(f"Lost in space quaternion: {q}")
-    # print(f"Lost in space time: {end_time - begin_time}")
-    # print(f"Catalog matrix shape: {cat_matrix.shape}")
-
-    # new_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE2, NUM_STARS)
-    # ip.display_star_detections(IMAGE_FILE2, new_coords, "stars_identified2.png")
-
-    # begin_time = time.time()
-    # new_q, matches, t_cat_v, t_s_c, t_sol = track(
-    #     q,
-    #     cat_matrix,
-    #     coords,
-    #     best_solution,
-    #     new_coords,
-    #     [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-    #     MIN_MATCHES_TRACKING,
-    #     distance_threshold=200.0,
-    # )
-    # end_time = time.time()
-
-    # print(f"Tracking time {end_time - begin_time}")
-    # print(f"Tracking quaternion: {new_q}")
-    # print(f"Tracking solution: {t_sol}")
-    # print(f"Matches: {matches}")
-
-    # if len(matches) == 0:
-    #     print("\nTrying with even larger threshold...")
-    #     new_q, matches, t_cat_v, t_s_c, t_sol = track(
-    #         q,
-    #         cat_matrix,
-    #         coords,
-    #         best_solution,
-    #         new_coords,
-    #         [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-    #         MIN_MATCHES_TRACKING,
-    #         distance_threshold=100.0,
-    #     )
-    #     print(f"Matches with 100px threshold: {matches}")
-
-    # rotational_angle = rotational_angle_between_quaternions(q, new_q)
-    
-    # print(f"{rotational_angle}")
-    
-    # # third_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE3, NUM_STARS)
-    # # ip.display_star_detections(IMAGE_FILE3, third_coords, "stars_identified3.png")
-    
-    # # third_q, third_matches, third_cat_v, third_star_c, third_sol = track( new_q, t_cat_v, t_s_c, t_sol, third_coords, [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)], MIN_MATCHES_TRACKING, distance_threshold=140.0)
-    
-    # # new_rotational_angle = rotational_angle_between_quaternions(new_q, third_q)
-    
-    # # print(f"{new_rotational_angle}")
+    profiler.disable()
+    profiler.dump_stats(OUT_FILE)
+    stats = pstats.Stats(OUT_FILE).strip_dirs().sort_stats("cumulative")
+stats.print_stats(5)

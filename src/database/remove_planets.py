@@ -1,7 +1,7 @@
 import sqlite3
 
 # Path to your existing database
-DATABASE_FILENAME = 'src/test/star_distances_sorted.db'
+DATABASE_FILENAME = 'src/digital_twin/star_distances_sorted.db'
 
 # HIP IDs for planets to remove
 planet_hip_ids = list(range(1, 9))  # 1 to 8

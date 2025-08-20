@@ -278,22 +278,26 @@ class StarTracker:
                 result.error_message = f"Insufficient stars detected: {len(star_coords)}"
                 return result
             
-            updated_quaternion, matches = track(
+            updated_quaternion, matches, used_catalog_vectors, used_star_coords = track(
                 self.last_quaternion,
                 self.last_catalog_vectors,
                 self.last_star_coords,
                 star_coords,
                 [(self.camera.focal_length_x, self.camera.focal_length_y), (self.camera.center_x, self.camera.center_y)],
+                self.config.min_matches,
                 distance_threshold
             )
             
             if updated_quaternion is not None and len(matches) >= self.config.min_matches:
                 result.quaternion = updated_quaternion
-                result.catalog_vectors = self.last_catalog_vectors
+                result.catalog_vectors = used_catalog_vectors
+                result.star_coordinates = used_star_coords
                 result.num_matched_stars = len(matches)
                 result.success = True
                 
                 self.last_quaternion = updated_quaternion
+                self.last_catalog_vectors = used_catalog_vectors
+                self.last_star_coords = used_star_coords
             else:
                 print("Tracking failed, falling back to lost-in-space...")
                 return self.lost_in_space(new_image_file, star_detection_func)
