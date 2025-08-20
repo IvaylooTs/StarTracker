@@ -26,11 +26,11 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 1
-IMAGE_FILE = "src\image_processing\\test_images2\\t62.png"
-NUM_STARS = 15
+IMAGE_FILE = "src/image_processing/test_images2/t81.png"
+NUM_STARS = 16
 EPSILON = 1e-6
 MIN_SUPPORT = 1
-MIN_MATCHES = 5
+MIN_MATCHES = 8
 
 def get_initial_identities(all_votes):
     """
@@ -689,13 +689,17 @@ def lost_in_space():
     print("Data loaded.")
 
     # --- IMAGE PROCESSING ---
+    time_start = time.time()
     star_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE, NUM_STARS)
+    time_end = time.time()
+    time_all = time_end - time_start
+    print(f"Image processing: {time_all}")
     img_unit_vectors = star_coords_to_unit_vector(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     img_ang_dists = get_angular_distances(star_coords, (CENTER_X, CENTER_Y), FOCAL_LENGTH_X, FOCAL_LENGTH_Y)
     # ip.display_star_detections(IMAGE_FILE, star_coords)
 
     # --- STAGE 1: Generate Raw Votes ---
-    TOLERANCE_ACQUISITION = 2
+    TOLERANCE_ACQUISITION = 1
     raw_votes = generate_raw_votes(img_ang_dists, catalog_hash, TOLERANCE_ACQUISITION)
     if not raw_votes:
         print("!!! FAILED: No votes generated."); return None
