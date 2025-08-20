@@ -29,8 +29,9 @@ CENTER_Y = IMAGE_HEIGHT / 2
 FOCAL_LENGTH_X = (IMAGE_WIDTH / 2) / math.tan(math.radians(FOV_X / 2))
 FOCAL_LENGTH_Y = (IMAGE_HEIGHT / 2) / math.tan(math.radians(FOV_Y / 2))
 TOLERANCE = 2
-IMAGE_FILE = "./test_images/testing116.png"
-IMAGE_FILE2 = "./test_images/testing117.png"
+IMAGE_FILE = "./test_images/testing119.png"
+IMAGE_FILE2 = "./test_images/testing120.png"
+IMAGE_FILE3 = "./test_images/testing121.png"
 TEST_IMAGE = "./test_images/testing90.png"
 NUM_STARS = 15
 EPSILON = 1e-3
@@ -1053,47 +1054,119 @@ def rotational_angle_between_quaternions(quaternion1, quaternion2):
 
 
 if __name__ == "__main__":
-    begin_time = time.time()
-    q, cat_matrix, coords, best_solution = lost_in_space(IMAGE_FILE)
-    end_time = time.time()
-    print(f"Lost in space quaternion: {q}")
-    print(f"Lost in space time: {end_time - begin_time}")
-    print(f"Catalog matrix shape: {cat_matrix.shape}")
+    
+    mode = "LIS"
+    quaternion = None
+    catalog_matrix = None
+    coords = None
+    best_solution = None
 
-    new_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE2, NUM_STARS)
-    ip.display_star_detections(IMAGE_FILE2, new_coords, "stars_identified2.png")
+    image_files = ["./test_images/testing127.png", "./test_images/testing128.png", "./test_images/testing129.png", "./test_images/testing130.png", "./test_images/testing131.png", "./test_images/testing132.png", "./test_images/testing133.png", "./test_images/testing134.png",  "./test_images/testing135.png",  "./test_images/testing136.png", "./test_images/testing137.png", "./test_images/testing138.png", "./test_images/testing139.png", "./test_images/testing140.png"]
 
-    begin_time = time.time()
-    new_q, matches, t_cat_v, t_s_c, t_sol = track(
-        q,
-        cat_matrix,
-        coords,
-        best_solution,
-        new_coords,
-        [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-        MIN_MATCHES_TRACKING,
-        distance_threshold=200.0,
-    )
-    end_time = time.time()
+    for idx, img in enumerate(image_files):
+        print(f"\n--- Processing image {idx+1} ---")
+    
+        if mode == "LIS":
+            begin_time = time.time()
+            lost_in_space_element = lost_in_space(img)
+            if lost_in_space_element is None:
+                print("No lost in space solution")
+                continue
+            quaternion, catalog_matrix, coords, best_solution = lost_in_space_element
+            end_time = time.time()
+            print(f"LIS quaternion: {quaternion}")
+            print(f"LIS time: {end_time - begin_time:.3f}s")
+            print(f"Catalog matrix shape: {catalog_matrix.shape}")
+        
+            if quaternion is not None:
+                mode = "TRACKING"
+                print("Switched to TRACKING mode")
+            else:
+                print("LIS failed to determine attitude!")
+                continue
 
-    print(f"Tracking time {end_time - begin_time}")
-    print(f"Tracking quaternion: {new_q}")
-    print(f"Tracking solution: {t_sol}")
-    print(f"Matches: {matches}")
+        elif mode == "TRACKING":
+            detected_star_coords = ip.find_stars_with_advanced_filters(img, NUM_STARS)
+            ip.display_star_detections(img, detected_star_coords, f"stars_identified_{idx+1}.png")
 
-    if len(matches) == 0:
-        print("\nTrying with even larger threshold...")
-        new_q, matches, t_cat_v, t_s_c, t_sol = track(
-            q,
-            cat_matrix,
-            coords,
-            best_solution,
-            new_coords,
-            [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
-            MIN_MATCHES_TRACKING,
-            distance_threshold=100.0,
-        )
-        print(f"Matches with 100px threshold: {matches}")
+            begin_time = time.time()
+            new_quaternion, matches, tracking_catalog_vectors, tracking_star_coords, tracking_solution = track(
+                quaternion,
+                catalog_matrix,
+                coords,
+                best_solution,
+                detected_star_coords,
+                [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
+                MIN_MATCHES_TRACKING,
+                distance_threshold=140.0,
+            )
+            end_time = time.time()
+        
+            print(f"Tracking time: {end_time - begin_time:.3f}s")
+            print(f"Tracking quaternion: {new_quaternion}")
+            print(f"Matches: {matches}")
+        
+            if len(matches) < MIN_MATCHES_TRACKING:
+                print("Tracking failed → switching to LOST-IN-SPACE")
+                mode = "LIS"
+            else:
+                print(f"Rotational angle: {rotational_angle_between_quaternions(quaternion, new_quaternion)}")
+                quaternion = new_quaternion
+                catalog_matrix = np.array(tracking_catalog_vectors)
+                coords = tracking_star_coords
+                best_solution = tracking_solution
 
-    rotational_angle = rotational_angle_between_quaternions(q, new_q)
-    print(f"{rotational_angle}")
+    # begin_time = time.time()
+    # q, cat_matrix, coords, best_solution = lost_in_space(IMAGE_FILE)
+    # end_time = time.time()
+    # print(f"Lost in space quaternion: {q}")
+    # print(f"Lost in space time: {end_time - begin_time}")
+    # print(f"Catalog matrix shape: {cat_matrix.shape}")
+
+    # new_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE2, NUM_STARS)
+    # ip.display_star_detections(IMAGE_FILE2, new_coords, "stars_identified2.png")
+
+    # begin_time = time.time()
+    # new_q, matches, t_cat_v, t_s_c, t_sol = track(
+    #     q,
+    #     cat_matrix,
+    #     coords,
+    #     best_solution,
+    #     new_coords,
+    #     [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
+    #     MIN_MATCHES_TRACKING,
+    #     distance_threshold=200.0,
+    # )
+    # end_time = time.time()
+
+    # print(f"Tracking time {end_time - begin_time}")
+    # print(f"Tracking quaternion: {new_q}")
+    # print(f"Tracking solution: {t_sol}")
+    # print(f"Matches: {matches}")
+
+    # if len(matches) == 0:
+    #     print("\nTrying with even larger threshold...")
+    #     new_q, matches, t_cat_v, t_s_c, t_sol = track(
+    #         q,
+    #         cat_matrix,
+    #         coords,
+    #         best_solution,
+    #         new_coords,
+    #         [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)],
+    #         MIN_MATCHES_TRACKING,
+    #         distance_threshold=100.0,
+    #     )
+    #     print(f"Matches with 100px threshold: {matches}")
+
+    # rotational_angle = rotational_angle_between_quaternions(q, new_q)
+    
+    # print(f"{rotational_angle}")
+    
+    # # third_coords = ip.find_stars_with_advanced_filters(IMAGE_FILE3, NUM_STARS)
+    # # ip.display_star_detections(IMAGE_FILE3, third_coords, "stars_identified3.png")
+    
+    # # third_q, third_matches, third_cat_v, third_star_c, third_sol = track( new_q, t_cat_v, t_s_c, t_sol, third_coords, [(FOCAL_LENGTH_X, FOCAL_LENGTH_Y), (CENTER_X, CENTER_Y)], MIN_MATCHES_TRACKING, distance_threshold=140.0)
+    
+    # # new_rotational_angle = rotational_angle_between_quaternions(new_q, third_q)
+    
+    # # print(f"{new_rotational_angle}")
