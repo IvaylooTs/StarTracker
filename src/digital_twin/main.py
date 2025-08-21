@@ -1056,8 +1056,8 @@ def rotational_angle_between_quaternions(quaternion1, quaternion2):
 
 
 if __name__ == "__main__":
-    profiler = cProfile.Profile()
-    profiler.enable()
+    # profiler = cProfile.Profile()
+    # profiler.enable()
     
     mode = "LIS"
     quaternion = None
@@ -1119,7 +1119,7 @@ if __name__ == "__main__":
                 catalog_matrix = np.array(tracking_catalog_vectors)
                 coords = tracking_star_coords
                 best_solution = tracking_solution
-    profiler.disable()
-    profiler.dump_stats(OUT_FILE)
-    stats = pstats.Stats(OUT_FILE).strip_dirs().sort_stats("cumulative")
-stats.print_stats(5)
+#     profiler.disable()
+#     profiler.dump_stats(OUT_FILE)
+#     stats = pstats.Stats(OUT_FILE).strip_dirs().sort_stats("cumulative")
+# stats.print_stats(5)

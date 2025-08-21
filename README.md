@@ -1,7 +1,7 @@
 # Repo: Star Tracker
 
-**Team Name:** 404: Star Not Found  
-**Unofficial Project Name:** CASSI (Celestial Alignment System for Satellite Inertial-control)  
+**Team Name:** CASSI  
+**Project Name:** CASSI (Celestial Alignment System for Satellite Inertial-control)  
 **Official Category:** Star Tracker 1
 
 **Team Members:**  
@@ -28,7 +28,11 @@ Go to the `digital_twin` folder in the `src` directory. It contains:
 - `main.py` – main file with all the systems  
 - `star_distances_sorted.db` – database with calculated angular distances, sorted in ascending order  
 - `star_identified.png` – sample image from previous tests  
-- `test_images` – good images from *Stellarium* for testing purposes (uses specific resolution and FOV)
+- `test_images` – dir with images from *Stellarium* for testing purposes (uses specific resolution and FOV)
+- `create_hash.py` - a script to generate a hash map from database table "AngularDistances"
+- `catalog_hash.py` - an already generated hash with the script above using 2 degree tolerance
+- `stellarium360_new.js` - a script to be pasted into stellarium console for testing purposes
+- `script_images` - dir with images generated from the above script
 
 To run the script, you will need the `sqlite3` and `cv2` libraries installed on your system, and Python 3.
 
@@ -39,16 +43,20 @@ python3 main.py
 
 The results in your terminal should be:
 
-- Pixel coordinates of stars found in the picture  
-- The angular distance of each pair (close to the real ones — needs optimization)  
-- Candidate matches from the database for each star in the image  
-- The image being tested should display with the N brightest stars circled  
+- Indicator of which image you are currently processing
+- Which mode you're in (Lost-in-Space / Tracking)
+- The resulting quaternion from either of the two modes if one is produced
+- The mapping of image star to HIP ID if one is produced
+
+Files that should be generated when you run the script:
+
+- For each image that you're processing you should get a file generated in this format "stars_identified_[index]"
 
 ---
 
 ## System Architecture
 
-![Algorithm Diagram](https://raw.githubusercontent.com/IvaylooTs/StarTracker/refs/heads/main/Docs/Diagrams/system.png)
+![Lost-in-Space algorithm Diagram](https://raw.githubusercontent.com/IvaylooTs/StarTracker/refs/heads/main/Docs/Diagrams/Software_diagrams/Lost_in_space.png)
 
 ![Cad Design](https://raw.githubusercontent.com/IvaylooTs/StarTracker/refs/heads/main/Docs/CAD%20Images%20%2B%20drawings/CAD%20image.png)
 
@@ -81,11 +89,6 @@ We're implementing a Lost-in-Space approach based on pair matching. The algorith
 The stars in the image are filtered based on: Brightness, Size, and Eccentricity.  
 Then we select the N brightest stars in our image using blob detection and the `cv2` Python module. From this, we get the (x, y) coordinates of the center of each star in the image.
 
-Notes and Ideas:
-
-- This can and probably should be optimized using a feature extraction algorithm  
-- We currently don't account for lens distortion  
-
 ---
 
 #### 2. Angular Distance Calculations
@@ -96,33 +99,34 @@ Notes and Ideas:
 
 ---
 
-#### 3. Mapping Stars to Catalog (To-do)
+#### 3. Mapping Stars to Catalog 
 
-- For each pair of stars in our image, we query our database to get the possible candidate pairs with angular distances within a certain tolerance  
-- For each star in our image, both stars in each candidate pair from the database could be a match. How do we figure out the correct mapping? (TO-DO)
-
-Notes and Ideas:
-
-- The database search could be seriously optimized using a k-vector  
-- One idea for the mapping part is to create a graph-like structure, where the main nodes are the stars from our image, and their adjacency lists contain all the candidate stars from the database. After generating this graph/dictionary, we could use a traversal algorithm like DFS/BFS, excluding unlikely pairs at each recursion/iteration. If this works, the final optimization would be to use an A* algorithm with a good heuristic.
+- For each pair of stars in our image, we get the candidates ID pairs from our catalog hash
+- Then we assign the candidate IDs for each image star based on a voting system
+- Afterwards we run a DFS on this graph-like structure to find all possible mappings (even if incomplete)
+- In the end we score the solutions we got from the DFS to get the best one
 
 ---
 
-#### 4. Attitude Determination (To-do)
+#### 4. Attitude Determination 
 
 - From the final mapping of each star to a certain HIP in our database (from step above), we can now retrieve unit vectors from **Table 1**  
-- Determine pitch and yaw based on the known catalog orientation (aligned with the celestial equator)  
-- Build transformation matrices from:  
-  - Image star vectors (camera frame)  
-  - Catalog star vectors (inertial frame)  
-- Compute the rotational transformation matrix to determine roll  
-- Convert the final orientation to **quaternions**
+- We build the attitude profile matrix from the two sets of image and catalog vectors
+- We then build the attitude profile matrix in quaternion form 
+- We solve for the eigenvector with the largest eigenvalue which corresponds to our orientation quaternion
+
+---
+
+#### Tracking algorithm
+
+- For tracking we use a previous orientation quaternion to predict where the stars in our previous image are going to be in the next one 
+based on a certain amount of euclidian distance threshold this way we can make small and fast corrections to. We use the hungarian algorithm
 
 ---
 
 ### Hardware
 
-#### Hardware Integration (To-do)
+#### Hardware Integration
 
 - The initial orientation determined via camera is stored as a reference  
 - The IMU is zeroed at this orientation  
@@ -156,10 +160,9 @@ Notes and Ideas:
 - [x] Get angular distances between stars  
 - [x] Create database of parameters for comparison (star 1 HIP, star 2 HIP, angular distance)  
 - [x] Select candidates for possible stars in specific locations  
-- [ ] Identify the correct stars  
-- [ ] Find rotation matrix  
-- [ ] Apply rotation vector to IMU measurements  
-- [ ] Testing  
+- [x] Identify the correct stars  
+- [x] Orientation in quaternion form
+- [x] Testing  
 
 ### Hardware
 
@@ -179,21 +182,21 @@ Notes and Ideas:
 
 - [x] Construct simple box for fit testing and basic implementation  
 - [x] Build a better box for testing and protection  
-- [ ] Satellite enclosure with removable modules  
-  - [ ] Bottom panel  
-  - [ ] Sliders  
-  - [ ] Test sliders  
-  - [ ] Side protection panels  
-  - [ ] CASSI module  
+- [x] Satellite enclosure with removable modules  
+  - [x] Bottom panel  
+  - [x] Sliders  
+  - [x] Test sliders  
+  - [x] Side protection panels  
+  - [x] CASSI module  
 
 ### Additional
 
-- [ ] Testing | Make black box for testing using images on a monitor  
-- [ ] Visualization | Make control panel  
-  - [ ] 3D visualization  
-  - [ ] Live video  
-  - [ ] OpenCV calculations  
-  - [ ] Control buttons  
-- [ ] Check if static IP is needed (just in case)  
-- [ ] Study commercial star tracker manuals  
-- [ ] Consider handling edge cases such as solar flares, moonlight, sun/earth stray light, etc.
+- [x] Testing | Make black box for testing using images on a monitor  
+- [x] Visualization | Make control panel  
+  - [x] 3D visualization  
+  - [x] Live video  
+  - [x] OpenCV calculations  
+  - [x] Control buttons  
+- [x] Check if static IP is needed (just in case)  
+- [x] Study commercial star tracker manuals  
+- [x] Consider handling edge cases such as solar flares, moonlight, sun/earth stray light, etc.
