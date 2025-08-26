@@ -1,0 +1,82 @@
+2025-08-23 11:33:46,515  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 11:33:46,516  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 11:33:46,519  | Info    | Waiting for commands from UART
+2025-08-23 11:33:46,623  | Info    | System calibration attempt: 1/2
+2025-08-23 11:33:46,625  | Info    | BNO055 IMU detected and responding.
+2025-08-23 11:33:46,626  | Info    | Setting CONFIG mode
+2025-08-23 11:33:46,728  | Info    | Running tests:
+2025-08-23 11:33:46,730  | Info    | Self-Test Results:
+2025-08-23 11:33:46,730  | Info    |  - Accelerometer: PASS
+2025-08-23 11:33:46,731  | Info    |  - Magnetometer:  PASS
+2025-08-23 11:33:46,732  | Info    |  - Gyroscope:     PASS
+2025-08-23 11:33:46,732  | Info    |  - MCU:           PASS
+2025-08-23 11:33:46,835  | Warning | System status code: 128
+2025-08-23 11:33:46,835  | Info    | All BNO055 self-tests passed.
+2025-08-23 11:33:46,836  | Success | All IMU tests passed!
+2025-08-23 11:33:46,837  | Info    | loading calibration data...
+2025-08-23 11:33:46,843  | Warning | Calibration written to sensor.
+2025-08-23 11:33:46,844  | Info    | rotating axises
+2025-08-23 11:33:46,846  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 11:33:47,148  | Warning | Final testing...
+2025-08-23 11:33:47,150  | Info    | Self-Test Results:
+2025-08-23 11:33:47,150  | Info    |  - Accelerometer: PASS
+2025-08-23 11:33:47,151  | Info    |  - Magnetometer:  PASS
+2025-08-23 11:33:47,152  | Info    |  - Gyroscope:     PASS
+2025-08-23 11:33:47,152  | Info    |  - MCU:           PASS
+2025-08-23 11:33:47,255  | Warning | System status code: 133
+2025-08-23 11:33:47,256  | Info    | All BNO055 self-tests passed.
+2025-08-23 11:33:47,256  | Success | All IMU tests passed!
+2025-08-23 11:33:47,257  | Success | IMU setup successful!
+2025-08-23 11:33:47,260  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 11:33:47,260  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 11:33:47,263  | Info    | Starting WebSocket server...
+2025-08-23 11:33:47,300  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 11:33:50,735  | Info    | Clinet connected. IP - 192.168.55.119:57090. Count of clients: 1
+2025-08-23 11:35:32,798  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-23 11:35:32,799  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-23 11:35:32,800  | Info    | Lost in space... with camera
+2025-08-23 11:35:32,967  | Info    | requested_lost_in_space activated
+2025-08-23 11:35:32,968  | Info    | Please wait for algorithm to finish
+2025-08-23 11:35:32,970  | Warning | Continue normal operation
+2025-08-23 11:35:33,030  | Info    | we enter the algorithm
+2025-08-23 11:35:33,031  | Info    | starting lost in space because of request
+2025-08-23 11:35:34,514  | Warning | Requested live video feed.
+2025-08-23 11:35:34,516  | Info    | Starting video feed
+2025-08-23 11:36:12,152  | Info    | quaternion: [ 0.19367102 -0.7014243  -0.38193342  0.5697564 ]
+2025-08-23 11:36:12,153  | Info    | best_solution: {2: 59803, 3: 61359, 4: 67927, 5: 63608, 6: 59316, 8: 60965, 9: 64962, 10: 72622, 11: 65109, 13: 52943, 14: 56343, 15: 68895, 16: 57757}
+2025-08-23 11:36:12,163  | Info    | saving last quat: [ 0.19367102 -0.7014243  -0.38193342  0.5697564 ]
+2025-08-23 11:36:12,170  | Info    | added calibration (0.5697564035866152, 0.1936710161421913, -0.7014242958018786, -0.3819334174137374)
+2025-08-23 11:38:11,980  | Info    | Received from client: {"action":"setReturnMode","mode":"auto"}
+2025-08-23 11:38:11,981  | Info    | Received command: {"action":"setReturnMode","mode":"auto"}
+2025-08-23 11:38:11,983  | Success | changed mode to auto
+2025-08-23 11:38:12,359  | Info    | Entered lis in auto mode
+2025-08-23 11:39:17,488  | Info    | quaternion: [ 0.19045049 -0.69908071 -0.38595948  0.57100793]
+2025-08-23 11:39:17,491  | Info    | catalog_matrix: [[-0.94585124 -0.26310498  0.19010841]
+ [-0.92217657 -0.04076905 -0.38461443]
+ [-0.95061556 -0.12458692 -0.28426775]
+ [-0.86536025 -0.31035867 -0.39348333]
+ [-0.75258242 -0.27615534 -0.59779422]
+ [-0.70607135 -0.65199847 -0.2763354 ]
+ [-0.91540037  0.29027733 -0.27889287]
+ [-0.64400092 -0.74745151 -0.16303084]
+ [-0.96900188 -0.23983962  0.05926475]
+ [-0.99870044  0.04060008  0.03080697]
+ [-0.76108737 -0.4680921  -0.44903875]
+ [-0.95174108  0.17063653 -0.25509232]
+ [-0.84347767  0.09981599 -0.52780886]]
+2025-08-23 11:39:17,497  | Info    | coords: [array([503.01799046, 201.48366656]), array([1152.50783085,  540.44772905]), array([1007.93519923,  510.38849442]), array([936.00488035, 757.21661886]), array([1129.29489844,  959.45413321]), array([ 512.37175452, 1026.03960136]), array([1398.01736579,  195.04016335]), array([ 268.88318326, 1071.99221222]), array([648.32368305, 304.11744135]), array([914.01596629, 105.04604322]), array([841.9708127 , 974.47480338]), array([1248.17084119,  268.11257743]), array([1406.10685178,  585.95801248])]
+2025-08-23 11:39:17,499  | Info    | best_solution: {3: 63608, 4: 59316, 5: 60965, 7: 64962, 9: 65109, 10: 72622, 11: 52943, 12: 74785, 13: 63090, 14: 57757, 15: 68895, 16: 55282, 17: 56343}
+2025-08-23 11:39:17,500  | Info    | added calibration (0.5710079282502509, 0.19045048842489457, -0.699080709088782, -0.38595947910888456)
+2025-08-23 11:39:17,503  | Info    | quaternion is found
+2025-08-23 11:39:30,555  | Info    | added calibration (0.5716714263416885, 0.18912711611089525, -0.6980100549198648, -0.3875624820423189)
+2025-08-23 11:39:43,244  | Info    | added calibration (0.5718089335511574, 0.18861934330659733, -0.6977288660434575, -0.388113020048783)
+2025-08-23 11:39:45,048  | Info    | Received from client: {"action":"setReturnMode","mode":"manual"}
+2025-08-23 11:39:45,053  | Info    | Received command: {"action":"setReturnMode","mode":"manual"}
+2025-08-23 11:39:45,056  | Success | changed mode to manual
+2025-08-23 11:39:56,850  | Info    | added calibration (0.5718632735060806, 0.18856813633046804, -0.6975714378711897, -0.3883407568644895)
+2025-08-23 11:40:15,337  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 11:40:15,339  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 11:40:15,340  | Info    | system info 0
+2025-08-23 11:40:15,341  | Warning | Exiting program
+2025-08-23 11:40:15,343  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 11:40:15,344  | Info    | system info 0

@@ -1,0 +1,72 @@
+2025-08-23 11:58:13,132  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 11:58:13,134  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 11:58:13,136  | Info    | Waiting for commands from UART
+2025-08-23 11:58:13,236  | Info    | System calibration attempt: 1/2
+2025-08-23 11:58:13,238  | Info    | BNO055 IMU detected and responding.
+2025-08-23 11:58:13,238  | Info    | Setting CONFIG mode
+2025-08-23 11:58:13,340  | Info    | Running tests:
+2025-08-23 11:58:13,342  | Info    | Self-Test Results:
+2025-08-23 11:58:13,342  | Info    |  - Accelerometer: PASS
+2025-08-23 11:58:13,343  | Info    |  - Magnetometer:  PASS
+2025-08-23 11:58:13,343  | Info    |  - Gyroscope:     PASS
+2025-08-23 11:58:13,343  | Info    |  - MCU:           PASS
+2025-08-23 11:58:13,446  | Warning | System idle.
+2025-08-23 11:58:13,447  | Info    | All BNO055 self-tests passed.
+2025-08-23 11:58:13,447  | Success | All IMU tests passed!
+2025-08-23 11:58:13,447  | Info    | loading calibration data...
+2025-08-23 11:58:13,453  | Warning | Calibration written to sensor.
+2025-08-23 11:58:13,454  | Info    | rotating axises
+2025-08-23 11:58:13,456  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 11:58:13,758  | Warning | Final testing...
+2025-08-23 11:58:13,759  | Info    | Self-Test Results:
+2025-08-23 11:58:13,760  | Info    |  - Accelerometer: PASS
+2025-08-23 11:58:13,760  | Info    |  - Magnetometer:  PASS
+2025-08-23 11:58:13,762  | Info    |  - Gyroscope:     PASS
+2025-08-23 11:58:13,762  | Info    |  - MCU:           PASS
+2025-08-23 11:58:13,866  | Info    | System status: Fully operational.
+2025-08-23 11:58:13,866  | Info    | All BNO055 self-tests passed.
+2025-08-23 11:58:13,867  | Success | All IMU tests passed!
+2025-08-23 11:58:13,867  | Success | IMU setup successful!
+2025-08-23 11:58:13,867  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 11:58:13,868  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 11:58:13,869  | Info    | Starting WebSocket server...
+2025-08-23 11:58:13,902  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 11:58:15,349  | Warning | Requested live video feed.
+2025-08-23 11:58:15,351  | Info    | Starting video feed
+2025-08-23 11:58:17,373  | Info    | Clinet connected. IP - 192.168.55.119:54330. Count of clients: 1
+2025-08-23 12:00:22,241  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-23 12:00:22,242  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-23 12:00:22,243  | Info    | Lost in space... with camera
+2025-08-23 12:00:22,474  | Info    | requested_lost_in_space activated
+2025-08-23 12:00:22,475  | Info    | Please wait for algorithm to finish
+2025-08-23 12:00:22,476  | Warning | Continue normal operation
+2025-08-23 12:00:22,549  | Info    | we enter the algorithm
+2025-08-23 12:00:22,550  | Info    | starting lost in space because of request
+2025-08-23 12:01:06,334  | Warning | Requested live video feed.
+2025-08-23 12:01:06,352  | Info    | Starting video feed
+2025-08-23 12:01:17,451  | Info    | quaternion: [-0.16282309  0.67974839  0.41880387 -0.57968447]
+2025-08-23 12:01:17,451  | Info    | best_solution: {2: 68933, 3: 61359, 4: 59803, 5: 61941, 7: 67927, 8: 65109, 9: 63608, 10: 59316, 11: 74785, 12: 72622, 13: 64962, 14: 60965, 15: 52943, 16: 68895, 17: 55282, 18: 57757, 19: 67464, 6: 59196}
+2025-08-23 12:01:17,453  | Info    | saving last quat: [-0.16282309  0.67974839  0.41880387 -0.57968447]
+2025-08-23 12:01:17,453  | Info    | added calibration (-0.5796844732219129, -0.16282308895328051, 0.6797483901637815, 0.4188038673160659)
+2025-08-23 12:01:19,423  | Warning | Requested live video feed.
+2025-08-23 12:01:19,425  | Info    | Starting video feed
+2025-08-23 12:02:29,015  | Warning | Requested live video feed.
+2025-08-23 12:02:29,017  | Info    | Starting video feed
+2025-08-23 12:02:37,792  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-23 12:02:37,793  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-23 12:02:37,795  | Info    | Lost in space... with camera
+2025-08-23 12:02:37,953  | Info    | requested_lost_in_space activated
+2025-08-23 12:02:37,954  | Info    | Please wait for algorithm to finish
+2025-08-23 12:02:37,955  | Warning | Continue normal operation
+2025-08-23 12:02:37,997  | Info    | we enter the algorithm
+2025-08-23 12:02:37,998  | Info    | starting lost in space because of request
+2025-08-23 12:03:37,433  | Info    | quaternion: [ 0.18354271 -0.67563381 -0.40457987  0.58834187]
+2025-08-23 12:03:37,434  | Info    | best_solution: {3: 61941, 4: 59803, 5: 63608, 6: 67927, 8: 74785, 9: 64962, 10: 72622, 11: 59316, 12: 65109, 13: 52943, 14: 68895, 15: 57757, 16: 55282, 17: 72220, 18: 71957}
+2025-08-23 12:03:37,437  | Info    | saving last quat: [ 0.18354271 -0.67563381 -0.40457987  0.58834187]
+2025-08-23 12:03:37,438  | Info    | added calibration (0.588341873243174, 0.18354270563260403, -0.675633811675316, -0.40457986593361267)
+2025-08-23 12:03:42,620  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:03:42,620  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:03:42,621  | Info    | system info 0
+2025-08-23 12:03:42,623  | Warning | Exiting program
+2025-08-23 12:03:42,624  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:03:42,625  | Info    | system info 0

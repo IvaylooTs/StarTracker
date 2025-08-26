@@ -1,0 +1,82 @@
+2025-08-23 14:06:38,873  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 14:06:38,875  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 14:06:38,877  | Info    | Waiting for commands from UART
+2025-08-23 14:06:38,979  | Info    | System calibration attempt: 1/2
+2025-08-23 14:06:38,981  | Info    | BNO055 IMU detected and responding.
+2025-08-23 14:06:38,981  | Info    | Setting CONFIG mode
+2025-08-23 14:06:39,084  | Info    | Running tests:
+2025-08-23 14:06:39,085  | Info    | Self-Test Results:
+2025-08-23 14:06:39,086  | Info    |  - Accelerometer: PASS
+2025-08-23 14:06:39,087  | Info    |  - Magnetometer:  PASS
+2025-08-23 14:06:39,087  | Info    |  - Gyroscope:     PASS
+2025-08-23 14:06:39,088  | Info    |  - MCU:           PASS
+2025-08-23 14:06:39,190  | Warning | System status code: 128
+2025-08-23 14:06:39,191  | Info    | All BNO055 self-tests passed.
+2025-08-23 14:06:39,192  | Success | All IMU tests passed!
+2025-08-23 14:06:39,192  | Info    | loading calibration data...
+2025-08-23 14:06:39,198  | Warning | Calibration written to sensor.
+2025-08-23 14:06:39,199  | Info    | rotating axises
+2025-08-23 14:06:39,201  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 14:06:39,503  | Warning | Final testing...
+2025-08-23 14:06:39,505  | Info    | Self-Test Results:
+2025-08-23 14:06:39,505  | Info    |  - Accelerometer: PASS
+2025-08-23 14:06:39,506  | Info    |  - Magnetometer:  PASS
+2025-08-23 14:06:39,506  | Info    |  - Gyroscope:     PASS
+2025-08-23 14:06:39,507  | Info    |  - MCU:           PASS
+2025-08-23 14:06:39,610  | Warning | System status code: 133
+2025-08-23 14:06:39,610  | Info    | All BNO055 self-tests passed.
+2025-08-23 14:06:39,611  | Success | All IMU tests passed!
+2025-08-23 14:06:39,612  | Success | IMU setup successful!
+2025-08-23 14:06:39,613  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 14:06:39,614  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 14:06:39,615  | Info    | Starting WebSocket server...
+2025-08-23 14:06:39,650  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 14:06:41,086  | Info    | Clinet connected. IP - 192.168.55.119:48690. Count of clients: 1
+2025-08-23 14:09:09,037  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-23 14:09:09,038  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-23 14:09:09,039  | Info    | Lost in space... with camera
+2025-08-23 14:09:09,194  | Info    | requested_lost_in_space activated
+2025-08-23 14:09:09,195  | Info    | Please wait for algorithm to finish
+2025-08-23 14:09:09,196  | Warning | Continue normal operation
+2025-08-23 14:09:09,425  | Info    | we enter the algorithm
+2025-08-23 14:09:09,426  | Info    | starting lost in space because of request
+2025-08-23 14:09:47,467  | Info    | quaternion: [ 0.30079017 -0.70902348 -0.358116    0.52779153]
+2025-08-23 14:09:47,468  | Info    | best_solution: {3: 59803, 4: 61359, 5: 61941, 6: 63608, 8: 59316, 9: 52943, 10: 64962, 11: 55282, 12: 66249, 13: 57757, 14: 56343}
+2025-08-23 14:09:47,470  | Info    | saving last quat: [ 0.30079017 -0.70902348 -0.358116    0.52779153]
+2025-08-23 14:09:47,470  | Info    | added calibration (0.5277915345331033, 0.30079016915468804, -0.709023482789243, -0.3581160022513629)
+2025-08-23 14:11:53,495  | Info    | Received from client: {"action":"setReturnMode","mode":"auto"}
+2025-08-23 14:11:53,495  | Info    | Received command: {"action":"setReturnMode","mode":"auto"}
+2025-08-23 14:11:53,496  | Success | changed mode to auto
+2025-08-23 14:11:53,573  | Info    | Entered lis in auto mode
+2025-08-23 14:12:32,019  | Info    | quaternion: [-0.29661238  0.70593894  0.36233533 -0.53139855]
+2025-08-23 14:12:32,021  | Info    | catalog_matrix: [[-0.95122918 -0.06571498 -0.30140437]
+ [-0.90746665 -0.13718945 -0.39709361]
+ [-0.98320419 -0.18074739 -0.02529633]
+ [-0.94585124 -0.26310498  0.19010841]
+ [-0.92217657 -0.04076905 -0.38461443]
+ [-0.95061556 -0.12458692 -0.28426775]
+ [-0.86536025 -0.31035867 -0.39348333]
+ [-0.95174108  0.17063653 -0.25509232]
+ [-0.99870044  0.04060008  0.03080697]
+ [-0.91579565 -0.40150984 -0.01040101]]
+2025-08-23 14:12:32,025  | Info    | coords: [array([895.41485339, 642.32615762]), array([893.96305591, 785.5671157 ]), array([606.13802179, 458.37458773]), array([336.50656905, 294.28104472]), array([972.52120746, 707.89610056]), array([831.15192975, 664.37022667]), array([727.21947326, 920.20111732]), array([1083.22433253,  455.03694302]), array([781.02307971, 262.10536915]), array([348.22657629, 608.33741528])]
+2025-08-23 14:12:32,025  | Info    | best_solution: {3: 59803, 4: 61359, 5: 61941, 6: 63608, 8: 59316, 9: 60965, 10: 64962, 11: 55282, 12: 57757, 13: 66249}
+2025-08-23 14:12:32,026  | Info    | added calibration (-0.5313985533848444, -0.29661237888610353, 0.7059389374723011, 0.3623353290979229)
+2025-08-23 14:12:32,028  | Info    | quaternion is found
+2025-08-23 14:12:41,265  | Info    | added calibration (-0.5318308292969451, -0.295844238916597, 0.705437897311174, 0.3633036310668703)
+2025-08-23 14:12:51,172  | Info    | added calibration (0.5325797463170302, 0.29633721914941497, -0.7043959235393993, -0.3638261250388106)
+2025-08-23 14:13:00,978  | Info    | added calibration (-0.5332148066824189, -0.2960864890077769, 0.7042017007408258, 0.3634758941599938)
+2025-08-23 14:13:10,548  | Info    | added calibration (-0.5320242836225031, -0.29533466832935107, 0.7051855543480368, 0.3639243455137439)
+2025-08-23 14:13:20,526  | Info    | added calibration (-0.5199050329897656, -0.30395252998015115, 0.7109744205718843, 0.36307986653496693)
+2025-08-23 14:13:30,716  | Info    | added calibration (-0.5199911323661508, -0.3038879831275186, 0.7107405867519415, 0.36346820261855556)
+2025-08-23 14:13:41,228  | Info    | added calibration (-0.5070870525016236, -0.31244111787944207, 0.7168820503537577, 0.3623856991163595)
+2025-08-23 14:13:52,237  | Info    | added calibration (0.5018494919131593, 0.33234891874774053, -0.7100708880182046, -0.36536367863096364)
+2025-08-23 14:13:58,840  | Info    | Received from client: {"action":"setReturnMode","mode":"manual"}
+2025-08-23 14:13:58,841  | Info    | Received command: {"action":"setReturnMode","mode":"manual"}
+2025-08-23 14:13:58,842  | Success | changed mode to manual
+2025-08-23 14:33:23,320  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 14:33:23,321  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 14:33:23,322  | Info    | system info 0
+2025-08-23 14:33:23,323  | Warning | Exiting program
+2025-08-23 14:33:23,324  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 14:33:23,324  | Info    | system info 0

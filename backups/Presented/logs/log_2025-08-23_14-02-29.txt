@@ -1,0 +1,58 @@
+2025-08-23 14:02:33,848  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 14:02:33,849  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 14:02:33,852  | Info    | Waiting for commands from UART
+2025-08-23 14:02:33,958  | Info    | System calibration attempt: 1/2
+2025-08-23 14:02:33,960  | Info    | BNO055 IMU detected and responding.
+2025-08-23 14:02:33,960  | Info    | Setting CONFIG mode
+2025-08-23 14:02:34,063  | Info    | Running tests:
+2025-08-23 14:02:34,064  | Info    | Self-Test Results:
+2025-08-23 14:02:34,065  | Info    |  - Accelerometer: PASS
+2025-08-23 14:02:34,065  | Info    |  - Magnetometer:  PASS
+2025-08-23 14:02:34,066  | Info    |  - Gyroscope:     PASS
+2025-08-23 14:02:34,066  | Info    |  - MCU:           PASS
+2025-08-23 14:02:34,168  | Warning | System idle.
+2025-08-23 14:02:34,169  | Info    | All BNO055 self-tests passed.
+2025-08-23 14:02:34,169  | Success | All IMU tests passed!
+2025-08-23 14:02:34,170  | Info    | loading calibration data...
+2025-08-23 14:02:34,176  | Warning | Calibration written to sensor.
+2025-08-23 14:02:34,176  | Info    | rotating axises
+2025-08-23 14:02:34,178  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 14:02:34,480  | Warning | Final testing...
+2025-08-23 14:02:34,481  | Info    | Self-Test Results:
+2025-08-23 14:02:34,481  | Info    |  - Accelerometer: PASS
+2025-08-23 14:02:34,482  | Info    |  - Magnetometer:  PASS
+2025-08-23 14:02:34,482  | Info    |  - Gyroscope:     PASS
+2025-08-23 14:02:34,483  | Info    |  - MCU:           PASS
+2025-08-23 14:02:34,585  | Info    | System status: Fully operational.
+2025-08-23 14:02:34,586  | Info    | All BNO055 self-tests passed.
+2025-08-23 14:02:34,586  | Success | All IMU tests passed!
+2025-08-23 14:02:34,587  | Success | IMU setup successful!
+2025-08-23 14:02:34,587  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 14:02:34,587  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 14:02:34,589  | Info    | Starting WebSocket server...
+2025-08-23 14:02:34,624  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 14:02:37,140  | Info    | Clinet connected. IP - 192.168.55.119:44494. Count of clients: 1
+2025-08-23 14:02:38,433  | Info    | Client left. Remaning clients: 0
+2025-08-23 14:02:38,780  | Info    | Clinet connected. IP - 192.168.55.119:44502. Count of clients: 1
+2025-08-23 14:02:39,702  | Warning | Requested live video feed.
+2025-08-23 14:02:39,704  | Info    | Starting video feed
+2025-08-23 14:02:42,984  | Warning | Requested live video feed.
+2025-08-23 14:02:42,989  | Info    | Starting video feed
+2025-08-23 14:02:47,617  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-23 14:02:47,619  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-23 14:02:47,620  | Info    | Lost in space... with camera
+2025-08-23 14:02:47,796  | Info    | requested_lost_in_space activated
+2025-08-23 14:02:47,796  | Info    | Please wait for algorithm to finish
+2025-08-23 14:02:47,797  | Warning | Continue normal operation
+2025-08-23 14:02:47,883  | Info    | we enter the algorithm
+2025-08-23 14:02:47,884  | Info    | starting lost in space because of request
+2025-08-23 14:03:35,828  | Info    | quaternion: [ 0.14377754 -0.65683998 -0.49278874  0.55231197]
+2025-08-23 14:03:35,829  | Info    | best_solution: {2: 68933, 3: 61359, 4: 59803, 5: 71352, 6: 61941, 8: 72622, 9: 65109, 10: 74785, 11: 64962, 12: 59316, 13: 60965, 14: 68895, 15: 73714, 16: 52943, 17: 56343, 18: 66249, 19: 67464, 7: 59196}
+2025-08-23 14:03:35,830  | Info    | saving last quat: [ 0.14377754 -0.65683998 -0.49278874  0.55231197]
+2025-08-23 14:03:35,839  | Info    | added calibration (0.5523119742781797, 0.14377753830066042, -0.656839983173481, -0.49278873673593926)
+2025-08-23 14:03:37,610  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 14:03:37,611  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 14:03:37,612  | Info    | system info 0
+2025-08-23 14:03:37,614  | Warning | Exiting program
+2025-08-23 14:03:37,615  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 14:03:37,616  | Info    | system info 0

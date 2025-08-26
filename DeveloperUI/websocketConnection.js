@@ -84,6 +84,11 @@ function ConnectToWebSocket() {
     try {
         ws = new WebSocket(`ws://${window.ip}:6789`);
 
+
+        let stateCurrentStats = document.getElementById("stateValue");
+        let trustValue = document.getElementById("trustValue");
+        let modeCurrentStats =  document.getElementById("modeValue");
+        let currentAngleState = document.getElementById("currentAngleState");
         let timeout = setTimeout(() => {
             if (ws.readyState !== WebSocket.OPEN) {
                 ws.close();
@@ -96,19 +101,104 @@ function ConnectToWebSocket() {
             console.log('WebSocket connected');
             TerminalDisplayInfo("Connected to server.");
         };
+function multiplyMsgQuaternion(x1,y1,z1,w1) {
+  // Destructure the input quaternion components
+    x =x1;
+     y = y1; z= z1; w= w1; 
+
+  // Define the second quaternion
+  let x2 = 0;
+  let y2 = 0;
+  let z2 = 0.383;
+  let w2 = 0.934;
+
+  // Quaternion multiplication
+  return {
+    w: w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2,
+    x: w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
+    y: w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2,
+    z: w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2,
+  };
+}
+
 
         ws.onmessage = function(event) {
             TerminalDisplayInfo(event.data);
             try {
                 const msg = JSON.parse(event.data);
                 if (msg.quaternion) {
-                    const { x, y, z, w } = msg.quaternion;
-                    quaternionOutput.textContent = `w: ${w}\nx: ${x}\ny: ${y}\nz: ${z}\n`;
+                    let { x, y, z, w } = msg.quaternion;
+                    window.Satellite3DObject.quaternion.set(x,y,z,w);
+                    AddDataToChart({ w, x, y, z });
+                    w =parseFloat(w).toFixed(4);
+                    x =parseFloat(x).toFixed(4);
+                    y =parseFloat(y).toFixed(4);
+                    z =parseFloat(z).toFixed(4);
+                    let addMinusW = (w < 0 ? "-" : " ")
+                    let addMinusX = (x < 0 ? "-" : " ")
+                    let addMinusY = (y < 0 ? "-" : " ")
+                    let addMinusZ = (z < 0 ? "-" : " ")
+                    w = Math.abs(w)
+                    x = Math.abs(x)
+                    y = Math.abs(y)
+                    z = Math.abs(z)
+                    quaternionOutput.textContent = `w: ${addMinusW}${w} | x: ${addMinusX}${x}\ny: ${addMinusY}${y} | z: ${addMinusZ}${z}`;
                     systemStats.textContent = `CPU temp: ${msg.stats.CPU_temp}°C\nCPU Usage: ${msg.stats.CPU_usage}%\nRam usage: ${msg.stats.RAM_percent}%`;
 
-                    // console.log({x, y, z, w});aoksdzxc
-                    window.Satellite3DObject.quaternion.set(x, y, z, w);
-                    AddDataToChart({ w, x, y, z });
+                    let trustFactor = msg.trust;
+                    
+                    switch(parseInt(trustFactor)){
+                        case 0:
+                            trustValue.style.color = "#DC143C"
+                            trustValue.textContent = "0 - IMU raw"
+                            break;
+                        case 1:
+                            trustValue.style.color = "#FCF55F"
+                            trustValue.textContent = "1 - IMU calibrated"
+                            break;
+                        case 2:
+                            trustValue.style.color = "#AFE1AF"
+                            trustValue.textContent = "2 - tracking no IMU"
+                            break;
+                        case 3:
+                            trustValue.style.color = "#228B22"
+                            trustValue.textContent = "3 - tracking"
+                            break;
+                        default:
+                            trustValue.textContent = msg.trust
+
+                    }
+
+                    let cur_mode = msg.currentMode;
+                    let cur_lost_in_space_state = msg.lostInSpaceState;
+
+                    if(cur_mode == "manual"){
+                        modeCurrentStats.style.color = 'white';
+                        // modeCurrentStats.style.color = 'orange';
+                    }else if(cur_mode =="auto"){
+                    }
+                    currentAngleState.textContent = parseFloat(msg.angleDiff).toFixed(4)+ "°";
+
+                    if(cur_lost_in_space_state.toLowerCase() == "inactive"){
+                        stateCurrentStats.style.color = 'white';
+                    }else 
+                    if(cur_lost_in_space_state.toLowerCase() == "lost in space"){
+                        stateCurrentStats.style.color = '#4CBB17';
+                    }
+                    else if(cur_lost_in_space_state.toLowerCase() == "tracking"){
+                        stateCurrentStats.style.color = '';
+                    }
+                    else if(cur_lost_in_space_state.toLowerCase() == "imu calibrated"){
+                        stateCurrentStats.style.color = '#FF5F1F';
+                    }
+                    else if(cur_lost_in_space_state.toLowerCase() == "imu raw"){
+                        stateCurrentStats.style.color = '#DC143C';
+                    }
+
+                    modeCurrentStats.textContent  =  cur_mode.toUpperCase();
+                    stateCurrentStats.textContent =  cur_lost_in_space_state.toUpperCase();
+
+
                 }
                 else if(msg.error){
                     CLIDisplayInfo("Received error: " + msg.error.message);
@@ -122,6 +212,7 @@ function ConnectToWebSocket() {
                     let oldData = "w: " + old.w + " x: " + old.x + " y: "+ old.y + " z: " + old.z;
                     latestCalibration = current;
                     olderCalibration = old;
+                    let angle = msg.calibrationInfo.angle;
 
                     // window.Arrow3DObject.quaternion.set(1,0,0,0)
                     console.log(current);
@@ -144,7 +235,7 @@ function ConnectToWebSocket() {
                     window.Arrow3DObjectCalibrationOlder.quaternion.set(o_x, o_y,o_z,o_w);
 
                     
-                    let angle = axisAngleDeg([o_w, o_x, o_y, o_z], [ c_w, c_x, c_y, c_z]); // ~90
+                    // let angle = axisAngleDeg([o_w, o_x, o_y, o_z], [ c_w, c_x, c_y, c_z]); // ~90
                     CLIDisplayInfo("Angle between them: "
                         +angle);
                     // window.Arrow3DObject.setRotationFromQuaternion(
@@ -234,10 +325,21 @@ function sendCommand(cmd) {
         // CLIDisplayInfo("> " + cmd);
         displayError("WebSocket not connected");
     }
-
-    
 }
 
+function handleDropdownChange(type) {
+    let value;
+    if (type === "returnMode") {
+        value = document.getElementById("returnMode").value;
+        CLIDisplayInfo("Return quaternion mode set to: " + value);
+        ws.send(JSON.stringify({ action: "setReturnMode", mode: value }));
+    } 
+    else if (type === "quatSource") {
+        value = document.getElementById("quatSource").value;
+        CLIDisplayInfo("Quaternion source set to: " + value);
+        ws.send(JSON.stringify({ action: "setQuaternionSource", source: value }));
+    }
+}
 // window.addEventListener('beforeunload', () => {
 //     if (ws && ws.readyState === WebSocket.OPEN) {
 //         ws.send(JSON.stringify({ action: "disconnecting" }));

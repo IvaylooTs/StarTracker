@@ -18,6 +18,16 @@ function displayWebCam() {
 
 }
 
+const button = document.getElementById('open-stream');
+    button.addEventListener('click', () => {
+        const img = document.querySelector('#video-box img');
+        if(img) {
+            window.open(img.src, '_blank');
+        } else {
+            alert("No image available!");
+        }
+    });
+
 function displayCLI(){
      const container = document.getElementById("websocket-communication-container");
     

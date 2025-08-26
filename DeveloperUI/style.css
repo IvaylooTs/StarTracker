@@ -24,12 +24,90 @@ justify-content: space-between; /* Push left and right sections apart */
 padding: 0 10px;
 }
 
+#additional-bars-left p {
+  font-size:15px;
+  padding:0;
+  margin:0;
+}
+#infoWindow {
+  display: flex;
+  flex-direction: column;
+  position:absolute !important;
+  top:58% !important; 
+  transform: translateY(-58%) !important;
+  height: 35vh !important;
+  overflow-y: auto;   /* everything scrolls together */
+}
+#infoWindow h1{
+  margin:0px !important;
+  margin-bottom:20px !important;
+  padding:0;   
+  line-height: 1.2;   
+}
+
+.info-header {
+  /* padding-bottom:10%; */
+  flex: 1;            /* takes most of the height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* center mode/state nicely */
+}
+
+.info-body {
+  flex: 0 0 auto;     /* only as tall as needed */
+  margin-top: 10px;
+}
+
+
+#stateValue,
+#trustValue,
+#modeValue{
+  font-weight: bold;
+  font-size:23px;
+}
+#modeCurrentStats,
+#TrustFactorStats,
+#stateCurrentStats {
+  margin: 0; /* removes default margin */
+  padding: 0; /* optional */
+  font-size:18px;
+}
+#trustValue{
+  font-size:23px !important
+}
+.legend {
+    display: flex;
+    gap: 40px;             /* spacing between items */
+    margin-left: 20px;     /* align with pre text */
+    margin-top: 6px;
+    font-family: monospace;
+    font-size: 14px;
+  }
+
+  .legend-item {
+    display: flex;
+    flex-direction: column; /* stack number above text */
+    align-items: center;    /* center text under number */
+    text-align: center;     /* extra safety */
+  }
+
+  .legend-item .number {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .legend-item .text {
+    margin-top: 2px;
+  }
 #additional-bars-left,
 #additional-bars-right {
 display: flex;
 gap: 10px; /* Space between buttons in each group */
 }
-
+#currentAngle{
+  font-weight: bold;
+  font-size:20px;
+}
 .bar-btn {
 padding: 8px 14px;
 background: #444;
@@ -146,6 +224,9 @@ canvas { display: block; }
   font-size: 1.1em;
 }
 
+#quaternionOutput{
+  font-weight: bold;
+}
 .output {
   white-space: pre-wrap;        /* Preserve line breaks but wrap text */
   word-wrap: break-word;        /* Break long numbers if needed */
@@ -158,11 +239,16 @@ canvas { display: block; }
     overflow: hidden;
     border: 3px solid rgba(50, 51, 50, 0.377);
     position:absolute;
-    /* display:none; */
     bottom:10%;
     left:0;
-    /* border-radius: 10px; */
-    /* box-shadow: 0 0 15px rgba(0,255,0,0.3); */
+}
+
+
+.video-box button {
+  position:absolute;
+  bottom:0;
+  right:0;
+  cursor: pointer;
 }
 
 .video-box img {
@@ -186,7 +272,7 @@ canvas { display: block; }
   bottom:0;
   right:0;
   width: 33.33vw;
-  height: 37.5vh;
+  height: 27.5vh;
   background-color: #1e1e1e;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
   padding: 20px;
@@ -267,6 +353,10 @@ html, body {
   width:90%;
 }
     
+#quaternion-container h4{
+  margin:5px !important;
+  padding:0 !important;
+}
 #quaternion-container {
   color:white;
   position: absolute;
@@ -274,7 +364,7 @@ html, body {
   right: 0;
   width: 33.33vw;
   height: 38vh;
-  padding: 0px 10px 0px 10px;
+  padding: 0px 2px 0px 2px;
   background: #1e1e1e;
   /* border-radius: 8px; */
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
@@ -303,4 +393,46 @@ canvas {
   color: white;
   padding: 10px;
   box-sizing: border-box;
+}
+
+/* --------------------------------
+   Dropdown Menus
+-------------------------------- */
+.dropdown-section {
+  width: 80%;
+  margin: 8px 0;
+  padding: 5px;
+  text-align: left;
+  color: #fff;
+}
+
+.dropdown-section label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #00bcd4;
+}
+
+.dropdown {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #333;
+  border: 2px solid #006674;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.dropdown:hover {
+  background-color: #00bcd4;
+  color: #000;
+  box-shadow: 0 0 10px #00bcd4;
+}
+
+.dropdown:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 5px #00bcd4;
 }

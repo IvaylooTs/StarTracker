@@ -1,0 +1,163 @@
+2025-08-23 12:51:30,215  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 12:51:30,216  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 12:51:30,218  | Info    | Waiting for commands from UART
+2025-08-23 12:51:30,320  | Info    | System calibration attempt: 1/2
+2025-08-23 12:51:30,322  | Info    | BNO055 IMU detected and responding.
+2025-08-23 12:51:30,323  | Info    | Setting CONFIG mode
+2025-08-23 12:51:30,425  | Info    | Running tests:
+2025-08-23 12:51:30,427  | Info    | Self-Test Results:
+2025-08-23 12:51:30,427  | Info    |  - Accelerometer: PASS
+2025-08-23 12:51:30,428  | Info    |  - Magnetometer:  PASS
+2025-08-23 12:51:30,429  | Info    |  - Gyroscope:     PASS
+2025-08-23 12:51:30,429  | Info    |  - MCU:           PASS
+2025-08-23 12:51:30,532  | Warning | System idle.
+2025-08-23 12:51:30,533  | Info    | All BNO055 self-tests passed.
+2025-08-23 12:51:30,533  | Success | All IMU tests passed!
+2025-08-23 12:51:30,534  | Info    | loading calibration data...
+2025-08-23 12:51:30,541  | Warning | Calibration written to sensor.
+2025-08-23 12:51:30,541  | Info    | rotating axises
+2025-08-23 12:51:30,543  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 12:51:30,847  | Warning | Final testing...
+2025-08-23 12:51:30,848  | Info    | Self-Test Results:
+2025-08-23 12:51:30,849  | Info    |  - Accelerometer: PASS
+2025-08-23 12:51:30,849  | Info    |  - Magnetometer:  PASS
+2025-08-23 12:51:30,850  | Info    |  - Gyroscope:     PASS
+2025-08-23 12:51:30,850  | Info    |  - MCU:           PASS
+2025-08-23 12:51:30,955  | Info    | System status: Fully operational.
+2025-08-23 12:51:30,956  | Info    | All BNO055 self-tests passed.
+2025-08-23 12:51:30,956  | Success | All IMU tests passed!
+2025-08-23 12:51:30,956  | Success | IMU setup successful!
+2025-08-23 12:51:30,956  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 12:51:30,957  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 12:51:30,958  | Info    | Starting WebSocket server...
+2025-08-23 12:51:30,994  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 12:51:32,435  | Info    | Clinet connected. IP - 192.168.55.119:54420. Count of clients: 1
+2025-08-23 12:51:34,938  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-23 12:51:34,938  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-23 12:51:34,939  | Info    | Lost in space... with camera
+2025-08-23 12:51:35,097  | Info    | requested_lost_in_space activated
+2025-08-23 12:51:35,097  | Info    | Please wait for algorithm to finish
+2025-08-23 12:51:35,098  | Warning | Continue normal operation
+2025-08-23 12:51:35,423  | Info    | we enter the algorithm
+2025-08-23 12:51:35,424  | Info    | starting lost in space because of request
+2025-08-23 12:52:15,469  | Info    | quaternion: [ 0.21893611 -0.71622379 -0.38722513  0.53772405]
+2025-08-23 12:52:15,470  | Info    | best_solution: {2: 61359, 3: 59803, 4: 61941, 5: 59316, 6: 63608, 7: 60965, 8: 65109, 9: 72622, 10: 64962, 11: 52943, 12: 68895, 13: 56343, 14: 66249, 15: 63090, 16: 55282, 17: 57757, 19: 65936, 18: 49841}
+2025-08-23 12:52:15,473  | Info    | saving last quat: [ 0.21893611 -0.71622379 -0.38722513  0.53772405]
+2025-08-23 12:52:15,474  | Info    | added calibration (0.5377240501256618, 0.21893611135223132, -0.7162237946717255, -0.3872251296190013)
+2025-08-23 12:52:30,750  | Info    | Received from client: {"action":"setReturnMode","mode":"auto"}
+2025-08-23 12:52:30,751  | Info    | Received command: {"action":"setReturnMode","mode":"auto"}
+2025-08-23 12:52:30,752  | Success | changed mode to auto
+2025-08-23 12:52:31,086  | Info    | Entered lis in auto mode
+2025-08-23 12:53:02,862  | Info    | quaternion: [-0.22682398  0.67145854  0.69343887 -0.12975688]
+2025-08-23 12:53:02,864  | Info    | catalog_matrix: [[-0.63491725 -0.07807099 -0.7686254 ]
+ [-0.09818057  0.4600047  -0.88247167]
+ [-0.40798292  0.14255957 -0.90179084]
+ [-0.50249806  0.11464906 -0.85694299]
+ [-0.64584179 -0.11830113 -0.75425011]
+ [-0.47757168  0.20301438 -0.85481603]
+ [-0.66314638 -0.34339377 -0.66506962]]
+2025-08-23 12:53:02,867  | Info    | coords: [array([725.19646229, 343.19036354]), array([1319.44270631, 1067.03216922]), array([984.37187642, 628.49175699]), array([977.39209175, 489.17713618]), array([678.33426415, 322.33260709]), array([1058.00495904,  549.36138559]), array([399.39540434, 172.4290195 ])]
+2025-08-23 12:53:02,868  | Info    | best_solution: {1: 60823, 2: 32607, 3: 52419, 4: 54463, 6: 61932, 7: 51232, 8: 67464}
+2025-08-23 12:53:02,868  | Info    | added calibration (-0.12975688108698905, -0.22682397879780336, 0.6714585382740387, 0.6934388695709248)
+2025-08-23 12:53:02,872  | Info    | quaternion is found
+2025-08-23 12:53:11,173  | Info    | Received from client: {"action":"setQuaternionSource","source":"imu"}
+2025-08-23 12:53:11,174  | Info    | Received command: {"action":"setQuaternionSource","source":"imu"}
+2025-08-23 12:53:11,177  | Success | changed source to imu
+2025-08-23 12:53:13,670  | Info    | added calibration (0.1317272663140041, 0.21849871527560166, -0.6787923148760157, -0.6885834967508379)
+2025-08-23 12:53:24,788  | Info    | Entered lis in auto mode
+2025-08-23 12:53:54,101  | Warning | Requested live video feed.
+2025-08-23 12:53:54,128  | Info    | Starting video feed
+2025-08-23 12:54:05,157  | Info    | quaternion: [ 0.21679909 -0.71456758 -0.39008721  0.53872377]
+2025-08-23 12:54:05,160  | Info    | catalog_matrix: [[-0.90746665 -0.13718945 -0.39709361]
+ [-0.95122918 -0.06571498 -0.30140437]
+ [-0.98320419 -0.18074739 -0.02529633]
+ [-0.94585124 -0.26310498  0.19010841]
+ [-0.92217657 -0.04076905 -0.38461443]
+ [-0.95061556 -0.12458692 -0.28426775]
+ [-0.75258242 -0.27615534 -0.59779422]
+ [-0.70607135 -0.65199847 -0.2763354 ]
+ [-0.86536025 -0.31035867 -0.39348333]
+ [-0.91540037  0.29027733 -0.27889287]
+ [-0.91579565 -0.40150984 -0.01040101]
+ [-0.95174108  0.17063653 -0.25509232]
+ [-0.76108737 -0.4680921  -0.44903875]
+ [-0.99870044  0.04060008  0.03080697]]
+2025-08-23 12:54:05,164  | Info    | coords: [array([987.43764341, 626.15551175]), array([981.00638988, 486.54512647]), array([682.14885711, 319.48240056]), array([403.49969138, 169.47758661]), array([1061.17958539,  547.1828233 ]), array([918.98951166, 512.06757913]), array([1023.18536778,  962.14301913]), array([ 382.21386833, 1029.46799117]), array([837.33131612, 757.38787763]), array([1307.32233101,  220.27756638]), array([455.45798009, 482.35044097]), array([1163.23551207,  283.10417063]), array([733.18336215, 976.90093874]), array([839.0134331 ,  99.28218255])]
+2025-08-23 12:54:05,164  | Info    | best_solution: {2: 61359, 3: 59803, 4: 61941, 7: 63608, 8: 59316, 9: 60965, 10: 65109, 11: 72622, 12: 64962, 13: 52943, 14: 66249, 15: 55282, 16: 68895, 17: 57757}
+2025-08-23 12:54:05,171  | Info    | added calibration (0.5387237708290238, 0.21679908988361332, -0.7145675759557089, -0.39008721173883254)
+2025-08-23 12:54:05,174  | Info    | quaternion is found
+2025-08-23 12:54:16,533  | Info    | added calibration (-0.5412983122530305, -0.21630372571173437, 0.7114443787824475, 0.3924993392275979)
+2025-08-23 12:54:18,217  | Info    | Entered lis in auto mode
+2025-08-23 12:54:20,032  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:20,449  | Info    | Entered lis in auto mode
+2025-08-23 12:54:22,108  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:22,522  | Info    | Entered lis in auto mode
+2025-08-23 12:54:24,187  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:24,600  | Info    | Entered lis in auto mode
+2025-08-23 12:54:26,324  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:26,737  | Info    | Entered lis in auto mode
+2025-08-23 12:54:28,488  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:28,905  | Info    | Entered lis in auto mode
+2025-08-23 12:54:30,656  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:31,074  | Info    | Entered lis in auto mode
+2025-08-23 12:54:32,575  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:32,990  | Info    | Entered lis in auto mode
+2025-08-23 12:54:34,703  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:35,117  | Info    | Entered lis in auto mode
+2025-08-23 12:54:36,784  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:37,201  | Info    | Entered lis in auto mode
+2025-08-23 12:54:39,017  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:39,433  | Info    | Entered lis in auto mode
+2025-08-23 12:54:41,105  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:41,519  | Info    | Entered lis in auto mode
+2025-08-23 12:54:43,341  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:43,757  | Info    | Entered lis in auto mode
+2025-08-23 12:54:45,582  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:45,997  | Info    | Entered lis in auto mode
+2025-08-23 12:54:47,697  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:48,112  | Info    | Entered lis in auto mode
+2025-08-23 12:54:50,110  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:50,524  | Info    | Entered lis in auto mode
+2025-08-23 12:54:52,265  | Error   | No quaternion found in auto mode.
+2025-08-23 12:54:52,681  | Info    | Entered lis in auto mode
+2025-08-23 12:55:34,543  | Info    | quaternion: [ 0.21538406 -0.71354966 -0.39176579  0.53942205]
+2025-08-23 12:55:34,546  | Info    | catalog_matrix: [[-0.90746665 -0.13718945 -0.39709361]
+ [-0.95122918 -0.06571498 -0.30140437]
+ [-0.98320419 -0.18074739 -0.02529633]
+ [-0.92217657 -0.04076905 -0.38461443]
+ [-0.95061556 -0.12458692 -0.28426775]
+ [-0.94585124 -0.26310498  0.19010841]
+ [-0.70607135 -0.65199847 -0.2763354 ]
+ [-0.75258242 -0.27615534 -0.59779422]
+ [-0.64400092 -0.74745151 -0.16303084]
+ [-0.91540037  0.29027733 -0.27889287]
+ [-0.95174108  0.17063653 -0.25509232]
+ [-0.84347767  0.09981599 -0.52780886]
+ [-0.99870044  0.04060008  0.03080697]
+ [-0.76108737 -0.4680921  -0.44903875]]
+2025-08-23 12:55:34,550  | Info    | coords: [array([992.27540952, 623.13775266]), array([986.02149174, 483.45662028]), array([687.37214955, 316.21284421]), array([1066.11043091,  544.20523931]), array([923.93425139, 508.50361112]), array([409.40762294, 166.07553569]), array([ 388.49931118, 1023.5577751 ]), array([1027.41576515,  958.68464792]), array([ 120.22733653, 1071.12792217]), array([1314.12425883,  217.06427773]), array([1169.14258877,  279.33621993]), array([1308.05402354,  597.19677879]), array([844.18514698,  95.30849235]), array([738.02441671, 972.29070959])]
+2025-08-23 12:55:34,552  | Info    | best_solution: {2: 61359, 3: 59803, 4: 61941, 7: 59316, 8: 60965, 9: 63608, 10: 72622, 11: 65109, 12: 74785, 13: 52943, 14: 55282, 15: 56343, 16: 57757, 17: 68895}
+2025-08-23 12:55:34,553  | Info    | added calibration (0.5394220549857726, 0.21538406043548652, -0.7135496618104719, -0.391765788750639)
+2025-08-23 12:55:34,558  | Info    | quaternion is found
+2025-08-23 12:55:46,511  | Info    | added calibration (0.5400569788153086, 0.21475638934809205, -0.7125118203791272, -0.3931221930736989)
+2025-08-23 12:55:52,294  | Info    | Received from client: {"action":"setReturnMode","mode":"manual"}
+2025-08-23 12:55:52,295  | Info    | Received command: {"action":"setReturnMode","mode":"manual"}
+2025-08-23 12:55:52,297  | Success | changed mode to manual
+2025-08-23 12:55:54,487  | Warning | Requested live video feed.
+2025-08-23 12:55:54,492  | Info    | Starting video feed
+2025-08-23 12:55:59,475  | Info    | added calibration (0.5401797394646829, 0.21463986310720573, -0.7121513371452712, -0.39366997756927025)
+2025-08-23 12:57:21,298  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-23 12:57:21,298  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-23 12:57:21,299  | Info    | Lost in space... with camera
+2025-08-23 12:57:21,454  | Info    | requested_lost_in_space activated
+2025-08-23 12:57:21,455  | Info    | Please wait for algorithm to finish
+2025-08-23 12:57:21,456  | Warning | Continue normal operation
+2025-08-23 12:57:21,607  | Info    | we enter the algorithm
+2025-08-23 12:57:21,607  | Info    | starting lost in space because of request
+2025-08-23 12:57:51,547  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:57:51,577  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:57:51,589  | Info    | system info 0
+2025-08-23 12:57:51,623  | Info    | Client left. Remaning clients: 0
+2025-08-23 12:57:51,647  | Warning | Exiting program
+2025-08-23 12:57:51,675  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:57:51,681  | Info    | system info 0

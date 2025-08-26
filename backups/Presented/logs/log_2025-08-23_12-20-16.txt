@@ -1,0 +1,44 @@
+2025-08-23 12:20:20,677  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 12:20:20,678  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 12:20:20,680  | Info    | Waiting for commands from UART
+2025-08-23 12:20:20,778  | Info    | System calibration attempt: 1/2
+2025-08-23 12:20:20,782  | Info    | BNO055 IMU detected and responding.
+2025-08-23 12:20:20,783  | Info    | Setting CONFIG mode
+2025-08-23 12:20:20,886  | Info    | Running tests:
+2025-08-23 12:20:20,888  | Info    | Self-Test Results:
+2025-08-23 12:20:20,889  | Info    |  - Accelerometer: PASS
+2025-08-23 12:20:20,889  | Info    |  - Magnetometer:  PASS
+2025-08-23 12:20:20,890  | Info    |  - Gyroscope:     PASS
+2025-08-23 12:20:20,891  | Info    |  - MCU:           PASS
+2025-08-23 12:20:20,994  | Warning | System idle.
+2025-08-23 12:20:20,995  | Info    | All BNO055 self-tests passed.
+2025-08-23 12:20:20,995  | Success | All IMU tests passed!
+2025-08-23 12:20:20,996  | Info    | loading calibration data...
+2025-08-23 12:20:21,002  | Warning | Calibration written to sensor.
+2025-08-23 12:20:21,003  | Info    | rotating axises
+2025-08-23 12:20:21,005  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 12:20:21,309  | Warning | Final testing...
+2025-08-23 12:20:21,311  | Info    | Self-Test Results:
+2025-08-23 12:20:21,313  | Info    |  - Accelerometer: PASS
+2025-08-23 12:20:21,314  | Info    |  - Magnetometer:  PASS
+2025-08-23 12:20:21,315  | Info    |  - Gyroscope:     PASS
+2025-08-23 12:20:21,316  | Info    |  - MCU:           PASS
+2025-08-23 12:20:21,418  | Warning | System status code: 133
+2025-08-23 12:20:21,419  | Info    | All BNO055 self-tests passed.
+2025-08-23 12:20:21,420  | Success | All IMU tests passed!
+2025-08-23 12:20:21,420  | Success | IMU setup successful!
+2025-08-23 12:20:21,421  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 12:20:21,422  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 12:20:21,423  | Info    | Starting WebSocket server...
+2025-08-23 12:20:21,460  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 12:20:24,281  | Warning | Requested live video feed.
+2025-08-23 12:20:24,283  | Info    | Starting video feed
+2025-08-23 12:20:28,105  | Info    | Clinet connected. IP - 192.168.55.119:56498. Count of clients: 1
+2025-08-23 12:20:39,752  | Warning | Requested live video feed.
+2025-08-23 12:20:39,754  | Info    | Starting video feed
+2025-08-23 12:20:43,128  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:20:43,129  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:20:43,129  | Info    | system info 0
+2025-08-23 12:20:43,130  | Warning | Exiting program
+2025-08-23 12:20:43,131  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:20:43,131  | Info    | system info 0

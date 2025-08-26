@@ -1,0 +1,56 @@
+2025-08-23 13:07:34,507  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 13:07:34,509  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 13:07:34,512  | Info    | Waiting for commands from UART
+2025-08-23 13:07:34,617  | Info    | System calibration attempt: 1/2
+2025-08-23 13:07:34,618  | Info    | BNO055 IMU detected and responding.
+2025-08-23 13:07:34,619  | Info    | Setting CONFIG mode
+2025-08-23 13:07:34,721  | Info    | Running tests:
+2025-08-23 13:07:34,723  | Info    | Self-Test Results:
+2025-08-23 13:07:34,724  | Info    |  - Accelerometer: PASS
+2025-08-23 13:07:34,724  | Info    |  - Magnetometer:  PASS
+2025-08-23 13:07:34,724  | Info    |  - Gyroscope:     PASS
+2025-08-23 13:07:34,725  | Info    |  - MCU:           PASS
+2025-08-23 13:07:34,828  | Warning | System status code: 128
+2025-08-23 13:07:34,828  | Info    | All BNO055 self-tests passed.
+2025-08-23 13:07:34,829  | Success | All IMU tests passed!
+2025-08-23 13:07:34,829  | Info    | loading calibration data...
+2025-08-23 13:07:34,835  | Warning | Calibration written to sensor.
+2025-08-23 13:07:34,836  | Info    | rotating axises
+2025-08-23 13:07:34,837  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 13:07:35,140  | Warning | Final testing...
+2025-08-23 13:07:35,141  | Info    | Self-Test Results:
+2025-08-23 13:07:35,141  | Info    |  - Accelerometer: PASS
+2025-08-23 13:07:35,142  | Info    |  - Magnetometer:  PASS
+2025-08-23 13:07:35,142  | Info    |  - Gyroscope:     PASS
+2025-08-23 13:07:35,143  | Info    |  - MCU:           PASS
+2025-08-23 13:07:35,245  | Info    | System status: Fully operational.
+2025-08-23 13:07:35,246  | Info    | All BNO055 self-tests passed.
+2025-08-23 13:07:35,246  | Success | All IMU tests passed!
+2025-08-23 13:07:35,247  | Success | IMU setup successful!
+2025-08-23 13:07:35,248  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 13:07:35,248  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 13:07:35,250  | Info    | Starting WebSocket server...
+2025-08-23 13:07:35,281  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 13:07:35,397  | Warning | Requested live video feed.
+2025-08-23 13:07:35,399  | Info    | Starting video feed
+2025-08-23 13:07:55,339  | Info    | Clinet connected. IP - 192.168.55.119:43978. Count of clients: 1
+2025-08-23 13:07:56,995  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-23 13:07:56,996  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-23 13:07:56,997  | Info    | Lost in space... with camera
+2025-08-23 13:07:57,174  | Info    | requested_lost_in_space activated
+2025-08-23 13:07:57,178  | Info    | Please wait for algorithm to finish
+2025-08-23 13:07:57,185  | Warning | Continue normal operation
+2025-08-23 13:07:57,362  | Info    | we enter the algorithm
+2025-08-23 13:07:57,362  | Info    | starting lost in space because of request
+2025-08-23 13:08:41,947  | Warning | Requested live video feed.
+2025-08-23 13:08:41,950  | Info    | Starting video feed
+2025-08-23 13:08:46,347  | Info    | quaternion: [ 0.20856979 -0.71073622 -0.41035929  0.53193788]
+2025-08-23 13:08:46,349  | Info    | best_solution: {2: 68933, 3: 61359, 4: 59803, 5: 61941, 8: 63608, 9: 59316, 10: 72622, 11: 64962, 12: 74785, 13: 65109, 14: 60965, 15: 52943, 16: 63090, 17: 68895, 18: 66249, 19: 55282, 6: 59196, 7: 52727}
+2025-08-23 13:08:46,350  | Info    | saving last quat: [ 0.20856979 -0.71073622 -0.41035929  0.53193788]
+2025-08-23 13:08:46,352  | Info    | added calibration (0.5319378838273575, 0.208569794456044, -0.7107362243268149, -0.41035929137708055)
+2025-08-23 13:08:49,550  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 13:08:49,551  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 13:08:49,552  | Info    | system info 0
+2025-08-23 13:08:49,554  | Warning | Exiting program
+2025-08-23 13:08:49,556  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 13:08:49,557  | Info    | system info 0

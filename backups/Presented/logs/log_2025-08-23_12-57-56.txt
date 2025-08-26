@@ -1,0 +1,52 @@
+2025-08-23 12:58:00,195  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 12:58:00,197  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 12:58:00,199  | Info    | Waiting for commands from UART
+2025-08-23 12:58:00,302  | Info    | System calibration attempt: 1/2
+2025-08-23 12:58:00,304  | Info    | BNO055 IMU detected and responding.
+2025-08-23 12:58:00,304  | Info    | Setting CONFIG mode
+2025-08-23 12:58:00,407  | Info    | Running tests:
+2025-08-23 12:58:00,409  | Info    | Self-Test Results:
+2025-08-23 12:58:00,409  | Info    |  - Accelerometer: PASS
+2025-08-23 12:58:00,410  | Info    |  - Magnetometer:  PASS
+2025-08-23 12:58:00,411  | Info    |  - Gyroscope:     PASS
+2025-08-23 12:58:00,413  | Info    |  - MCU:           PASS
+2025-08-23 12:58:00,516  | Warning | System idle.
+2025-08-23 12:58:00,517  | Info    | All BNO055 self-tests passed.
+2025-08-23 12:58:00,518  | Success | All IMU tests passed!
+2025-08-23 12:58:00,518  | Info    | loading calibration data...
+2025-08-23 12:58:00,524  | Warning | Calibration written to sensor.
+2025-08-23 12:58:00,525  | Info    | rotating axises
+2025-08-23 12:58:00,527  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 12:58:00,830  | Warning | Final testing...
+2025-08-23 12:58:00,832  | Info    | Self-Test Results:
+2025-08-23 12:58:00,833  | Info    |  - Accelerometer: PASS
+2025-08-23 12:58:00,837  | Info    |  - Magnetometer:  PASS
+2025-08-23 12:58:00,837  | Info    |  - Gyroscope:     PASS
+2025-08-23 12:58:00,838  | Info    |  - MCU:           PASS
+2025-08-23 12:58:00,940  | Warning | System status code: 133
+2025-08-23 12:58:00,941  | Info    | All BNO055 self-tests passed.
+2025-08-23 12:58:00,941  | Success | All IMU tests passed!
+2025-08-23 12:58:00,942  | Success | IMU setup successful!
+2025-08-23 12:58:00,942  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 12:58:00,943  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 12:58:00,944  | Info    | Starting WebSocket server...
+2025-08-23 12:58:00,978  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 12:58:02,667  | Info    | Clinet connected. IP - 192.168.55.119:47240. Count of clients: 1
+2025-08-23 12:58:03,902  | Info    | Received from client: {"action":"lostInSpaceCamera"}
+2025-08-23 12:58:03,902  | Info    | Received command: {"action":"lostInSpaceCamera"}
+2025-08-23 12:58:03,902  | Info    | Lost in space... with camera
+2025-08-23 12:58:04,051  | Info    | requested_lost_in_space activated
+2025-08-23 12:58:04,051  | Info    | Please wait for algorithm to finish
+2025-08-23 12:58:04,052  | Warning | Continue normal operation
+2025-08-23 12:58:04,205  | Info    | we enter the algorithm
+2025-08-23 12:58:04,206  | Info    | starting lost in space because of request
+2025-08-23 12:58:40,696  | Info    | quaternion: [ 0.2115165  -0.71130074 -0.39685068  0.54020512]
+2025-08-23 12:58:40,697  | Info    | best_solution: {2: 61359, 3: 59803, 4: 59316, 5: 63608, 6: 60965, 9: 64962, 10: 72622, 11: 65109, 12: 74785, 13: 67927, 14: 52943, 15: 63090, 16: 66249, 17: 68895, 18: 55282}
+2025-08-23 12:58:40,699  | Info    | saving last quat: [ 0.2115165  -0.71130074 -0.39685068  0.54020512]
+2025-08-23 12:58:40,702  | Info    | added calibration (0.5402051160671487, 0.2115165020335013, -0.7113007389312827, -0.39685067813751)
+2025-08-23 12:58:42,762  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:58:42,762  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:58:42,763  | Info    | system info 0
+2025-08-23 12:58:42,764  | Warning | Exiting program
+2025-08-23 12:58:42,765  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 12:58:42,766  | Info    | system info 0

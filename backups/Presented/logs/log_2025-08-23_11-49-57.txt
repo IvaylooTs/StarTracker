@@ -1,0 +1,48 @@
+2025-08-23 11:50:07,014  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 11:50:07,015  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 11:50:07,017  | Info    | Waiting for commands from UART
+2025-08-23 11:50:07,155  | Info    | System calibration attempt: 1/2
+2025-08-23 11:50:07,157  | Info    | BNO055 IMU detected and responding.
+2025-08-23 11:50:07,157  | Info    | Setting CONFIG mode
+2025-08-23 11:50:07,260  | Info    | Running tests:
+2025-08-23 11:50:07,261  | Info    | Self-Test Results:
+2025-08-23 11:50:07,262  | Info    |  - Accelerometer: PASS
+2025-08-23 11:50:07,262  | Info    |  - Magnetometer:  PASS
+2025-08-23 11:50:07,262  | Info    |  - Gyroscope:     PASS
+2025-08-23 11:50:07,263  | Info    |  - MCU:           PASS
+2025-08-23 11:50:07,365  | Warning | System idle.
+2025-08-23 11:50:07,366  | Info    | All BNO055 self-tests passed.
+2025-08-23 11:50:07,366  | Success | All IMU tests passed!
+2025-08-23 11:50:07,367  | Info    | loading calibration data...
+2025-08-23 11:50:07,373  | Warning | Calibration written to sensor.
+2025-08-23 11:50:07,374  | Info    | rotating axises
+2025-08-23 11:50:07,376  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 11:50:07,679  | Warning | Final testing...
+2025-08-23 11:50:07,680  | Info    | Self-Test Results:
+2025-08-23 11:50:07,681  | Info    |  - Accelerometer: PASS
+2025-08-23 11:50:07,681  | Info    |  - Magnetometer:  PASS
+2025-08-23 11:50:07,682  | Info    |  - Gyroscope:     PASS
+2025-08-23 11:50:07,683  | Info    |  - MCU:           PASS
+2025-08-23 11:50:07,789  | Warning | System status code: 133
+2025-08-23 11:50:07,789  | Info    | All BNO055 self-tests passed.
+2025-08-23 11:50:07,789  | Success | All IMU tests passed!
+2025-08-23 11:50:07,790  | Success | IMU setup successful!
+2025-08-23 11:50:07,790  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 11:50:07,790  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 11:50:07,791  | Info    | Starting WebSocket server...
+2025-08-23 11:50:07,848  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 11:50:09,240  | Info    | Clinet connected. IP - 192.168.55.119:59906. Count of clients: 1
+2025-08-23 11:50:12,687  | Info    | Received from client: {"action":"setReturnMode","mode":"auto"}
+2025-08-23 11:50:12,687  | Info    | Received command: {"action":"setReturnMode","mode":"auto"}
+2025-08-23 11:50:12,688  | Success | changed mode to auto
+2025-08-23 11:50:13,031  | Info    | Entered lis in auto mode
+2025-08-23 11:50:13,982  | Info    | Received from client: {"action":"setReturnMode","mode":"manual"}
+2025-08-23 11:50:13,983  | Info    | Received command: {"action":"setReturnMode","mode":"manual"}
+2025-08-23 11:50:13,984  | Success | changed mode to manual
+2025-08-23 11:50:15,041  | Error   | No quaternion found in auto mode.
+2025-08-23 11:50:15,665  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 11:50:15,666  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 11:50:15,666  | Info    | system info 0
+2025-08-23 11:50:15,667  | Warning | Exiting program
+2025-08-23 11:50:15,668  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 11:50:15,669  | Info    | system info 0

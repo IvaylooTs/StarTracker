@@ -38,17 +38,42 @@
   <div id="three-container"></div>
   <div class="video-box" id="video-box" style="display:none">
     <!-- <img id="stream" src="https://192.168.55.160:5000/video_feed" alt="Live Stream"> -->
+    <!-- <button id="open-stream">⌞ ⌝</button> -->
   </div>
   <div id="quaternion-container">
     <h4>Real-Time Quaternion Display</h4>
     <canvas id="quaternionChart"></canvas>
   </div>
   <div id="infoWindow">
-    <h3>Quaternion Values</h3>
-    <pre id="quaternionOutput">Waiting for data...</pre>
-    <h3>System stats</h3>
-    <pre id="systemStats">Waiting for data...</pre>
-  </div> 
+    <h1>System information</h1>
+    <div class="info-header">
+      <pre id="modeCurrentStats" >Current mode: <span class="value" id="modeValue">Waiting</span></pre>
+      <pre id="stateCurrentStats">System state: <span class="value" id="stateValue">Waiting</span></pre>
+      <pre id="TrustFactorStats" >Trust factor: <span class="value" id="trustValue">Waiting</span></pre>
+    </div><div class="legend">
+  <div class="legend-item">
+    <div class="number">0</div>
+    <div class="text">IMU Raw</div>
+  </div>
+  <div class="legend-item">
+    <div class="number">1</div>
+    <div class="text">IMU Calibrated</div>
+  </div>
+  <div class="legend-item">
+    <div class="number">2</div>
+    <div class="text">Tracking <br>no IMU</div>
+  </div>
+  <div class="legend-item">
+    <div class="number">3</div>
+    <div class="text">Tracking</div>
+  </div>
+</div>
+    <div class="info-body">
+      <h3>System stats</h3>
+      <pre id="systemStats">Waiting for data...</pre>
+    </div>
+  </div>
+
 
   <div id="UI-visibility" style="display:none">
     <label><input type="checkbox" id="display-cubeCheckBox" checked>Cube</label><br>
@@ -63,13 +88,15 @@
       <button onclick="displayCLI()" class="bar-btn">Console</button>
       <button onclick="displayWebCam()" class="bar-btn">Webcam</button>
       <button onclick="display3DElementsChanger()" class="bar-btn">3D elements</button>
+      <pre id="quaternionOutput">Output: waiting for data...</pre>
       <!-- <button onclick="" class="bar-btn">Realtime data</button> -->
     </div>
+    <div id="additional-bars-right"> 
+    <pre id="currentAngle">Angle difference: <span class="value" id="currentAngleState">Waiting for info...</span></pre>
 
-    <div id="additional-bars-right">
-      <button  class="bar-btn" onclick="sendCommand('rebootProgram')" style="color:coral">Reboot program</button>
-      <button  class="bar-btn" onclick="sendCommand('rebootSystem')" style="color:red">Reboot system</button>
-    </div>
+      <!-- <button  class="bar-btn" onclick="sendCommand('rebootProgram')" style="color:coral">Reboot program</button>
+      <button  class="bar-btn" onclick="sendCommand('rebootSystem')" style="color:red">Reboot system</button> -->
+    </div>  
   </div>
 
   <div id="websocket-communication-container" style="all:unset;display:none">
@@ -89,10 +116,11 @@
       <h2>Controls</h2>
 
       <button class="btn" onclick="downloadPhotoCapture(`https:///${newIpAddress}:5000/capture_photo`)">Capture & download</button>
-      <button class="btn" onclick="sendCommand('calibrate')">Calibrate IMU</button>
+      <button class="btn" onclick="sendCommand('calibrate')">Reset IMU</button>
+      <button class="btn" onclick="sendCommand('getCalibrationQuaternions')">Update calibration data</button>
+      <p>Activate in manual mode:</p>
       <button class="btn" onclick="sendCommand('lostInSpaceTest')">Lost in space! test</button>
       <button class="btn" onclick="sendCommand('lostInSpaceCamera')">Lost in space! Camera</button>
-      <button class="btn" onclick="sendCommand('getCalibrationQuaternions')">Get calibration info</button>
       <div class="quaternion-inputs">
           <label for="q_w">W: </label>
         <input type="number" step="any" id="q_w" name="q_w" placeholder="w (real)" class="quat-field">
@@ -102,8 +130,28 @@
         <input type="number" step="any" id="q_y" name="q_y" placeholder="y" class="quat-field">
           <label for="q_z">Z: </label>
         <input type="number" step="any" id="q_z" name="q_z" placeholder="z" class="quat-field">
-        <button class="btn" onclick="sendCommand('addOffset')">Send Quaternion</button>
+        <button class="btn" onclick="sendCommand('addOffset')">Add quaternion offset</button>
       </div>
+
+      <p>Change modes:</p>
+      <div class="dropdown-section">
+        <label for="returnMode">Return quaternion: </label>
+        <select id="returnMode" class="dropdown" onchange="handleDropdownChange('returnMode')">
+          <option value="auto">automatic (satellite sim)</option>
+          <option value="manual">manual</option>
+        </select>
+      </div>
+
+      <div class="dropdown-section">
+        <label for="quatSource">Quaternion source: </label>
+        <select id="quatSource" class="dropdown" onchange="handleDropdownChange('quatSource')">
+          <option value="lostInSpace">Lost in space</option>
+          <!-- <option value="tracking">Tracking</option> -->
+          <option value="imu">IMU</option>
+        </select>
+      </div>
+
+
     </div>
   </div>
 </div>
@@ -119,6 +167,7 @@
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
     import { OrbitControls } from 'https://esm.sh/three@0.160.1/examples/jsm/controls/OrbitControls.js';
     // import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js';
+    import { STLLoader } from 'https://esm.sh/three@0.160.1/examples/jsm/loaders/STLLoader.js';
 
   // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   const container = document.getElementById('three-container');
@@ -154,10 +203,14 @@
 
   const satellite = new THREE.Group();
   const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+  // const loader = new THREE.GLTFLoader();
+  //   loader.load('model.glb', function (gltf) {
+  //     scene.add(gltf.scene);
+  //   });
   // const cubeMaterial = new THREE.MeshNormalMaterial(); // colorful material
   const cube = new THREE.Mesh(cubeGeometry, cubeMaterials);
   cube.name ="Cube"
-  satellite.add( cube);
+  // satellite.add( cube);
 
   // Arrow pointing out +Z (front face)
   const origin = new THREE.Vector3(0.5, 0, 0); // front face center
@@ -168,6 +221,84 @@
   // scene.add(arrowHelper);
   satellite.add(arrowHelper);
 
+
+
+  const loader = new STLLoader();
+  const material = new THREE.MeshPhongMaterial({
+    color: 0x7fb3d3,
+    specular: 0xffffff,
+    shininess: 30
+  });
+
+  let mesh = null;
+  let edgesHelper = null;
+
+  // Replace this URL with the path to your STL file
+  const stlFile = './model.stl';
+
+  loader.load(
+    stlFile,
+    (geometry) => {
+      // Remove old mesh and edges if exist
+      if (mesh !== null) {
+        scene.remove(mesh);
+        mesh.geometry.dispose();
+      }
+      if (edgesHelper !== null) {
+        scene.remove(edgesHelper);
+        edgesHelper.geometry.dispose();
+      }
+
+      // Create mesh
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+
+      // Center geometry
+      geometry.computeBoundingBox();
+      const center = geometry.boundingBox.getCenter(new THREE.Vector3());
+      geometry.translate(-center.x, -center.y, -center.z);
+      mesh.position.set(0.1,0,0);
+      mesh.scale.set(0.005, 0.005, 0.005);
+      mesh.rotation.set(0,0,(-180+45)*Math.PI/180);
+      satellite.add(mesh);
+
+      // Add cartoon edges
+      const edges = new THREE.EdgesGeometry(geometry, 12); // 12 degrees threshold
+      edgesHelper = new THREE.LineSegments(
+        edges,
+        new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 2 })
+      );
+      edgesHelper.rotation.set(0,0,(-180+45)*Math.PI/180);
+      edgesHelper.position.set(0.1,0,0);
+      edgesHelper.scale.set(0.005, 0.005, 0.005);
+
+      satellite.add(edgesHelper);
+
+      // Position camera to fit model
+      const size = geometry.boundingBox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      document.getElementById('info').textContent = 'STL model loaded';
+      setTimeout(() => {
+        // document.getElementById('info').style.opacity = '0.5';
+      }, 2000);
+    },
+    (xhr) => {
+      if (xhr.lengthComputable) {
+        const percentComplete = (xhr.loaded / xhr.total) * 100;
+        // document.getElementById(
+        //   'info'
+        // ).textContent = `Loading: ${Math.round(percentComplete)}%`;
+      }
+    },
+    (error) => {
+      console.error('Error loading STL:', error);
+      // document.getElementById('info').textContent = 'Error loading STL file';
+    }
+  );
   scene.add(satellite);
 
 
@@ -204,6 +335,8 @@
     );
   });
 }
+
+
   window.Satellite3DObject = satellite;
 
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -270,6 +403,8 @@
     return group
   }
 
+
+  
   // Example lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // soft white light
 scene.add(ambientLight);
@@ -413,6 +548,10 @@ function createArrow(length = 2, color = 0xff0000) {
 
     //olderCalibrationArrow
     //newerCalibrationArrow
+    //x1,y1,z1,w1,x2,y2,z2,w2
+    function quatMulty(){
+      return 1
+    }
   </script>
   <script src="websocketConnection.js"></script>
   <script src="charts.js"></script>

@@ -1,0 +1,44 @@
+2025-08-23 13:40:39,482  | Info    | Started flask server on ip: 192.168.55.173
+2025-08-23 13:40:39,483  | Info    | Serial port /dev/serial0 opened successfully at 9600 baud.
+2025-08-23 13:40:39,485  | Info    | Waiting for commands from UART
+2025-08-23 13:40:39,592  | Info    | System calibration attempt: 1/2
+2025-08-23 13:40:39,594  | Info    | BNO055 IMU detected and responding.
+2025-08-23 13:40:39,595  | Info    | Setting CONFIG mode
+2025-08-23 13:40:39,701  | Info    | Running tests:
+2025-08-23 13:40:39,703  | Info    | Self-Test Results:
+2025-08-23 13:40:39,703  | Info    |  - Accelerometer: PASS
+2025-08-23 13:40:39,703  | Info    |  - Magnetometer:  PASS
+2025-08-23 13:40:39,704  | Info    |  - Gyroscope:     PASS
+2025-08-23 13:40:39,704  | Info    |  - MCU:           PASS
+2025-08-23 13:40:39,724  | Warning | Requested live video feed.
+2025-08-23 13:40:39,726  | Info    | Starting video feed
+2025-08-23 13:40:39,807  | Warning | System status code: 128
+2025-08-23 13:40:39,807  | Info    | All BNO055 self-tests passed.
+2025-08-23 13:40:39,808  | Success | All IMU tests passed!
+2025-08-23 13:40:39,808  | Info    | loading calibration data...
+2025-08-23 13:40:39,815  | Warning | Calibration written to sensor.
+2025-08-23 13:40:39,815  | Info    | rotating axises
+2025-08-23 13:40:39,817  | Info    | Entering NDOF_FMC_OFF mode to lock calibration...
+2025-08-23 13:40:39,913  | Warning | Requested live video feed.
+2025-08-23 13:40:39,914  | Info    | Starting video feed
+2025-08-23 13:40:40,122  | Warning | Final testing...
+2025-08-23 13:40:40,124  | Info    | Self-Test Results:
+2025-08-23 13:40:40,125  | Info    |  - Accelerometer: PASS
+2025-08-23 13:40:40,127  | Info    |  - Magnetometer:  PASS
+2025-08-23 13:40:40,127  | Info    |  - Gyroscope:     PASS
+2025-08-23 13:40:40,127  | Info    |  - MCU:           PASS
+2025-08-23 13:40:40,230  | Warning | System status code: 133
+2025-08-23 13:40:40,231  | Info    | All BNO055 self-tests passed.
+2025-08-23 13:40:40,232  | Success | All IMU tests passed!
+2025-08-23 13:40:40,234  | Success | IMU setup successful!
+2025-08-23 13:40:40,235  | Info    | Format - Euler angles - (Heading, Roll, Pitch)
+2025-08-23 13:40:40,236  | Info    | Format - Quaternion - (w, x, y, z)
+2025-08-23 13:40:40,237  | Info    | Starting WebSocket server...
+2025-08-23 13:40:40,293  | Success | WebSocket server started on ws://192.168.55.173:6789
+2025-08-23 13:40:40,811  | Info    | Clinet connected. IP - 192.168.55.119:49934. Count of clients: 1
+2025-08-23 13:40:58,623  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 13:40:58,625  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 13:40:58,629  | Info    | system info 0
+2025-08-23 13:40:58,635  | Warning | Exiting program
+2025-08-23 13:40:58,637  | Info    | ACTIVATING SHUTDOWN INTERUPT
+2025-08-23 13:40:58,638  | Info    | system info 0
