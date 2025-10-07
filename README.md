@@ -172,12 +172,12 @@ Notes and Ideas:
   - [x] Camera  
   - [x] IMU (Gyroscope, Accelerometer, Magnetometer)  
 - [x] Calibrate IMU at hardware level  
-  - [ ] Measure drift  
-  - [ ] Research drift correction  
-- [ ] Calibrate IMU at software level  
-- [ ] Add interface for communication with Arduino (I2C is a good candidate)  
-- [ ] Develop firmware  
-  - [ ] Auto boot configuration  
+  - [x] Measure drift  
+  - [x] Research drift correction  
+- [x] Calibrate IMU at software level  
+- [x] Add interface for communication with Arduino (I2C is a good candidate)  
+- [x] Develop firmware  
+  - [x] Auto boot configuration  
 
 ### CAD
 
