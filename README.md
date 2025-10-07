@@ -7,6 +7,7 @@
 **Team Members:**  
 Michael Yan, Ivaylo Tsekov, Alexandra Nedela, Dilyana Vasileva, Tsvetomir Staykov
 
+## Note: for full and final documentation please read Star_Tracker_3.pdf
 ---
 
 ## Problem
